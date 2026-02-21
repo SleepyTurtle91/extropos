@@ -1,0 +1,304 @@
+import 'package:flutter/material.dart';
+import '../services/appwrite_service.dart';
+
+class AppwriteSettingsScreen extends StatefulWidget {
+  const AppwriteSettingsScreen({super.key});
+
+  @override
+  State<AppwriteSettingsScreen> createState() => _AppwriteSettingsScreenState();
+}
+
+class _AppwriteSettingsScreenState extends State<AppwriteSettingsScreen> {
+  final _endpointController = TextEditingController();
+  final _projectIdController = TextEditingController();
+  final _apiKeyController = TextEditingController();
+  bool _isLoading = false;
+  bool _isConnected = false;
+  String _connectionStatus = 'Not connected';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _endpointController.dispose();
+    _projectIdController.dispose();
+    _apiKeyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSettings() async {
+    final endpoint = await AppwriteService.instance.getEndpoint();
+    final projectId = await AppwriteService.instance.getProjectId();
+    final apiKey = await AppwriteService.instance.getApiKey();
+
+    setState(() {
+      _endpointController.text = endpoint ?? '';
+      _projectIdController.text = projectId ?? '';
+      _apiKeyController.text = apiKey ?? '';
+    });
+
+    // Check connection status
+    await _checkConnection();
+  }
+
+  Future<void> _checkConnection() async {
+    setState(() {
+      _isLoading = true;
+      _connectionStatus = 'Testing connection...';
+    });
+
+    try {
+      final isConnected = await AppwriteService.instance.testConnection();
+      setState(() {
+        _isConnected = isConnected;
+        _connectionStatus = isConnected ? 'Connected' : 'Connection failed';
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isConnected = false;
+        _connectionStatus = 'Error: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    final endpoint = _endpointController.text.trim();
+    final projectId = _projectIdController.text.trim();
+    final apiKey = _apiKeyController.text.trim();
+
+    if (endpoint.isEmpty || projectId.isEmpty || apiKey.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await AppwriteService.instance.setEndpoint(endpoint);
+      await AppwriteService.instance.setProjectId(projectId);
+      await AppwriteService.instance.setApiKey(apiKey);
+
+      // Reinitialize the service with new settings
+      await AppwriteService.instance.initialize();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings saved successfully')),
+        );
+      }
+
+      // Test connection with new settings
+      await _checkConnection();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving settings: $e')),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Appwrite Integration'),
+        backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Connection Status Card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _isConnected ? Icons.check_circle : Icons.error,
+                          color: _isConnected ? Colors.green : Colors.red,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Connection Status',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _connectionStatus,
+                      style: TextStyle(
+                        color: _isConnected ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _checkConnection,
+                        icon: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.refresh),
+                        label: Text(_isLoading ? 'Testing...' : 'Test Connection'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Configuration Section
+            const Text(
+              'Configuration',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Endpoint
+            TextFormField(
+              controller: _endpointController,
+              decoration: const InputDecoration(
+                labelText: 'Appwrite Endpoint',
+                hintText: 'https://cloud.appwrite.io/v1',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.link),
+              ),
+              enabled: !_isLoading,
+            ),
+            const SizedBox(height: 16),
+
+            // Project ID
+            TextFormField(
+              controller: _projectIdController,
+              decoration: const InputDecoration(
+                labelText: 'Project ID',
+                hintText: 'Your Appwrite project ID',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.folder),
+              ),
+              enabled: !_isLoading,
+            ),
+            const SizedBox(height: 16),
+
+            // API Key
+            TextFormField(
+              controller: _apiKeyController,
+              decoration: const InputDecoration(
+                labelText: 'API Key',
+                hintText: 'Your Appwrite API key',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.vpn_key),
+              ),
+              obscureText: true,
+              enabled: !_isLoading,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Save Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isLoading ? null : _saveSettings,
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save),
+                label: Text(_isLoading ? 'Saving...' : 'Save Settings'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Information Card
+            Card(
+              color: Colors.blue[50],
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'How to get your Appwrite credentials:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '1. Go to your Appwrite Console',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                    Text(
+                      '2. Select your project',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                    Text(
+                      '3. Go to Settings → General to get Project ID',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                    Text(
+                      '4. Go to Settings → API Keys to create an API key',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                    Text(
+                      '5. Use your Appwrite endpoint URL',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

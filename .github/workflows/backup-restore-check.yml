@@ -1,0 +1,123 @@
+name: Backup & Restore Check (non-destructive)
+
+on:
+  workflow_dispatch:
+    inputs:
+      timestamp:
+        description: 'Backup timestamp folder to check (e.g., 20251128T123000Z)'
+        required: true
+      bucket:
+        description: 'S3 bucket to check (if empty will use S3_BUCKET secret)'
+        required: false
+  schedule:
+    - cron: '0 2 * * *' # nightly at 02:00 UTC
+
+jobs:
+  check-backup:
+    runs-on: ubuntu-latest
+    env:
+      TIMESTAMP_INPUT: ${{ github.event.inputs.timestamp }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli jq
+
+      - name: Validate inputs
+        id: vars
+        run: |
+          TIMESTAMP="${{ github.event.inputs.timestamp }}"
+          BUCKET="${{ github.event.inputs.bucket }}"
+          if [[ -z "$BUCKET" ]]; then
+            BUCKET="${{ secrets.S3_BUCKET }}"
+          fi
+          if [[ -z "$BUCKET" ]]; then
+            echo "No S3 bucket provided or secret S3_BUCKET not set" && exit 1
+          fi
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+
+      - name: List backups in bucket
+        run: |
+          TIMESTAMP=${{ steps.vars.outputs.timestamp }}
+          BUCKET=${{ steps.vars.outputs.bucket }}
+          echo "Listing backup prefix s3://$BUCKET/nextcloud-backups/$TIMESTAMP/"
+          aws s3 ls "s3://$BUCKET/nextcloud-backups/$TIMESTAMP/" --recursive || true
+
+      - name: Find DB and Data keys
+        id: findkeys
+        run: |
+          TIMESTAMP=${{ steps.vars.outputs.timestamp }}
+          BUCKET=${{ steps.vars.outputs.bucket }}
+          DB_KEY=$(aws s3 ls "s3://$BUCKET/nextcloud-backups/$TIMESTAMP/" --recursive | awk '/\.sql$/ {print $4; exit}')
+          DATA_KEY=$(aws s3 ls "s3://$BUCKET/nextcloud-backups/$TIMESTAMP/" --recursive | awk '/\.tar(\.gz)?$/ {print $4; exit}')
+          echo "db_key=$DB_KEY" >> $GITHUB_OUTPUT
+          echo "data_key=$DATA_KEY" >> $GITHUB_OUTPUT
+          if [[ -z "$DB_KEY" || -z "$DATA_KEY" ]]; then
+            echo "Missing DB or data backup at prefix" && exit 1
+          fi
+
+      - name: Download DB & Data artifacts (non-destructive)
+        run: |
+          TIMESTAMP=${{ steps.vars.outputs.timestamp }}
+          BUCKET=${{ steps.vars.outputs.bucket }}
+          DB_KEY=${{ steps.findkeys.outputs.db_key }}
+          DATA_KEY=${{ steps.findkeys.outputs.data_key }}
+          mkdir -p /tmp/backups
+          aws s3 cp "s3://$BUCKET/$DB_KEY" /tmp/backups/backup.sql
+          aws s3 cp "s3://$BUCKET/$DATA_KEY" /tmp/backups/backup-data.tar.gz
+          ls -l /tmp/backups
+
+      - name: Inspect DB SQL (first 10 lines)
+        run: |
+          head -n 10 /tmp/backups/backup.sql | sed -n '1,10p'
+
+      - name: Inspect Data archive contents (first 30 entries)
+        run: |
+          tar -tzf /tmp/backups/backup-data.tar.gz | head -n 30 || true
+
+  simulate-in-runner:
+    runs-on: ubuntu-latest
+    needs: check-backup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install AWS CLI & Docker (for dry-run checks)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli jq docker.io
+
+      - name: Create dummy backup artifacts and upload to S3
+        id: create_and_upload
+        run: |
+          set -e
+          BUCKET=${{ secrets.S3_BUCKET }}
+          if [[ -z "$BUCKET" ]]; then echo "S3_BUCKET secret not set" && exit 1; fi
+          TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
+          mkdir -p /tmp/backups
+          echo "-- Dummy SQL dump --" > /tmp/backups/backup-${TIMESTAMP}.sql
+          tar -czf /tmp/backups/backup-data-${TIMESTAMP}.tar.gz -C /tmp/backups backup-${TIMESTAMP}.sql
+          AWS_OPTS=""
+          if [[ -n "${{ secrets.S3_ENDPOINT }}" ]]; then
+            AWS_OPTS="--endpoint-url ${{ secrets.S3_ENDPOINT }}"
+          fi
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 $AWS_OPTS cp /tmp/backups/backup-${TIMESTAMP}.sql s3://$BUCKET/nextcloud-backups/$TIMESTAMP/ || exit 1
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 $AWS_OPTS cp /tmp/backups/backup-data-${TIMESTAMP}.tar.gz s3://$BUCKET/nextcloud-backups/$TIMESTAMP/ || exit 1
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+
+      - name: Run restore helper in dry-run (runner)
+        run: |
+          TIMESTAMP=${{ steps.create_and_upload.outputs.timestamp }}
+          echo "Running restore-from-objectstore.sh --timestamp "$TIMESTAMP" --dry-run"
+          sudo chmod +x docker/nextcloud-traefik/restore-from-objectstore.sh
+          cp docker/nextcloud-traefik/.env.sample docker/nextcloud-traefik/.env || true
+          S3_BUCKET=${{ secrets.S3_BUCKET }} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} ./docker/nextcloud-traefik/restore-from-objectstore.sh --timestamp $TIMESTAMP --dry-run --work-dir docker/nextcloud-traefik || true
+

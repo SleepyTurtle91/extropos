@@ -1,0 +1,124 @@
+# APPWRITE CLOUD - QUICK REFERENCE CARD
+
+## 🚀 QUICK START
+
+```powershell
+cd e:\flutterpos\docker
+docker compose -f appwrite-compose-cloud-windows.yml -f traefik-compose.yml up -d
+```
+
+## 📊 STATUS COMMANDS
+
+```powershell
+# All containers
+docker compose ps
+
+# Health check
+.\monitor-cloud-health.ps1 -Command health
+
+# Real-time logs
+docker compose logs -f appwrite
+
+# Disk usage
+.\monitor-cloud-health.ps1 -Command disk-usage
+
+# Database size
+.\monitor-cloud-health.ps1 -Command db-size
+```
+
+## 🔧 OPERATIONS
+
+| Task | Command |
+|------|---------|
+| **Start Stack** | `docker compose up -d` |
+| **Stop Stack** | `docker compose down` |
+| **Restart All** | `docker compose restart` |
+| **Restart API** | `docker compose restart appwrite` |
+| **Backup Now** | `.\backup-cloud-storage.ps1` |
+| **View Logs** | `docker compose logs -f appwrite` |
+| **SSH to DB** | `docker exec -it appwrite-mariadb mysql -u appwrite -p` |
+| **SSH to Redis** | `docker exec -it appwrite-redis redis-cli -a redis_secure_pw_2026` |
+
+## 🌐 ACCESS
+
+| Component | URL/Port |
+|-----------|----------|
+| API | http://localhost:8080/v1 |
+| Console | http://localhost:8080/console |
+| Dashboard | http://localhost:8090 |
+| Database | localhost:3306 |
+| Cache | localhost:6379 |
+
+## 🔐 CREDENTIALS
+
+```
+Database (MariaDB)
+  User: appwrite
+  Pass: appwrite_db_pw_secure_2026
+  
+Cache (Redis)  
+  Pass: redis_secure_pw_2026
+  
+API Key
+  api_key_secure_2026
+```
+
+## 📁 IMPORTANT FILES
+
+```
+Configuration:    e:\flutterpos\docker\.env
+Main Stack:       e:\flutterpos\docker\appwrite-compose-cloud-windows.yml
+Reverse Proxy:    e:\flutterpos\docker\traefik-compose.yml
+Storage:          E:\appwrite-cloud\
+Backups:          E:\appwrite-cloud\backups\
+Operations Guide: e:\flutterpos\docker\APPWRITE_CLOUD_OPERATIONS.md
+```
+
+## 🆘 EMERGENCY
+
+```powershell
+# Check what's wrong
+docker compose logs appwrite
+
+# Full health scan
+.\monitor-cloud-health.ps1 -Command health
+
+# Restart everything
+docker compose restart
+
+# Clean rebuild (loses cache)
+docker compose down
+docker compose up -d
+
+# Restore from backup
+.\monitor-cloud-health.ps1 -Command restore -RestoreFile "path/to/backup.zip"
+```
+
+## ⚠️ WARNING SIGNS
+
+| Sign | Action |
+|------|--------|
+| **API slow** | Check logs, restart workers |
+| **DB down** | Check disk space, restart mariadb |
+| **Disk 80%+** | Clean old backups, archive files |
+| **Worker failing** | Check logs, restart specific worker |
+| **Can't connect** | Verify docker desktop is running |
+
+## 📅 SCHEDULED TASKS
+
+- **Daily 2 AM**: Automated backup script
+- **Weekly**: Log review & disk check
+- **Monthly**: Off-site backup & DR drill
+
+## 🔗 USEFUL LINKS
+
+- Appwrite Docs: https://appwrite.io/docs
+- Docker Compose: https://docs.docker.com/compose/
+- Traefik: https://doc.traefik.io/traefik/
+- MariaDB: https://mariadb.com/docs/
+
+---
+
+**Last Updated**: January 28, 2026  
+**Version**: 1.5.7  
+**Status**: ✅ Production Ready

@@ -1,0 +1,12 @@
+Starting a Gradle Daemon, 3 busy and 1 incompatible Daemons could not be reused, use --status for details
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+> Task :app:PosAppReleaseMinSdkCheck
+> Task :app:compileFlutterBuildFrontendAppRelease
+Terminate batch job (Y/N)? 

@@ -1,0 +1,664 @@
+DETAILED TRANSACTION LOG
+════════════════════════════════════════════════════════════
+Total Transactions: 60
+
+Transaction #1
+├─ Time: 2026-02-19 20:00:56.145444
+├─ Items: 5 item(s) (9 total)
+├─ Subtotal: RM270.00
+├─ Tax: RM27.00
+├─ Total: RM297.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 15ms
+
+
+Transaction #2
+├─ Time: 2026-02-19 20:00:56.149532
+├─ Items: 3 item(s) (9 total)
+├─ Subtotal: RM230.00
+├─ Tax: RM23.00
+├─ Total: RM253.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #3
+├─ Time: 2026-02-19 20:00:56.150532
+├─ Items: 3 item(s) (6 total)
+├─ Subtotal: RM230.00
+├─ Tax: RM23.00
+├─ Total: RM253.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #4
+├─ Time: 2026-02-19 20:00:56.151536
+├─ Items: 3 item(s) (7 total)
+├─ Subtotal: RM265.00
+├─ Tax: RM26.50
+├─ Total: RM291.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #5
+├─ Time: 2026-02-19 20:00:56.153537
+├─ Items: 5 item(s) (15 total)
+├─ Subtotal: RM435.00
+├─ Tax: RM43.50
+├─ Total: RM478.50
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #6
+├─ Time: 2026-02-19 20:00:56.155535
+├─ Items: 3 item(s) (8 total)
+├─ Subtotal: RM175.00
+├─ Tax: RM17.50
+├─ Total: RM192.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #7
+├─ Time: 2026-02-19 20:00:56.158573
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM25.00
+├─ Tax: RM2.50
+├─ Total: RM27.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #8
+├─ Time: 2026-02-19 20:00:56.159591
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM45.00
+├─ Tax: RM4.50
+├─ Total: RM49.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #9
+├─ Time: 2026-02-19 20:00:56.161592
+├─ Items: 2 item(s) (6 total)
+├─ Subtotal: RM120.00
+├─ Tax: RM12.00
+├─ Total: RM132.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #10
+├─ Time: 2026-02-19 20:00:56.163588
+├─ Items: 2 item(s) (3 total)
+├─ Subtotal: RM50.00
+├─ Tax: RM5.00
+├─ Total: RM55.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #11
+├─ Time: 2026-02-19 20:00:56.164587
+├─ Items: 2 item(s) (3 total)
+├─ Subtotal: RM45.00
+├─ Tax: RM4.50
+├─ Total: RM49.50
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #12
+├─ Time: 2026-02-19 20:00:56.168084
+├─ Items: 5 item(s) (10 total)
+├─ Subtotal: RM380.00
+├─ Tax: RM38.00
+├─ Total: RM418.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #13
+├─ Time: 2026-02-19 20:00:56.170213
+├─ Items: 4 item(s) (7 total)
+├─ Subtotal: RM130.00
+├─ Tax: RM13.00
+├─ Total: RM143.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #14
+├─ Time: 2026-02-19 20:00:56.172237
+├─ Items: 3 item(s) (6 total)
+├─ Subtotal: RM250.00
+├─ Tax: RM25.00
+├─ Total: RM275.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #15
+├─ Time: 2026-02-19 20:00:56.173931
+├─ Items: 1 item(s) (2 total)
+├─ Subtotal: RM50.00
+├─ Tax: RM5.00
+├─ Total: RM55.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #16
+├─ Time: 2026-02-19 20:00:56.175450
+├─ Items: 4 item(s) (7 total)
+├─ Subtotal: RM150.00
+├─ Tax: RM15.00
+├─ Total: RM165.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #17
+├─ Time: 2026-02-19 20:00:56.176488
+├─ Items: 2 item(s) (2 total)
+├─ Subtotal: RM15.00
+├─ Tax: RM1.50
+├─ Total: RM16.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #18
+├─ Time: 2026-02-19 20:00:56.178039
+├─ Items: 4 item(s) (9 total)
+├─ Subtotal: RM280.00
+├─ Tax: RM28.00
+├─ Total: RM308.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #19
+├─ Time: 2026-02-19 20:00:56.179138
+├─ Items: 3 item(s) (7 total)
+├─ Subtotal: RM265.00
+├─ Tax: RM26.50
+├─ Total: RM291.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #20
+├─ Time: 2026-02-19 20:00:56.181183
+├─ Items: 3 item(s) (8 total)
+├─ Subtotal: RM315.00
+├─ Tax: RM31.50
+├─ Total: RM346.50
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #21
+├─ Time: 2026-02-19 20:00:56.184704
+├─ Items: 3 item(s) (4 total)
+├─ Subtotal: RM90.00
+├─ Tax: RM9.00
+├─ Total: RM99.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #22
+├─ Time: 2026-02-19 20:00:56.186227
+├─ Items: 3 item(s) (7 total)
+├─ Subtotal: RM140.00
+├─ Tax: RM14.00
+├─ Total: RM154.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #23
+├─ Time: 2026-02-19 20:00:56.186753
+├─ Items: 3 item(s) (7 total)
+├─ Subtotal: RM215.00
+├─ Tax: RM21.50
+├─ Total: RM236.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #24
+├─ Time: 2026-02-19 20:00:56.187765
+├─ Items: 1 item(s) (2 total)
+├─ Subtotal: RM70.00
+├─ Tax: RM7.00
+├─ Total: RM77.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 0ms
+
+
+Transaction #25
+├─ Time: 2026-02-19 20:00:56.188894
+├─ Items: 2 item(s) (4 total)
+├─ Subtotal: RM70.00
+├─ Tax: RM7.00
+├─ Total: RM77.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 0ms
+
+
+Transaction #26
+├─ Time: 2026-02-19 20:00:56.189907
+├─ Items: 3 item(s) (5 total)
+├─ Subtotal: RM210.00
+├─ Tax: RM21.00
+├─ Total: RM231.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #27
+├─ Time: 2026-02-19 20:00:56.192205
+├─ Items: 1 item(s) (2 total)
+├─ Subtotal: RM20.00
+├─ Tax: RM2.00
+├─ Total: RM22.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #28
+├─ Time: 2026-02-19 20:00:56.193268
+├─ Items: 2 item(s) (4 total)
+├─ Subtotal: RM50.00
+├─ Tax: RM5.00
+├─ Total: RM55.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #29
+├─ Time: 2026-02-19 20:00:56.196338
+├─ Items: 4 item(s) (9 total)
+├─ Subtotal: RM375.00
+├─ Tax: RM37.50
+├─ Total: RM412.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #30
+├─ Time: 2026-02-19 20:00:56.197961
+├─ Items: 1 item(s) (2 total)
+├─ Subtotal: RM10.00
+├─ Tax: RM1.00
+├─ Total: RM11.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #31
+├─ Time: 2026-02-19 20:00:56.199978
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM20.00
+├─ Tax: RM2.00
+├─ Total: RM22.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #32
+├─ Time: 2026-02-19 20:00:56.200973
+├─ Items: 3 item(s) (5 total)
+├─ Subtotal: RM100.00
+├─ Tax: RM10.00
+├─ Total: RM110.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #33
+├─ Time: 2026-02-19 20:00:56.201974
+├─ Items: 2 item(s) (6 total)
+├─ Subtotal: RM100.00
+├─ Tax: RM10.00
+├─ Total: RM110.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #34
+├─ Time: 2026-02-19 20:00:56.203977
+├─ Items: 4 item(s) (9 total)
+├─ Subtotal: RM180.00
+├─ Tax: RM18.00
+├─ Total: RM198.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #35
+├─ Time: 2026-02-19 20:00:56.205488
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM40.00
+├─ Tax: RM4.00
+├─ Total: RM44.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #36
+├─ Time: 2026-02-19 20:00:56.207018
+├─ Items: 2 item(s) (5 total)
+├─ Subtotal: RM135.00
+├─ Tax: RM13.50
+├─ Total: RM148.50
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #37
+├─ Time: 2026-02-19 20:00:56.209043
+├─ Items: 5 item(s) (11 total)
+├─ Subtotal: RM265.00
+├─ Tax: RM26.50
+├─ Total: RM291.50
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #38
+├─ Time: 2026-02-19 20:00:56.211033
+├─ Items: 4 item(s) (6 total)
+├─ Subtotal: RM185.00
+├─ Tax: RM18.50
+├─ Total: RM203.50
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #39
+├─ Time: 2026-02-19 20:00:56.212033
+├─ Items: 4 item(s) (10 total)
+├─ Subtotal: RM305.00
+├─ Tax: RM30.50
+├─ Total: RM335.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #40
+├─ Time: 2026-02-19 20:00:56.213035
+├─ Items: 3 item(s) (7 total)
+├─ Subtotal: RM140.00
+├─ Tax: RM14.00
+├─ Total: RM154.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #41
+├─ Time: 2026-02-19 20:00:56.214040
+├─ Items: 1 item(s) (2 total)
+├─ Subtotal: RM90.00
+├─ Tax: RM9.00
+├─ Total: RM99.00
+├─ Payment: E-Wallet
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #42
+├─ Time: 2026-02-19 20:00:56.216566
+├─ Items: 3 item(s) (4 total)
+├─ Subtotal: RM135.00
+├─ Tax: RM13.50
+├─ Total: RM148.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #43
+├─ Time: 2026-02-19 20:00:56.219701
+├─ Items: 2 item(s) (4 total)
+├─ Subtotal: RM50.00
+├─ Tax: RM5.00
+├─ Total: RM55.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 2ms
+
+
+Transaction #44
+├─ Time: 2026-02-19 20:00:56.223697
+├─ Items: 1 item(s) (3 total)
+├─ Subtotal: RM15.00
+├─ Tax: RM1.50
+├─ Total: RM16.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 3ms
+
+
+Transaction #45
+├─ Time: 2026-02-19 20:00:56.224692
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM50.00
+├─ Tax: RM5.00
+├─ Total: RM55.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #46
+├─ Time: 2026-02-19 20:00:56.226760
+├─ Items: 4 item(s) (10 total)
+├─ Subtotal: RM155.00
+├─ Tax: RM15.50
+├─ Total: RM170.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #47
+├─ Time: 2026-02-19 20:00:56.227778
+├─ Items: 2 item(s) (3 total)
+├─ Subtotal: RM85.00
+├─ Tax: RM8.50
+├─ Total: RM93.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #48
+├─ Time: 2026-02-19 20:00:56.228777
+├─ Items: 3 item(s) (7 total)
+├─ Subtotal: RM260.00
+├─ Tax: RM26.00
+├─ Total: RM286.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #49
+├─ Time: 2026-02-19 20:00:56.230777
+├─ Items: 3 item(s) (10 total)
+├─ Subtotal: RM230.00
+├─ Tax: RM23.00
+├─ Total: RM253.00
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #50
+├─ Time: 2026-02-19 20:00:56.231777
+├─ Items: 2 item(s) (6 total)
+├─ Subtotal: RM285.00
+├─ Tax: RM28.50
+├─ Total: RM313.50
+├─ Payment: Cash
+├─ Status: ✓ Success
+├─ Processing Time: 1ms
+
+
+Transaction #51
+├─ Time: 2026-02-19 20:00:56.265359
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM40.00
+├─ Tax: RM4.00
+├─ Total: RM44.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 6ms
+
+
+Transaction #52
+├─ Time: 2026-02-19 20:00:56.267622
+├─ Items: 3 item(s) (4 total)
+├─ Subtotal: RM130.00
+├─ Tax: RM13.00
+├─ Total: RM143.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 6ms
+
+
+Transaction #53
+├─ Time: 2026-02-19 20:00:56.268293
+├─ Items: 1 item(s) (1 total)
+├─ Subtotal: RM35.00
+├─ Tax: RM3.50
+├─ Total: RM38.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 6ms
+
+
+Transaction #54
+├─ Time: 2026-02-19 20:00:56.269303
+├─ Items: 4 item(s) (5 total)
+├─ Subtotal: RM190.00
+├─ Tax: RM19.00
+├─ Total: RM209.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 7ms
+
+
+Transaction #55
+├─ Time: 2026-02-19 20:00:56.270307
+├─ Items: 4 item(s) (7 total)
+├─ Subtotal: RM225.00
+├─ Tax: RM22.50
+├─ Total: RM247.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 7ms
+
+
+Transaction #56
+├─ Time: 2026-02-19 20:00:56.271303
+├─ Items: 3 item(s) (5 total)
+├─ Subtotal: RM180.00
+├─ Tax: RM18.00
+├─ Total: RM198.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 8ms
+
+
+Transaction #57
+├─ Time: 2026-02-19 20:00:56.271303
+├─ Items: 2 item(s) (3 total)
+├─ Subtotal: RM40.00
+├─ Tax: RM4.00
+├─ Total: RM44.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 8ms
+
+
+Transaction #58
+├─ Time: 2026-02-19 20:00:56.272309
+├─ Items: 3 item(s) (5 total)
+├─ Subtotal: RM165.00
+├─ Tax: RM16.50
+├─ Total: RM181.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 9ms
+
+
+Transaction #59
+├─ Time: 2026-02-19 20:00:56.274310
+├─ Items: 2 item(s) (2 total)
+├─ Subtotal: RM65.00
+├─ Tax: RM6.50
+├─ Total: RM71.50
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 10ms
+
+
+Transaction #60
+├─ Time: 2026-02-19 20:00:56.275310
+├─ Items: 4 item(s) (5 total)
+├─ Subtotal: RM180.00
+├─ Tax: RM18.00
+├─ Total: RM198.00
+├─ Payment: Card
+├─ Status: ✓ Success
+├─ Processing Time: 11ms
+
+

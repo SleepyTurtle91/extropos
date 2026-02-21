@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- KDS-specific configurations -->
+    <application
+        android:screenOrientation="landscape">
+        <!-- Force landscape orientation for Kitchen Display -->
+    </application>
+</manifest>

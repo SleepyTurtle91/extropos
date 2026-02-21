@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+  mariadb:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: appwrite_root_pw
+      MYSQL_DATABASE: appwrite
+      MYSQL_USER: appwrite
+      MYSQL_PASSWORD: appwrite_db_pw
+    volumes:
+      - /mnt/storage/appwrite/mysql:/var/lib/mysql
+    networks:
+      - appwrite
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - /mnt/storage/appwrite/redis:/data
+    networks:
+      - appwrite
+
+  appwrite:
+    image: appwrite/appwrite:latest
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+      - redis
+    environment:
+      _APP_ENV: development
+      _APP_OPENSSL_KEY_V1: dbccde1aa2b0b905f3cda5203b070a75e0ee2e04ed215fd3a48462d77e3ab797
+      _APP_DOMAIN: appwrite.extropos.org
+      _APP_DOMAIN_TARGET: appwrite.extropos.org
+      _APP_DOMAIN_FUNCTIONS: appwrite.extropos.org
+      _APP_OPTIONS_ABUSE: disabled
+      _APP_OPTIONS_FORCE_HTTPS: disabled
+      _APP_CONSOLE_WHITELIST_ROOT: enabled
+      _APP_CONSOLE_WHITELIST_EMAILS: ""
+      _APP_CONSOLE_WHITELIST_IPS: ""
+      _APP_CONSOLE_WHITELIST_ORIGINS: "*"
+      _APP_SYSTEM_EMAIL_NAME: ExtroPOS
+      _APP_SYSTEM_EMAIL_ADDRESS: no-reply@localhost
+      _APP_DB_HOST: mariadb
+      _APP_DB_PORT: 3306
+      _APP_DB_SCHEMA: appwrite
+      _APP_DB_USER: appwrite
+      _APP_DB_PASS: appwrite_db_pw
+      _APP_REDIS_HOST: redis
+      _APP_REDIS_PORT: 6379
+      _APP_REDIS_USER: ""
+      _APP_REDIS_PASS: ""
+      _APP_REDIS_DB: 0
+    ports:
+      - "8090:80"
+      - "8443:443"
+    volumes:
+      - /mnt/storage/appwrite/config:/etc/appwrite
+      - /mnt/storage/appwrite/storage:/storage
+    networks:
+      - appwrite
+
+networks:
+  appwrite:
+    external: true
+    name: docker_appwrite

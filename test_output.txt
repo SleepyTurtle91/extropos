@@ -1,0 +1,308 @@
+00:00 +0: loading E:/flutterpos/test/services/appwrite_phase1_service_test.dart
+00:00 +0: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service service can be instantiated
+00:00 +1: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service isInitialized defaults to false
+00:00 +2: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service errorMessage defaults to null
+test/services/backend_user_service_appwrite_test.dart:25:30: Error: 'BackendUser' isn't a type.
+      expect(users, isA<List<BackendUser>>());
+                             ^^^^^^^^^^^
+lib/services/backend_user_service_appwrite.dart:51:25: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+        _userCache[user.id] = user;
+                        ^
+lib/services/backend_user_service_appwrite.dart:329:38: Error: Required named parameter 'userName' must be provided.
+      await _auditService.logActivity(
+                                     ^
+lib/services/backend_user_service_appwrite.dart:343:57: Error: The getter 'updatedBy' isn't defined for the type 'BackendUserServiceAppwrite'.
+ - 'BackendUserServiceAppwrite' is from 'package:extropos/services/backend_user_service_appwrite.dart' ('lib/services/backend_user_service_appwrite.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'updatedBy'.
+        userId: deletedBy ?? 'system',        userName: updatedBy ?? 'system',        action: 'DELETE',
+                                                        ^^^^^^^^^
+lib/services/backend_user_service_appwrite.dart:378:38: Error: Required named parameter 'userName' must be provided.
+      await _auditService.logActivity(
+                                     ^
+00:00 +3: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action
+lib/services/backend_user_service_appwrite.dart:419:38: Error: Required named parameter 'userName' must be provided.
+      await _auditService.logActivity(
+                                     ^
+≡ƒô¥ Logging activity: INVALID_ACTION by Test User
+Γ£à Activity logged: INVALID_ACTION
+00:01 +3 -1: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action [E]
+  Expected: throws <Instance of 'Exception'>
+    Actual: <Closure: () => Future<ActivityLogModel>>
+     Which: returned a Future that emitted ActivityLogModel:<ActivityLogModel(id: null, action: INVALID_ACTION, resourceType: User, success: true)>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\audit_service_test.dart 14:7          main.<fn>.<fn>
+  
+00:01 +3 -1: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid resource type
+≡ƒô¥ Logging activity: CREATE by Test User
+Γ£à Activity logged: CREATE
+00:01 +3 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid resource type [E]
+  Expected: throws <Instance of 'Exception'>
+    Actual: <Closure: () => Future<ActivityLogModel>>
+     Which: returned a Future that emitted ActivityLogModel:<ActivityLogModel(id: null, action: CREATE, resourceType: InvalidType, success: true)>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\audit_service_test.dart 28:7          main.<fn>.<fn>
+  
+00:01 +3 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() records successful activity
+00:01 +4 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() records failed activity
+00:01 +5 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByUser() returns activities for user
+00:01 +6 -3: loading E:/flutterpos/test/services/backend_user_service_appwrite_test.dart [E]
+  Failed to load "E:/flutterpos/test/services/backend_user_service_appwrite_test.dart":
+  Compilation failed for testPath=E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: test/services/backend_user_service_appwrite_test.dart:25:30: Error: 'BackendUser' isn't a type.
+        expect(users, isA<List<BackendUser>>());
+                               ^^^^^^^^^^^
+  lib/services/backend_user_service_appwrite.dart:51:25: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+          _userCache[user.id] = user;
+                          ^
+  lib/services/backend_user_service_appwrite.dart:329:38: Error: Required named parameter 'userName' must be provided.
+        await _auditService.logActivity(
+                                       ^
+  lib/services/backend_user_service_appwrite.dart:343:57: Error: The getter 'updatedBy' isn't defined for the type 'BackendUserServiceAppwrite'.
+   - 'BackendUserServiceAppwrite' is from 'package:extropos/services/backend_user_service_appwrite.dart' ('lib/services/backend_user_service_appwrite.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'updatedBy'.
+          userId: deletedBy ?? 'system',        userName: updatedBy ?? 'system',        action: 'DELETE',
+                                                          ^^^^^^^^^
+  lib/services/backend_user_service_appwrite.dart:378:38: Error: Required named parameter 'userName' must be provided.
+        await _auditService.logActivity(
+                                       ^
+  lib/services/backend_user_service_appwrite.dart:419:38: Error: Required named parameter 'userName' must be provided.
+        await _auditService.logActivity(
+                                       ^
+  .
+00:01 +6 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByResource() returns activities for resource
+00:01 +7 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByDateRange() filters by date
+00:01 +8 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivityById() returns specific activity
+00:01 +9 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService cache is cleared on clearCache()
+00:01 +10 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService statistics shows correct activity counts
+lib/services/phase1_inventory_service_appwrite.dart:15:61: Error: Can't find '}' to match '{'.
+class Phase1InventoryServiceAppwrite extends ChangeNotifier {
+                                                            ^
+test/services/phase1_inventory_service_appwrite_test.dart:28:11: Error: No named parameter with the name 'minStockLevel'.
+          minStockLevel: 5,
+          ^^^^^^^^^^^^^
+test/services/phase1_inventory_service_appwrite_test.dart:43:11: Error: No named parameter with the name 'minStockLevel'.
+          minStockLevel: 5,
+          ^^^^^^^^^^^^^
+test/services/phase1_inventory_service_appwrite_test.dart:58:11: Error: No named parameter with the name 'minStockLevel'.
+          minStockLevel: 5,
+          ^^^^^^^^^^^^^
+lib/services/phase1_inventory_service_appwrite.dart:166:34: Error: The argument type 'String?' can't be assigned to the parameter type 'String'.
+        documentId: newInventory.id,
+                                 ^
+lib/services/phase1_inventory_service_appwrite.dart:278:30: Error: The argument type 'String?' can't be assigned to the parameter type 'String'.
+        documentId: existing.id,
+                             ^
+00:08 +11 -4: loading E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart [E]
+  Failed to load "E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart":
+  Compilation failed for testPath=E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: lib/services/phase1_inventory_service_appwrite.dart:15:61: Error: Can't find '}' to match '{'.
+  class Phase1InventoryServiceAppwrite extends ChangeNotifier {
+                                                              ^
+  test/services/phase1_inventory_service_appwrite_test.dart:28:11: Error: No named parameter with the name 'minStockLevel'.
+            minStockLevel: 5,
+            ^^^^^^^^^^^^^
+  test/services/phase1_inventory_service_appwrite_test.dart:43:11: Error: No named parameter with the name 'minStockLevel'.
+            minStockLevel: 5,
+            ^^^^^^^^^^^^^
+  test/services/phase1_inventory_service_appwrite_test.dart:58:11: Error: No named parameter with the name 'minStockLevel'.
+            minStockLevel: 5,
+            ^^^^^^^^^^^^^
+  lib/services/phase1_inventory_service_appwrite.dart:166:34: Error: The argument type 'String?' can't be assigned to the parameter type 'String'.
+          documentId: newInventory.id,
+                                   ^
+  lib/services/phase1_inventory_service_appwrite.dart:278:30: Error: The argument type 'String?' can't be assigned to the parameter type 'String'.
+          documentId: existing.id,
+                               ^
+  .
+00:08 +11 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel creates admin role with all permissions
+00:08 +12 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel RoleModel converts to map and back
+00:08 +13 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel Permission constants are defined
+00:08 +14 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel creates activity log entry
+00:08 +15 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel activity log with changes tracks before/after
+00:08 +16 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel activity log supports error tracking
+00:08 +17 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel creates backend user
+00:08 +18 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel backend user can be deactivated
+00:08 +19 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel backend user converts to map
+00:08 +20 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel creates inventory item
+00:08 +21 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel inventory tracks stock level changes
+00:08 +22 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel inventory converts to map
+00:08 +23 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models Permission Constants all permission constants are defined
+00:08 +24 -4: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models Permission Constants ALL_PERMISSIONS includes all 20 permissions
+lib/services/role_service_appwrite.dart:169:7: Error: Expected an identifier, but got ']'.
+Try inserting an identifier before ']'.
+      ],
+      ^
+lib/services/role_service_appwrite.dart:168:6: Error: Expected ';' after this.
+    );
+     ^
+lib/services/role_service_appwrite.dart:169:7: Error: Unexpected token ';'.
+      ],
+      ^
+lib/services/role_service_appwrite.dart:169:8: Error: Expected an identifier, but got ','.
+Try inserting an identifier before ','.
+      ],
+       ^
+lib/services/role_service_appwrite.dart:169:7: Error: Expected ';' after this.
+      ],
+      ^
+lib/services/role_service_appwrite.dart:169:8: Error: Unexpected token ';'.
+      ],
+       ^
+lib/services/role_service_appwrite.dart:170:21: Error: Expected ';' after this.
+      isSystemRole: true,
+                    ^^^^
+lib/services/role_service_appwrite.dart:170:25: Error: Expected an identifier, but got ','.
+Try inserting an identifier before ','.
+      isSystemRole: true,
+                        ^
+lib/services/role_service_appwrite.dart:170:25: Error: Unexpected token ';'.
+      isSystemRole: true,
+                        ^
+lib/services/role_service_appwrite.dart:171:18: Error: Expected ';' after this.
+      createdAt: 0,
+                 ^
+lib/services/role_service_appwrite.dart:171:19: Error: Expected an identifier, but got ','.
+Try inserting an identifier before ','.
+      createdAt: 0,
+                  ^
+lib/services/role_service_appwrite.dart:171:19: Error: Unexpected token ';'.
+      createdAt: 0,
+                  ^
+lib/services/role_service_appwrite.dart:172:18: Error: Expected ';' after this.
+      updatedAt: 0,
+                 ^
+lib/services/role_service_appwrite.dart:172:19: Error: Expected an identifier, but got ','.
+Try inserting an identifier before ','.
+      updatedAt: 0,
+                  ^
+lib/services/role_service_appwrite.dart:172:19: Error: Unexpected token ';'.
+      updatedAt: 0,
+                  ^
+lib/services/role_service_appwrite.dart:173:5: Error: Expected an identifier, but got ')'.
+Try inserting an identifier before ')'.
+    );
+    ^
+lib/services/role_service_appwrite.dart:172:19: Error: Expected ';' after this.
+      updatedAt: 0,
+                  ^
+lib/services/role_service_appwrite.dart:173:5: Error: Unexpected token ';'.
+    );
+    ^
+lib/services/role_service_appwrite.dart:192:25: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+        _roleCache[role.id] = role;
+                        ^
+lib/services/role_service_appwrite.dart:281:20: Error: The getter 'description' isn't defined for the type 'RoleServiceAppwrite'.
+ - 'RoleServiceAppwrite' is from 'package:extropos/services/role_service_appwrite.dart' ('lib/services/role_service_appwrite.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'description'.
+      description: description,
+                   ^^^^^^^^^^^
+lib/services/role_service_appwrite.dart:282:20: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Map<String, bool>'.
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+      permissions: permissions,
+                   ^
+lib/services/role_service_appwrite.dart:354:20: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Map<String, bool>?'.
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+      permissions: permissions,
+                   ^
+lib/services/role_service_appwrite.dart:445:38: Error: Required named parameter 'userName' must be provided.
+      await _auditService.logActivity(
+                                     ^
+lib/services/role_service_appwrite.dart:524:20: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Map<String, bool>'.
+ - 'List' is from 'dart:core'.
+ - 'Map' is from 'dart:core'.
+      permissions: permissions,
+                   ^
+00:21 +25 -5: loading E:/flutterpos/test/services/role_service_appwrite_test.dart [E]
+  Failed to load "E:/flutterpos/test/services/role_service_appwrite_test.dart":
+  Compilation failed for testPath=E:/flutterpos/test/services/role_service_appwrite_test.dart: lib/services/role_service_appwrite.dart:169:7: Error: Expected an identifier, but got ']'.
+  Try inserting an identifier before ']'.
+        ],
+        ^
+  lib/services/role_service_appwrite.dart:168:6: Error: Expected ';' after this.
+      );
+       ^
+  lib/services/role_service_appwrite.dart:169:7: Error: Unexpected token ';'.
+        ],
+        ^
+  lib/services/role_service_appwrite.dart:169:8: Error: Expected an identifier, but got ','.
+  Try inserting an identifier before ','.
+        ],
+         ^
+  lib/services/role_service_appwrite.dart:169:7: Error: Expected ';' after this.
+        ],
+        ^
+  lib/services/role_service_appwrite.dart:169:8: Error: Unexpected token ';'.
+        ],
+         ^
+  lib/services/role_service_appwrite.dart:170:21: Error: Expected ';' after this.
+        isSystemRole: true,
+                      ^^^^
+  lib/services/role_service_appwrite.dart:170:25: Error: Expected an identifier, but got ','.
+  Try inserting an identifier before ','.
+        isSystemRole: true,
+                          ^
+  lib/services/role_service_appwrite.dart:170:25: Error: Unexpected token ';'.
+        isSystemRole: true,
+                          ^
+  lib/services/role_service_appwrite.dart:171:18: Error: Expected ';' after this.
+        createdAt: 0,
+                   ^
+  lib/services/role_service_appwrite.dart:171:19: Error: Expected an identifier, but got ','.
+  Try inserting an identifier before ','.
+        createdAt: 0,
+                    ^
+  lib/services/role_service_appwrite.dart:171:19: Error: Unexpected token ';'.
+        createdAt: 0,
+                    ^
+  lib/services/role_service_appwrite.dart:172:18: Error: Expected ';' after this.
+        updatedAt: 0,
+                   ^
+  lib/services/role_service_appwrite.dart:172:19: Error: Expected an identifier, but got ','.
+  Try inserting an identifier before ','.
+        updatedAt: 0,
+                    ^
+  lib/services/role_service_appwrite.dart:172:19: Error: Unexpected token ';'.
+        updatedAt: 0,
+                    ^
+  lib/services/role_service_appwrite.dart:173:5: Error: Expected an identifier, but got ')'.
+  Try inserting an identifier before ')'.
+      );
+      ^
+  lib/services/role_service_appwrite.dart:172:19: Error: Expected ';' after this.
+        updatedAt: 0,
+                    ^
+  lib/services/role_service_appwrite.dart:173:5: Error: Unexpected token ';'.
+      );
+      ^
+  lib/services/role_service_appwrite.dart:192:25: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+          _roleCache[role.id] = role;
+                          ^
+  lib/services/role_service_appwrite.dart:281:20: Error: The getter 'description' isn't defined for the type 'RoleServiceAppwrite'.
+   - 'RoleServiceAppwrite' is from 'package:extropos/services/role_service_appwrite.dart' ('lib/services/role_service_appwrite.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'description'.
+        description: description,
+                     ^^^^^^^^^^^
+  lib/services/role_service_appwrite.dart:282:20: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Map<String, bool>'.
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+        permissions: permissions,
+                     ^
+  lib/services/role_service_appwrite.dart:354:20: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Map<String, bool>?'.
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+        permissions: permissions,
+                     ^
+  lib/services/role_service_appwrite.dart:445:38: Error: Required named parameter 'userName' must be provided.
+        await _auditService.logActivity(
+                                       ^
+  lib/services/role_service_appwrite.dart:524:20: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Map<String, bool>'.
+   - 'List' is from 'dart:core'.
+   - 'Map' is from 'dart:core'.
+        permissions: permissions,
+                     ^
+  .
+00:21 +25 -5: Some tests failed.

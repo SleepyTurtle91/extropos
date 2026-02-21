@@ -1,0 +1,12 @@
+name: pos_sync_api
+version: 0.0.1
+environment:
+  sdk: '>=2.17.0 <3.0.0'
+
+dependencies:
+  shelf: ^1.4.0
+  shelf_router: ^1.0.0
+
+executables:
+  sync_api:
+    script: bin/server.dart

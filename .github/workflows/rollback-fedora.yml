@@ -1,0 +1,53 @@
+name: Deploy Rollback to Fedora Host
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: 'Git revision/tag/commit to roll back to'
+        required: true
+      deploy_path:
+        description: 'Remote repo path (absolute)'
+        required: true
+        default: '/home/deployuser/flutterpos'
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Ensure remote deploy directory exists
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            mkdir -p "${{ github.event.inputs.deploy_path }}"
+
+      - name: SSH: update repo & run rollback script
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+            REVISION="${{ github.event.inputs.revision }}"
+            if [ ! -d "$DEPLOY_DIR" ]; then
+              git clone https://github.com/Giras91/flutterpos.git "$DEPLOY_DIR"
+            fi
+            cd "$DEPLOY_DIR"
+            git fetch --all
+            git checkout "$REVISION" || git checkout -b rollback-$REVISION $REVISION
+            # Make sure script executable
+            sudo chmod +x docker/nextcloud-traefik/deploy-rollback.sh
+            sudo docker/compose version || true
+            sudo docker compose pull || true
+            sudo docker/nextcloud-traefik/deploy-rollback.sh "$REVISION" --deploy-dir "$DEPLOY_DIR"

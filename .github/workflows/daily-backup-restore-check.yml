@@ -1,0 +1,67 @@
+name: Nightly Backup & Dry-run Restore
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # 03:00 UTC daily
+  workflow_dispatch: {}
+
+jobs:
+  nightly-backup-restore:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli jq
+
+      - name: Determine latest backup timestamp in bucket
+        id: ts
+        run: |
+          BUCKET=${{ secrets.S3_BUCKET }}
+          if [[ -z "$BUCKET" ]]; then echo "S3_BUCKET secret not set" && exit 1; fi
+          # List backups, get the latest prefix timestamp (assumes upload prefixes under nextcloud-backups/<TIMESTAMP>/)
+          TIMESTAMP=$(aws s3 ls "s3://$BUCKET/nextcloud-backups/" --recursive | awk -F' ' '{print $4}' | sed -E 's|nextcloud-backups/([^/]+)/.*|\1|' | sort -u | tail -n 1)
+          if [[ -z "$TIMESTAMP" ]]; then echo "No backups found in s3://$BUCKET/nextcloud-backups/" && exit 1; fi
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+
+      - name: Print chosen timestamp
+        run: |
+          echo "Running nightly dry-run restore for timestamp: ${{ steps.ts.outputs.timestamp }}"
+
+      - name: Upload .env to staging host
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker/nextcloud-traefik/.env"
+          target: "${{ secrets.DEPLOY_PATH || '/home/deployuser/flutterpos' }}/docker/nextcloud-traefik/.env"
+
+      - name: Run dry-run restore on staging host (via SSH)
+        uses: appleboy/ssh-action@v0.1.8
+        id: dryrun
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_DIR="${{ secrets.DEPLOY_PATH || '/home/deployuser/flutterpos' }}"
+            TIMESTAMP="${{ steps.ts.outputs.timestamp }}"
+            cd "$DEPLOY_DIR/docker/nextcloud-traefik"
+            sudo chmod +x restore-from-objectstore.sh
+            echo "Running dry-run restore for $TIMESTAMP on staging host"
+            sudo S3_BUCKET="${{ secrets.S3_BUCKET }}" AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" S3_ENDPOINT="${{ secrets.S3_ENDPOINT }}" ./restore-from-objectstore.sh --timestamp "$TIMESTAMP" --dry-run || true
+
+      - name: Post-run validation - check http status
+        run: |
+          DOMAIN=${{ secrets.EXTROPOS_DOMAIN }}
+          if [[ -z "$DOMAIN" ]]; then DOMAIN="extropos.duckdns.org"; fi
+          echo "Checking $DOMAIN health"
+          curl -I --connect-timeout 10 -sS "https://$DOMAIN" || true

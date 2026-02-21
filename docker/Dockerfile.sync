@@ -1,0 +1,16 @@
+FROM dart:stable
+WORKDIR /app
+
+# Copy pubspec and get deps
+COPY sync_api/pubspec.yaml ./
+RUN dart pub get
+
+# Copy the full repo so example code can be referenced
+COPY .. /app
+
+# Set a default license key and port; can be overridden by compose env
+ENV PORT=8080
+ENV VALID_LICENSE_KEY=EXTRO-LIFE-ABC123
+
+# Run the server
+CMD ["dart", "run", "bin/server.dart"]

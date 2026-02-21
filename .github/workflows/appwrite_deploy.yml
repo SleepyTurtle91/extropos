@@ -1,0 +1,62 @@
+name: Appwrite Deploy (Cloudflare + Appwrite)
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Public domain, e.g. api.extrotarget.com'
+        required: true
+        default: api.extrotarget.com
+      public_ip:
+        description: 'Server Public IP'
+        required: true
+        default: 203.0.113.10
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set all inputs
+        id: set_inputs
+        run: |
+          # Expose runtime variables for subsequent steps
+          echo "DOMAIN=${{ github.event.inputs.domain }}" >> $GITHUB_ENV
+          echo "PUBLIC_IP=${{ github.event.inputs.public_ip }}" >> $GITHUB_ENV
+          # parse base domain and subdomain (simple heuristic)
+          BASE_DOMAIN=$(echo "${{ github.event.inputs.domain }}" | awk -F. '{print $(NF-1)"."$(NF)}')
+          SUBDOMAIN=$(echo "${{ github.event.inputs.domain }}" | sed "s/.${BASE_DOMAIN}//" | sed 's/^\.//')
+          echo "BASE_DOMAIN=${BASE_DOMAIN}" >> $GITHUB_ENV
+          echo "SUBDOMAIN=${SUBDOMAIN}" >> $GITHUB_ENV
+
+      - name: Create or update DNS record (Cloudflare)
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          BASE_DOMAIN: ${{ env.BASE_DOMAIN }}
+          PUBLIC_IP: ${{ env.PUBLIC_IP }}
+          SUBDOMAIN: ${{ env.SUBDOMAIN }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq curl
+          ./scripts/dns_cloudflare.sh "${BASE_DOMAIN}" "${PUBLIC_IP}" "${SUBDOMAIN}"
+
+      - name: Copy deploy scripts to remote host
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "scripts/appwrite_set_domain.sh scripts/fix_traefik_docker_perms.sh"
+          target: "/tmp/"
+
+      - name: Configure Appwrite on remote host
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo mv /tmp/appwrite_set_domain.sh /usr/local/bin/appwrite_set_domain.sh
+            sudo chmod +x /usr/local/bin/appwrite_set_domain.sh
+            sudo APPWRITE_ROOT=/home/${{ secrets.SERVER_USER }}/appwrite /usr/local/bin/appwrite_set_domain.sh ${DOMAIN} ${PUBLIC_IP}

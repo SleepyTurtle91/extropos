@@ -1,0 +1,160 @@
+name: Deploy to Fedora Host
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - release
+    tags:
+      - 'v*'
+    inputs:
+      branch:
+        description: 'Git branch to deploy'
+        required: true
+        default: 'responsive/layout-fixes'
+      deploy_path:
+        description: 'Remote path to deploy the repo (absolute)'
+        required: true
+        default: '/home/deployuser/flutterpos'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key for CLI use
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.SSH_PORT || '22' }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts || true
+
+      - name: Prepare env file (from secret DEPLOY_ENV_BASE64)
+        if: ${{ secrets.DEPLOY_ENV_BASE64 != '' }}
+        run: |
+          echo "Creating .env from DEPLOY_ENV_BASE64";
+          echo "$DEPLOY_ENV_CONTENT" | base64 -d > docker/nextcloud-traefik/.env
+        env:
+          DEPLOY_ENV_CONTENT: ${{ secrets.DEPLOY_ENV_BASE64 }}
+
+      - name: Prepare cloudflared credentials (optional)
+        if: ${{ secrets.CLOUDFLARED_CREDENTIAL_JSON_BASE64 != '' }}
+        run: |
+          echo "Creating credentials.json from CLOUDFLARED_CREDENTIAL_JSON_BASE64";
+          echo "$CLOUDFLARED_CREDENTIAL_JSON_BASE64" | base64 -d > cloudflared-credentials.json
+        env:
+          CLOUDFLARED_CREDENTIAL_JSON_BASE64: ${{ secrets.CLOUDFLARED_CREDENTIAL_JSON_BASE64 }}
+
+      - name: Get remote old revision
+        id: get-old
+        run: |
+          DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+          OLD_REV=$(ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT || '22' }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd $DEPLOY_DIR && git rev-parse --short HEAD || echo ''")
+          echo "old_rev=$OLD_REV" >> $GITHUB_OUTPUT
+
+      - name: Copy files to remote host (scp)
+        if: ${{ secrets.DEPLOY_ENV_BASE64 != '' }}
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker/nextcloud-traefik/.env"
+          target: "${{ github.event.inputs.deploy_path }}/docker/nextcloud-traefik/.env"
+
+      - name: Ensure remote deploy directory exists
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            mkdir -p "${{ github.event.inputs.deploy_path }}/docker/nextcloud-traefik"
+
+      - name: SSH: run pre-deploy backup to object store (optional)
+        if: ${{ secrets.S3_BUCKET != '' }}
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+            cd "$DEPLOY_DIR/docker/nextcloud-traefik"
+            sudo chmod +x backup-to-objectstore.sh
+            export S3_BUCKET="${{ secrets.S3_BUCKET }}"
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
+            export S3_ENDPOINT="${{ secrets.S3_ENDPOINT }}"
+            sudo ./backup-to-objectstore.sh || echo "Pre-deploy backup failed"
+
+      - name: Copy cloudflared credentials if present
+        if: ${{ secrets.CLOUDFLARED_CREDENTIAL_JSON_BASE64 != '' }}
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "cloudflared-credentials.json"
+          target: "/tmp/cloudflared-credentials.json"
+
+      - name: SSH: update repo & run deploy script
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+            BRANCH="${{ github.event.inputs.branch }}"
+            if [ ! -d "$DEPLOY_DIR" ]; then
+              git clone https://github.com/Giras91/flutterpos.git "$DEPLOY_DIR"
+            fi
+            cd "$DEPLOY_DIR"
+            git fetch --all
+            git checkout "$BRANCH" || git checkout -b "$BRANCH"
+            git reset --hard origin/"$BRANCH"
+            # If credentials were uploaded, move them into place for install script
+            if [ -f /tmp/cloudflared-credentials.json ]; then
+              sudo mkdir -p /etc/cloudflared
+              sudo mv /tmp/cloudflared-credentials.json /etc/cloudflared/credentials.json
+              sudo chown root:root /etc/cloudflared/credentials.json
+              sudo chmod 600 /etc/cloudflared/credentials.json
+            fi
+            # Run deploy
+            cd docker/nextcloud-traefik
+            sudo chmod +x ./deploy-fedora.sh
+            sudo chmod +x ./backup-to-objectstore.sh || true
+            sudo ./deploy-fedora.sh --apply --full --cloudflared || true
+
+      - name: Roll back if smoke test failed
+        if: steps.smoke_test.outcome != 'success' && steps.get-old.outputs.old_rev != ''
+        run: |
+          echo "Smoke test failed; initiating rollback to ${{ steps.get-old.outputs.old_rev }}"
+          DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT || '22' }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd $DEPLOY_DIR && sudo docker/nextcloud-traefik/deploy-rollback.sh ${{ steps.get-old.outputs.old_rev }} --deploy-dir $DEPLOY_DIR"
+      - name: Post-deploy smoke test from runner
+        id: smoke_test
+        run: |
+          # Determine DOMAIN from the .env we uploaded or from repo
+          if [ -f docker/nextcloud-traefik/.env ]; then
+            DOMAIN=$(grep -E '^\s*DOMAIN=' docker/nextcloud-traefik/.env | awk -F '=' '{print $2}' | tr -d '"\r')
+          else
+            echo "No .env present in repo; aborting smoke test" && exit 0
+          fi
+          echo "Running smoke tests for $DOMAIN"
+          dig +short $DOMAIN || true
+          curl -I --connect-timeout 10 -sS "https://$DOMAIN" || exit 1

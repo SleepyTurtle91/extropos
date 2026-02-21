@@ -1,0 +1,15 @@
+[Unit]
+Description=Update DuckDNS public IP for Nextcloud
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+# Use root or a specific user; ensure the token is secured
+# Make sure the script path is correct
+EnvironmentFile=/etc/duckdns/duckdns.conf
+ExecStart=/usr/local/bin/update_duckdns.sh $DOMAIN $TOKEN
+
+[Install]
+WantedBy=multi-user.target

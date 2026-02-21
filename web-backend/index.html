@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlutterPOS - Web Backend</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.ico">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#2563EB">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2563EB;
+            font-size: 28px;
+        }
+
+        .global-alert {
+            margin-top: 12px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-indicator.connected {
+            background: #10b981;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: #f1f5f9;
+            color: #2563EB;
+        }
+
+        .menu-item.active {
+            background: #2563EB;
+            color: white;
+        }
+
+        .content-area {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2563EB;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563EB;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #2563EB;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .table tr:hover {
+            background: #f8fafc;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #2563EB;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563EB;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 FlutterPOS Web Backend</h1>
+            <div class="connection-status">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Not Connected</span>
+            </div>
+        </div>
+
+        <div id="globalAlert" class="global-alert"></div>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="menu-item active" data-section="settings">⚙️ Appwrite Settings</div>
+                <div class="menu-item" data-section="dashboard">📊 Dashboard</div>
+                <div class="menu-item" data-section="categories">📁 Categories</div>
+                <div class="menu-item" data-section="products">🛍️ Products</div>
+                <div class="menu-item" data-section="modifiers">➕ Modifiers</div>
+                <div class="menu-item" data-section="counters">🖥️ POS Counters</div>
+                <div class="menu-item" data-section="business">🏢 Business Info</div>
+                <div class="menu-item" data-section="tenants">🏬 Tenants</div>
+            </aside>
+
+            <main class="content-area">
+                <div id="loading">
+                    <div class="spinner"></div>
+                    <p>Loading...</p>
+                </div>
+
+                <!-- Settings Section -->
+                <section id="settings" class="section active">
+                    <h2>Appwrite Configuration</h2>
+                    <div id="settingsAlert"></div>
+                    
+                    <div class="form-group">
+                        <label>Endpoint URL</label>
+                        <input type="text" id="endpoint" placeholder="http://localhost:8080" value="http://localhost:8080">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Project ID</label>
+                        <input type="text" id="projectId" placeholder="689965770017299bd5a5" value="689965770017299bd5a5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="password" id="apiKey" placeholder="standard_..." value="standard_efb1a582dc22a5a476b13e2f36fccbbc7c48f88c3cfc8c60cc9c09a2ba49a2cacc644ecdd91ef618368804ac5db846d05f831e42b5c46d145faa682d2dfbe1e33ada0bba8b37548f8109ee504f86e7b89d672d15fa74fc8de7da580f1961e2a9acdedfccb38125bc9c506075ee9e1dde5678a5e6fd7fc107b1f3d6bae37b4456">
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="testConnection()">Test Connection</button>
+                        <button class="btn btn-success" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </section>
+
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="section">
+                    <h2>Dashboard</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Tenants</h3>
+                            <div class="value" id="totalTenants">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Categories</h3>
+                            <div class="value" id="totalCategories">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Products</h3>
+                            <div class="value" id="totalProducts">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Users</h3>
+                            <div class="value" id="totalUsers">0</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadDashboard()">Refresh Dashboard</button>
+                </section>
+
+                <!-- Categories Section -->
+                <section id="categories" class="section">
+                    <h2>Categories Management</h2>
+                    <button class="btn btn-primary" onclick="showModal('categoryModal')">Add Category</button>
+                    <table class="table" id="categoriesTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Icon</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+
+                <!-- Products Section -->
+                <section id="products" class="section">
+                    <h2>Products Management</h2>
+                    <button class="btn btn-primary" onclick="showModal('productModal')">Add Product</button>
+                    <table class="table" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+
+                <!-- Modifiers Section -->
+                <section id="modifiers" class="section">
+                    <h2>Modifiers Management</h2>
+                    <button class="btn btn-primary" onclick="showModal('modifierModal')">Add Modifier</button>
+                    <table class="table" id="modifiersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+
+                <!-- Counters Section -->
+                <section id="counters" class="section">
+                    <h2>POS Counters Management</h2>
+                    <button class="btn btn-primary" onclick="showModal('counterModal')">Add Counter</button>
+                    <table class="table" id="countersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+
+                <!-- Business Info Section -->
+                <section id="business" class="section">
+                    <h2>Business Information</h2>
+                    <div id="businessAlert"></div>
+                    
+                    <div class="form-group">
+                        <label>Business Name</label>
+                        <input type="text" id="businessName" placeholder="Enter business name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tax Rate (%)</label>
+                        <input type="number" id="taxRate" placeholder="6" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service Charge (%)</label>
+                        <input type="number" id="serviceCharge" placeholder="10" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Currency Symbol</label>
+                        <input type="text" id="currencySymbol" placeholder="RM" maxlength="5">
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="loadBusinessInfo()">Load Info</button>
+                        <button class="btn btn-success" onclick="saveBusinessInfo()">Save Changes</button>
+                    </div>
+                </section>
+
+                <!-- Tenants Section -->
+                <section id="tenants" class="section">
+                    <h2>Tenant Management</h2>
+                    <button class="btn btn-primary" onclick="showModal('tenantModal')">Create Tenant</button>
+                    <table class="table" id="tenantsTable">
+                        <thead>
+                            <tr>
+                                <th>Tenant ID</th>
+                                <th>Business Name</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Category</h2>
+                <button class="close-btn" onclick="closeModal('categoryModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Category Name</label>
+                <input type="text" id="categoryName" placeholder="e.g., Beverages">
+            </div>
+            <div class="form-group">
+                <label>Icon (emoji or text)</label>
+                <input type="text" id="categoryIcon" placeholder="☕">
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="createCategory()">Create</button>
+                <button class="btn btn-secondary" onclick="closeModal('categoryModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tenant Modal -->
+    <div id="tenantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create / Provision Tenant</h2>
+                <button class="close-btn" onclick="closeModal('tenantModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Tenant Business Name</label>
+                <input type="text" id="tenantName" placeholder="e.g., ABC Restaurant">
+            </div>
+            <div class="alert alert-info">
+                Option 1: Create database only.<br>
+                Option 2: Provision database + generate a tenant API key (for POS client setup).
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="createTenant()">Create Tenant</button>
+                <button class="btn btn-success" onclick="provisionTenant()">Provision Tenant (DB + Key)</button>
+                <button class="btn btn-secondary" onclick="closeModal('tenantModal')">Cancel</button>
+            </div>
+            <div id="tenantProvisionResult"></div>
+        </div>
+    </div>
+
+    <!-- Counter Modal -->
+    <div id="counterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add POS Counter</h2>
+                <button class="close-btn" onclick="closeModal('counterModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Counter Name</label>
+                <input type="text" id="counterName" placeholder="e.g., Counter 1">
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="counterLocation" placeholder="e.g., Main Hall">
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="createCounter()">Create</button>
+                <button class="btn btn-secondary" onclick="closeModal('counterModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@15.0.0"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-21.0.10",
+  "gradle.wrapper.enabled": true,
+  "java.import.gradle.wrapper.enabled": true,
+  "gradle.java.home": "C:\\Program Files\\Java\\jdk-21.0.10",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Program Files\\Java\\jdk-21.0.10",
+      "default": true
+    }
+  ],
+  "java.gradle.buildServer.enabled": "off",
+  "gradle.allowParallelRun": false,
+  "gradle.nestedProjects": false,
+  "dart.flutterSdkPath": "E:\\flutter",
+  "dart.sdkPath": "E:\\flutter",
+  "dart.analysisExcludedFolders": [
+    "windows",
+    "linux",
+    "macos"
+  ],
+  "files.associations": {
+    "tuple": "cpp",
+    "utility": "cpp",
+    "xstring": "cpp",
+    "ios": "cpp"
+  },
+  "php.validate.enable": false,
+  "php.validate.executablePath": null,
+  "chat.tools.terminal.autoApprove": {
+    "git restore": true
+  },
+  "cmake.ignoreCMakeListsMissing": true,
+  "markdownlint.enable": false,
+  "[markdown]": {
+    "editor.defaultFormatter": null
+  }
+}

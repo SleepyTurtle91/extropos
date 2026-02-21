@@ -1,0 +1,12 @@
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/pos_icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#121212"
+  adaptive_icon_foreground: "assets/icons/pos_icon.png"
+
+  # Flavor specific config
+  # We will just generate the main assets and then the user can copy them if needed,
+  # or we can target specific flavor directories if configured.
+  # But for now, let's keep it simple and standard.

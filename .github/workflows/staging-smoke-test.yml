@@ -1,0 +1,30 @@
+name: Staging Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Domain to test (e.g., extropos.duckdns.org)'
+        required: true
+        default: 'extropos.duckdns.org'
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dig and curl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dnsutils curl
+
+      - name: Run DNS and HTTPS smoke checks
+        run: |
+          DOMAIN="${{ github.event.inputs.domain }}"
+          echo "Domain: $DOMAIN"
+          echo "DNS A records:"
+          dig +short $DOMAIN
+          echo "HTTPS headers:"
+          curl -I --connect-timeout 5 -sS "https://$DOMAIN" || true

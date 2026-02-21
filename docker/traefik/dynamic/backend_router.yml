@@ -1,0 +1,19 @@
+http:
+  routers:
+    extro-backend-router:
+      rule: "Host(`backend.extropos.org`)"
+      service: extro-backend-service
+      entryPoints:
+        - web
+      tls: false  # Disable TLS temporarily to avoid Let's Encrypt issues
+    localhost-backend-router:
+      rule: "Host(`localhost`)"
+      service: extro-backend-service
+      entryPoints:
+        - web
+
+  services:
+    extro-backend-service:
+      loadBalancer:
+        servers:
+          - url: "http://172.21.0.3:80"

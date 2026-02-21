@@ -1,0 +1,293 @@
+services:
+  # ==========================================
+  # DATABASE - MariaDB
+  # ==========================================
+  mariadb:
+    image: mariadb:10.11
+    container_name: appwrite-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-appwrite_root_pw}
+      MYSQL_DATABASE: appwrite
+      MYSQL_USER: appwrite
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-appwrite_db_pw}
+      MYSQL_INITDB_SKIP_TZINFO: 1
+    volumes:
+      # Cloud storage on E:/ drive
+      - E:/appwrite-cloud/mysql:/var/lib/mysql
+    networks:
+      - appwrite
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # CACHE - Redis
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: appwrite-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_pw}
+    volumes:
+      # Cloud storage on E:/ drive
+      - E:/appwrite-cloud/redis:/data
+    networks:
+      - appwrite
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # APPWRITE - Main Backend API
+  # ==========================================
+  appwrite:
+    image: appwrite/appwrite:1.5.7
+    container_name: appwrite-api
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      # API Router
+      - "traefik.http.routers.appwrite-api.rule=Host(`api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.appwrite-api.entrypoints=websecure"
+      - "traefik.http.routers.appwrite-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.appwrite-api.service=appwrite-api"
+      - "traefik.http.services.appwrite-api.loadbalancer.server.port=80"
+    environment:
+      # Core configuration
+      _APP_ENV: production
+      _APP_DOMAIN: ${DOMAIN:-localhost}
+      _APP_DOMAIN_TARGET: ${DOMAIN:-localhost}
+      _APP_DOMAIN_FUNCTIONS: ${DOMAIN:-localhost}
+      
+      # Security - Generate with: openssl rand -hex 32
+      _APP_OPENSSL_KEY_V1: ${OPENSSL_KEY:-dbccde1aa2b0b905f3cda5203b070a75e0ee2e04ed215fd3a48462d77e3ab797}
+      
+      # HTTPS/SSL
+      _APP_OPTIONS_FORCE_HTTPS: ${FORCE_HTTPS:-false}
+      
+      # Console access
+      _APP_CONSOLE_WHITELIST_ROOT: enabled
+      _APP_CONSOLE_WHITELIST_EMAILS: ""
+      _APP_CONSOLE_WHITELIST_IPS: ""
+      _APP_CONSOLE_WHITELIST_ORIGINS: "*"
+      
+      # Email configuration
+      _APP_SYSTEM_EMAIL_NAME: ${SYSTEM_EMAIL_NAME:-ExtroPOS}
+      _APP_SYSTEM_EMAIL_ADDRESS: ${SYSTEM_EMAIL_ADDRESS:-no-reply@extropos.org}
+      _APP_SYSTEM_RESPONSE_FORMAT: json
+      
+      # Database
+      _APP_DB_HOST: mariadb
+      _APP_DB_PORT: 3306
+      _APP_DB_SCHEMA: appwrite
+      _APP_DB_USER: appwrite
+      _APP_DB_PASS: ${MYSQL_PASSWORD:-appwrite_db_pw}
+      
+      # Redis Cache
+      _APP_REDIS_HOST: redis
+      _APP_REDIS_PORT: 6379
+      _APP_REDIS_USER: default
+      _APP_REDIS_PASS: ${REDIS_PASSWORD:-redis_secure_pw}
+      _APP_REDIS_DB: 0
+      
+      # Storage configuration - E:/ drive
+      _APP_STORAGE_PATH: /storage
+      _APP_STORAGE_ANTIVIRUS: disabled
+      
+      # Functions
+      _APP_FUNCTIONS_BUILD_TIMEOUT: 900
+      _APP_FUNCTIONS_TIMEOUT: 900
+      
+      # Logging
+      _APP_LOGGING_PROVIDER: ${LOGGING_PROVIDER:-stdout}
+      _APP_LOGGING_CONFIG: ""
+      
+      # Abuse protection
+      _APP_OPTIONS_ABUSE: disabled
+      _APP_USAGE_METRIC: disabled
+      
+      # API settings
+      _APP_API_KEY: ${API_KEY:-your_api_key_here}
+      _APP_API_SECURITY_EMAIL_CONFIRMATION: false
+      _APP_API_SECURITY_PASSWORD_HISTORY: 0
+      _APP_API_SECURITY_PASSWORD_MIN_LENGTH: 8
+      
+      # File upload limits (in bytes - 1GB default)
+      _APP_UPLOAD_MAX_FILE_SIZE: 1073741824
+      
+      # Collections and buckets
+      _APP_COLLECTIONS_ID_MAX: 1000
+      _APP_BUCKETS_ID_MAX: 100
+
+    ports:
+      - "8080:80"
+      - "8443:443"
+    
+    volumes:
+      # Cloud storage on E:/ drive
+      - E:/appwrite-cloud/config:/etc/appwrite
+      - E:/appwrite-cloud/storage:/storage
+      - E:/appwrite-cloud/functions:/storage/functions
+      - E:/appwrite-cloud/uploads:/storage/uploads
+      - E:/appwrite-cloud/buckets:/storage/buckets
+    
+    networks:
+      - appwrite
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/v1/health/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==========================================
+  # APPWRITE CONSOLE - Web UI
+  # ==========================================
+  appwrite-console:
+    image: nginx:alpine
+    container_name: appwrite-console
+    restart: unless-stopped
+    depends_on:
+      - appwrite
+    ports:
+      - "3000:80"
+    networks:
+      - appwrite
+
+  # ==========================================
+  # APPWRITE WORKER - Asynchronous tasks
+  # ==========================================
+  appwrite-worker-database:
+    image: appwrite/appwrite:1.5.7
+    container_name: appwrite-worker-database
+    restart: unless-stopped
+    command: worker-databases
+    depends_on:
+      - appwrite
+      - mariadb
+      - redis
+    environment:
+      _APP_ENV: production
+      _APP_WORKER_PER_CORE: 6
+      _APP_WORKER_REGISTRY_HOST: https://registry.appwrite.io/v1
+      _APP_OPENSSL_KEY_V1: ${OPENSSL_KEY:-dbccde1aa2b0b905f3cda5203b070a75e0ee2e04ed215fd3a48462d77e3ab797}
+      _APP_DB_HOST: mariadb
+      _APP_DB_PORT: 3306
+      _APP_DB_SCHEMA: appwrite
+      _APP_DB_USER: appwrite
+      _APP_DB_PASS: ${MYSQL_PASSWORD:-appwrite_db_pw}
+      _APP_REDIS_HOST: redis
+      _APP_REDIS_PORT: 6379
+      _APP_REDIS_USER: default
+      _APP_REDIS_PASS: ${REDIS_PASSWORD:-redis_secure_pw}
+      _APP_REDIS_DB: 0
+      _APP_STORAGE_PATH: /storage
+    
+    volumes:
+      - E:/appwrite-cloud/storage:/storage
+      - E:/appwrite-cloud/config:/etc/appwrite
+    
+    networks:
+      - appwrite
+
+  appwrite-worker-audits:
+    image: appwrite/appwrite:1.5.7
+    container_name: appwrite-worker-audits
+    restart: unless-stopped
+    command: worker-audits
+    depends_on:
+      - appwrite
+      - mariadb
+      - redis
+    environment:
+      _APP_ENV: production
+      _APP_WORKER_PER_CORE: 6
+      _APP_OPENSSL_KEY_V1: ${OPENSSL_KEY:-dbccde1aa2b0b905f3cda5203b070a75e0ee2e04ed215fd3a48462d77e3ab797}
+      _APP_DB_HOST: mariadb
+      _APP_DB_PORT: 3306
+      _APP_DB_SCHEMA: appwrite
+      _APP_DB_USER: appwrite
+      _APP_DB_PASS: ${MYSQL_PASSWORD:-appwrite_db_pw}
+      _APP_REDIS_HOST: redis
+      _APP_REDIS_PORT: 6379
+      _APP_REDIS_USER: default
+      _APP_REDIS_PASS: ${REDIS_PASSWORD:-redis_secure_pw}
+      _APP_REDIS_DB: 0
+    
+    networks:
+      - appwrite
+
+  appwrite-worker-usage:
+    image: appwrite/appwrite:1.5.7
+    container_name: appwrite-worker-usage
+    restart: unless-stopped
+    command: worker-usage
+    depends_on:
+      - appwrite
+      - mariadb
+      - redis
+    environment:
+      _APP_ENV: production
+      _APP_WORKER_PER_CORE: 6
+      _APP_OPENSSL_KEY_V1: ${OPENSSL_KEY:-dbccde1aa2b0b905f3cda5203b070a75e0ee2e04ed215fd3a48462d77e3ab797}
+      _APP_DB_HOST: mariadb
+      _APP_DB_PORT: 3306
+      _APP_DB_SCHEMA: appwrite
+      _APP_DB_USER: appwrite
+      _APP_DB_PASS: ${MYSQL_PASSWORD:-appwrite_db_pw}
+      _APP_REDIS_HOST: redis
+      _APP_REDIS_PORT: 6379
+      _APP_REDIS_USER: default
+      _APP_REDIS_PASS: ${REDIS_PASSWORD:-redis_secure_pw}
+      _APP_REDIS_DB: 0
+    
+    networks:
+      - appwrite
+
+  appwrite-worker-webhooks:
+    image: appwrite/appwrite:1.5.7
+    container_name: appwrite-worker-webhooks
+    restart: unless-stopped
+    command: worker-webhooks
+    depends_on:
+      - appwrite
+      - mariadb
+      - redis
+    environment:
+      _APP_ENV: production
+      _APP_WORKER_PER_CORE: 6
+      _APP_OPENSSL_KEY_V1: ${OPENSSL_KEY:-dbccde1aa2b0b905f3cda5203b070a75e0ee2e04ed215fd3a48462d77e3ab797}
+      _APP_DB_HOST: mariadb
+      _APP_DB_PORT: 3306
+      _APP_DB_SCHEMA: appwrite
+      _APP_DB_USER: appwrite
+      _APP_DB_PASS: ${MYSQL_PASSWORD:-appwrite_db_pw}
+      _APP_REDIS_HOST: redis
+      _APP_REDIS_PORT: 6379
+      _APP_REDIS_USER: default
+      _APP_REDIS_PASS: ${REDIS_PASSWORD:-redis_secure_pw}
+      _APP_REDIS_DB: 0
+    
+    networks:
+      - appwrite
+
+networks:
+  appwrite:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes: {}
+# Note: All volumes are mapped to E:/appwrite-cloud/ for persistent cloud storage

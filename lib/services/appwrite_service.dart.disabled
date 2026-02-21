@@ -1,0 +1,151 @@
+import 'package:appwrite/appwrite.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AppwriteService {
+  static final AppwriteService instance = AppwriteService._internal();
+  AppwriteService._internal();
+
+  Client? _client;
+  bool _isInitialized = false;
+
+  static const String _endpointKey = 'appwrite_endpoint';
+  static const String _projectIdKey = 'appwrite_project_id';
+  static const String _apiKeyKey = 'appwrite_api_key';
+
+  // Getters for configuration
+  Future<String?> getEndpoint() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_endpointKey);
+  }
+
+  Future<String?> getProjectId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_projectIdKey);
+  }
+
+  Future<String?> getApiKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_apiKeyKey);
+  }
+
+  // Setters for configuration
+  Future<void> setEndpoint(String endpoint) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_endpointKey, endpoint);
+  }
+
+  Future<void> setProjectId(String projectId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_projectIdKey, projectId);
+  }
+
+  Future<void> setApiKey(String apiKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_apiKeyKey, apiKey);
+  }
+
+  // Initialize Appwrite client
+  Future<void> initialize() async {
+    final endpoint = await getEndpoint();
+    final projectId = await getProjectId();
+
+    if (endpoint == null || projectId == null) {
+      _isInitialized = false;
+      return;
+    }
+
+    _client = Client()
+        .setEndpoint(endpoint)
+        .setProject(projectId);
+
+    _isInitialized = true;
+  }
+
+  // Test connection by pinging the health endpoint
+  Future<bool> testConnection() async {
+    if (!_isInitialized || _client == null) {
+      await initialize();
+      if (!_isInitialized || _client == null) {
+        return false;
+      }
+    }
+
+    try {
+      // Try to ping the server by making a simple request
+      final account = Account(_client!);
+      await account.get(); // This will fail if not authenticated, but tests connection
+      return true;
+    } catch (e) {
+      // If it fails due to auth, connection is still working
+      if (e.toString().contains('User (role: guests)') ||
+          e.toString().contains('unauthorized')) {
+        return true;
+      }
+      return false;
+    }
+  }
+
+  // Get client instance (for other services to use)
+  Client? get client => _client;
+
+  // Check if service is initialized
+  bool get isInitialized => _isInitialized;
+
+  // Get databases service
+  Databases? get databases {
+    if (!_isInitialized || _client == null) return null;
+    return Databases(_client!);
+  }
+
+  // Get storage service
+  Storage? get storage {
+    if (!_isInitialized || _client == null) return null;
+    return Storage(_client!);
+  }
+
+  // Get account service
+  Account? get account {
+    if (!_isInitialized || _client == null) return null;
+    return Account(_client!);
+  }
+
+  // Get functions service
+  Functions? get functions {
+    if (!_isInitialized || _client == null) return null;
+    return Functions(_client!);
+  }
+
+  // Ping specific service
+  Future<bool> pingService(String service) async {
+    if (!_isInitialized || _client == null) {
+      await initialize();
+      if (!_isInitialized || _client == null) {
+        return false;
+      }
+    }
+
+    try {
+      // For now, just test basic connectivity
+      final account = Account(_client!);
+      await account.get();
+      return true;
+    } catch (e) {
+      // If it fails due to auth, connection is still working
+      if (e.toString().contains('User (role: guests)') ||
+          e.toString().contains('unauthorized')) {
+        return true;
+      }
+      return false;
+    }
+  }
+
+  // Clear all settings
+  Future<void> clearSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_endpointKey);
+    await prefs.remove(_projectIdKey);
+    await prefs.remove(_apiKeyKey);
+    _isInitialized = false;
+    _client = null;
+  }
+}

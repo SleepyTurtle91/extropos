@@ -1,0 +1,30 @@
+═══════════════════════════════════════════════════════
+    RETURN & VOID SALES TEST REPORT
+═══════════════════════════════════════════════════════
+
+OPERATION SUMMARY
+─────────────────────────────────────────────────────
+Total Operations:           70
+Full Voids:                 30
+Partial Returns:            40
+Successful Operations:      70
+Failed Operations:          0
+Success Rate:               100.00%
+
+FINANCIAL IMPACT
+─────────────────────────────────────────────────────
+Total Refunded Amount:      RM6047.50
+Average Refund Amount:      RM86.39
+
+VOLUME METRICS
+─────────────────────────────────────────────────────
+Total Items Returned:       94 units
+
+PERFORMANCE METRICS
+─────────────────────────────────────────────────────
+Average Processing Time:    2.39ms
+Fastest Operation:          1ms
+Slowest Operation:          23ms
+Total Processing Time:      0s
+
+═══════════════════════════════════════════════════════

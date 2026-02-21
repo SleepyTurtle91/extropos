@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match USB printers by interface class 7 (Printer) -->
+    <usb-device class="7" />
+
+    <!-- Also match common thermal printer vendors (more permissive) -->
+    <!-- Epson -->
+    <usb-device vendor-id="1208" /> <!-- Epson vendor ID -->
+    <!-- Star Micronics -->
+    <usb-device vendor-id="0519" /> <!-- Star Micronics vendor ID -->
+    <!-- Citizen -->
+    <usb-device vendor-id="0525" /> <!-- Citizen vendor ID -->
+    <!-- Custom/Android -->
+    <usb-device vendor-id="0493" /> <!-- Android vendor ID -->
+    <!-- IMIN -->
+    <usb-device vendor-id="6868" /> <!-- IMIN vendor ID -->
+
+    <!-- Allow all USB devices for manual selection (less secure but more compatible) -->
+    <!-- <usb-device /> -->
+</resources>

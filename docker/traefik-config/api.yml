@@ -1,0 +1,78 @@
+# Traefik Dynamic Configuration for Super Admin API
+# Add this to Appwrite's Traefik to expose the API
+
+http:
+  routers:
+    # Super Admin API Router (HTTPS)
+    super-admin-api:
+      rule: "Host(`api.extropos.org`)"
+      service: super-admin-api
+      entryPoints:
+        - https
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - api-ratelimit
+        - api-headers
+
+    # Super Admin API Router (HTTP - redirect to HTTPS)
+    super-admin-api-http:
+      rule: "Host(`api.extropos.org`)"
+      service: super-admin-api
+      entryPoints:
+        - http
+      middlewares:
+        - https-redirect
+
+  services:
+    # Super Admin API Service
+    super-admin-api:
+      loadBalancer:
+        servers:
+          - url: "http://super-admin-api:3001"
+        passHostHeader: true
+        healthCheck:
+          path: /health
+          interval: 30s
+          timeout: 5s
+
+  middlewares:
+    # HTTPS Redirect
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    # Rate Limiting
+    api-ratelimit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+
+    # Security Headers
+    api-headers:
+      headers:
+        accessControlAllowOriginList:
+          - "https://backend.extropos.org"
+          - "https://appwrite.extropos.org"
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - Authorization
+          - Content-Type
+          - X-API-Key
+        accessControlAllowCredentials: true
+        sslRedirect: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"

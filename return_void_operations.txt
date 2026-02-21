@@ -1,0 +1,844 @@
+DETAILED RETURN & VOID OPERATIONS LOG
+════════════════════════════════════════════════════════════
+Total Operations: 70
+
+Return/Void Record #ORD-1
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.088666
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM148.50
+
+├─ Refund Amount: RM148.50
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 23ms
+
+Return/Void Record #ORD-2
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.093271
+├─ Original Items: 2 item(s) (6 units)
+├─ Original Total: RM181.50
+
+├─ Refund Amount: RM181.50
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-3
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.096263
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM137.50
+
+├─ Refund Amount: RM137.50
+├─ Reason: Wrong order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-4
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.100001
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM148.50
+
+├─ Refund Amount: RM148.50
+├─ Reason: Duplicate order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 4ms
+
+Return/Void Record #ORD-5
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.103016
+├─ Original Items: 2 item(s) (2 units)
+├─ Original Total: RM93.50
+
+├─ Refund Amount: RM93.50
+├─ Reason: Customer request
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-6
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.106533
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM159.50
+
+├─ Refund Amount: RM159.50
+├─ Reason: Customer request
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-7
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.109133
+├─ Original Items: 1 item(s) (2 units)
+├─ Original Total: RM33.00
+
+├─ Refund Amount: RM33.00
+├─ Reason: Payment failed
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-8
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.111136
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM181.50
+
+├─ Refund Amount: RM181.50
+├─ Reason: Payment failed
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-9
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.114128
+├─ Original Items: 2 item(s) (2 units)
+├─ Original Total: RM55.00
+
+├─ Refund Amount: RM55.00
+├─ Reason: Duplicate order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-10
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.116135
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM154.00
+
+├─ Refund Amount: RM154.00
+├─ Reason: Duplicate order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-11
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.120003
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM148.50
+
+├─ Refund Amount: RM148.50
+├─ Reason: Wrong order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-12
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.122012
+├─ Original Items: 3 item(s) (3 units)
+├─ Original Total: RM82.50
+
+├─ Refund Amount: RM82.50
+├─ Reason: Payment failed
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-13
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.124001
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM154.00
+
+├─ Refund Amount: RM154.00
+├─ Reason: Duplicate order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-14
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.126524
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM38.50
+
+├─ Refund Amount: RM38.50
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-15
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.128075
+├─ Original Items: 2 item(s) (5 units)
+├─ Original Total: RM88.00
+
+├─ Refund Amount: RM88.00
+├─ Reason: Wrong order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-16
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.131720
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM126.50
+
+├─ Refund Amount: RM126.50
+├─ Reason: Wrong order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-17
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.133716
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM132.00
+
+├─ Refund Amount: RM132.00
+├─ Reason: Payment failed
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-18
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.134711
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM126.50
+
+├─ Refund Amount: RM126.50
+├─ Reason: Wrong order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-19
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.137257
+├─ Original Items: 1 item(s) (2 units)
+├─ Original Total: RM55.00
+
+├─ Refund Amount: RM55.00
+├─ Reason: Duplicate order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-20
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.138450
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM231.00
+
+├─ Refund Amount: RM231.00
+├─ Reason: Duplicate order
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-1
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.162331
+├─ Original Items: 3 item(s) (7 units)
+├─ Original Total: RM286.00
+├─ Returned Items: 2 item(s) (3 units)
+├─ Refund Amount: RM120.00
+├─ Reason: Incorrect quantity
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 3ms
+
+Return/Void Record #ORD-RETURN-2
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.164334
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM126.50
+├─ Returned Items: 3 item(s) (4 units)
+├─ Refund Amount: RM100.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-3
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.166325
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM143.00
+├─ Returned Items: 2 item(s) (2 units)
+├─ Refund Amount: RM60.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-4
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.167632
+├─ Original Items: 3 item(s) (4 units)
+├─ Original Total: RM93.50
+├─ Returned Items: 2 item(s) (2 units)
+├─ Refund Amount: RM25.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-5
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.170648
+├─ Original Items: 3 item(s) (3 units)
+├─ Original Total: RM66.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM5.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-6
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.172650
+├─ Original Items: 4 item(s) (8 units)
+├─ Original Total: RM291.50
+├─ Returned Items: 3 item(s) (4 units)
+├─ Refund Amount: RM120.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-7
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.174646
+├─ Original Items: 4 item(s) (9 units)
+├─ Original Total: RM374.00
+├─ Returned Items: 3 item(s) (4 units)
+├─ Refund Amount: RM150.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-8
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.177699
+├─ Original Items: 4 item(s) (7 units)
+├─ Original Total: RM269.50
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM100.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-9
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.179709
+├─ Original Items: 2 item(s) (8 units)
+├─ Original Total: RM330.00
+├─ Returned Items: 2 item(s) (8 units)
+├─ Refund Amount: RM300.00
+├─ Reason: Incorrect quantity
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-10
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.182711
+├─ Original Items: 4 item(s) (4 units)
+├─ Original Total: RM99.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM10.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-11
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.184718
+├─ Original Items: 3 item(s) (3 units)
+├─ Original Total: RM60.50
+├─ Returned Items: 3 item(s) (3 units)
+├─ Refund Amount: RM55.00
+├─ Reason: Item defective
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-12
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.187251
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM99.00
+├─ Returned Items: 2 item(s) (3 units)
+├─ Refund Amount: RM90.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-13
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.188246
+├─ Original Items: 3 item(s) (6 units)
+├─ Original Total: RM220.00
+├─ Returned Items: 2 item(s) (3 units)
+├─ Refund Amount: RM130.00
+├─ Reason: Quality issue
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-14
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.190520
+├─ Original Items: 5 item(s) (7 units)
+├─ Original Total: RM291.50
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM15.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-15
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.192526
+├─ Original Items: 4 item(s) (8 units)
+├─ Original Total: RM302.50
+├─ Returned Items: 2 item(s) (4 units)
+├─ Refund Amount: RM125.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-16
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.193528
+├─ Original Items: 4 item(s) (4 units)
+├─ Original Total: RM82.50
+├─ Returned Items: 3 item(s) (3 units)
+├─ Refund Amount: RM70.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-17
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.194528
+├─ Original Items: 3 item(s) (7 units)
+├─ Original Total: RM264.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM50.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-18
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.197031
+├─ Original Items: 4 item(s) (8 units)
+├─ Original Total: RM187.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM10.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-19
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.199786
+├─ Original Items: 2 item(s) (5 units)
+├─ Original Total: RM187.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM40.00
+├─ Reason: Quality issue
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-20
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.201783
+├─ Original Items: 4 item(s) (5 units)
+├─ Original Total: RM198.00
+├─ Returned Items: 2 item(s) (2 units)
+├─ Refund Amount: RM35.00
+├─ Reason: Item defective
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-21
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.204783
+├─ Original Items: 3 item(s) (7 units)
+├─ Original Total: RM192.50
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM70.00
+├─ Reason: Item defective
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-22
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.206296
+├─ Original Items: 2 item(s) (4 units)
+├─ Original Total: RM33.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM15.00
+├─ Reason: Item defective
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-23
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.207822
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM143.00
+├─ Returned Items: 2 item(s) (2 units)
+├─ Refund Amount: RM45.00
+├─ Reason: Incorrect quantity
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-24
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.210835
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM154.00
+├─ Returned Items: 3 item(s) (3 units)
+├─ Refund Amount: RM75.00
+├─ Reason: Quality issue
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-25
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.212841
+├─ Original Items: 3 item(s) (6 units)
+├─ Original Total: RM159.50
+├─ Returned Items: 3 item(s) (5 units)
+├─ Refund Amount: RM135.00
+├─ Reason: Quality issue
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-26
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.214838
+├─ Original Items: 4 item(s) (7 units)
+├─ Original Total: RM148.50
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM25.00
+├─ Reason: Item defective
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-27
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.217894
+├─ Original Items: 4 item(s) (9 units)
+├─ Original Total: RM231.00
+├─ Returned Items: 3 item(s) (4 units)
+├─ Refund Amount: RM135.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #ORD-RETURN-28
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.219910
+├─ Original Items: 4 item(s) (8 units)
+├─ Original Total: RM247.50
+├─ Returned Items: 3 item(s) (5 units)
+├─ Refund Amount: RM110.00
+├─ Reason: Item defective
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-29
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.220907
+├─ Original Items: 4 item(s) (4 units)
+├─ Original Total: RM115.50
+├─ Returned Items: 2 item(s) (2 units)
+├─ Refund Amount: RM60.00
+├─ Reason: Item wrong
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #ORD-RETURN-30
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.222914
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM170.50
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM30.00
+├─ Reason: Customer changed mind
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-0
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.249999
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM88.00
+
+├─ Refund Amount: RM88.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #MIXED-RETURN-1
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.253998
+├─ Original Items: 4 item(s) (6 units)
+├─ Original Total: RM236.50
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM60.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 3ms
+
+Return/Void Record #MIXED-VOID-2
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.257060
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM44.00
+
+├─ Refund Amount: RM44.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #MIXED-RETURN-3
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.258815
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM154.00
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM40.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-4
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.259835
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM159.50
+
+├─ Refund Amount: RM159.50
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-5
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.262836
+├─ Original Items: 3 item(s) (3 units)
+├─ Original Total: RM82.50
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM50.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #MIXED-VOID-6
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.264832
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM66.00
+
+├─ Refund Amount: RM66.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 2ms
+
+Return/Void Record #MIXED-RETURN-7
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.266902
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM27.50
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM15.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-8
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.268921
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM22.00
+
+├─ Refund Amount: RM22.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-9
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.270916
+├─ Original Items: 3 item(s) (6 units)
+├─ Original Total: RM187.00
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM10.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-10
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.272921
+├─ Original Items: 4 item(s) (7 units)
+├─ Original Total: RM203.50
+
+├─ Refund Amount: RM203.50
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-11
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.273915
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM209.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM35.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-12
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.274916
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM115.50
+
+├─ Refund Amount: RM115.50
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-13
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.276980
+├─ Original Items: 4 item(s) (5 units)
+├─ Original Total: RM104.50
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM30.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-14
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.278328
+├─ Original Items: 3 item(s) (5 units)
+├─ Original Total: RM77.00
+
+├─ Refund Amount: RM77.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-15
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.280350
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM132.00
+├─ Returned Items: 1 item(s) (2 units)
+├─ Refund Amount: RM70.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-16
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.282341
+├─ Original Items: 2 item(s) (3 units)
+├─ Original Total: RM66.00
+
+├─ Refund Amount: RM66.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-17
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.283346
+├─ Original Items: 4 item(s) (5 units)
+├─ Original Total: RM165.00
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM35.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-VOID-18
+├─ Type: FULL_VOID
+├─ Time: 2026-02-19 20:20:34.285351
+├─ Original Items: 2 item(s) (2 units)
+├─ Original Total: RM66.00
+
+├─ Refund Amount: RM66.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+
+Return/Void Record #MIXED-RETURN-19
+├─ Type: PARTIAL_RETURN
+├─ Time: 2026-02-19 20:20:34.286862
+├─ Original Items: 2 item(s) (2 units)
+├─ Original Total: RM49.50
+├─ Returned Items: 1 item(s) (1 units)
+├─ Refund Amount: RM10.00
+├─ Reason: Mixed test
+├─ Refund Method: Cash
+├─ Status: ✓ Success
+└─ Processing Time: 1ms
+

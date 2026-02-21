@@ -1,0 +1,43 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build POS APK (release)",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"build",
+				"apk",
+				"--release",
+				"--flavor",
+				"posApp",
+				"--target",
+				"lib/main.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter-test"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Build POS APK (release)",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"build",
+				"apk",
+				"--release",
+				"--flavor",
+				"posApp",
+				"--target",
+				"lib/main.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter-test"
+			],
+			"group": "build"
+		}
+	]
+}

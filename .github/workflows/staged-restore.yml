@@ -1,0 +1,105 @@
+name: Staged Restore (Dry-run + Optional Full)
+
+on:
+  workflow_dispatch:
+    inputs:
+      timestamp:
+        description: 'Backup timestamp to restore (e.g., 20251128T123000Z)'
+        required: true
+      deploy_path:
+        description: 'Remote deploy repo path e.g., /home/deployuser/flutterpos'
+        required: true
+        default: '/home/deployuser/flutterpos'
+      do_restore:
+        description: 'Set to yes to perform a destructive restore after dry-run (requires confirm_proceed to equal CONFIRM)'
+        required: false
+        default: 'no'
+      confirm_proceed:
+        description: 'Type CONFIRM to confirm a destructive restore (case-sensitive)'
+        required: false
+        default: ''
+
+jobs:
+  staged-restore:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install awscli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli jq
+
+      - name: Validate inputs
+        id: vars
+        run: |
+          TIMESTAMP="${{ github.event.inputs.timestamp }}"
+          DEPLOY_PATH="${{ github.event.inputs.deploy_path }}"
+          if [[ -z "$TIMESTAMP" ]]; then
+            echo "timestamp required" && exit 1
+          fi
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "deploy_path=$DEPLOY_PATH" >> $GITHUB_OUTPUT
+
+      - name: Check backup exists in S3 (uses repo secret S3_BUCKET)
+        run: |
+          TIMESTAMP=${{ steps.vars.outputs.timestamp }}
+          BUCKET=${{ secrets.S3_BUCKET }}
+          if [[ -z "$BUCKET" ]]; then echo "S3_BUCKET secret not set" && exit 1; fi
+          echo "Listing: s3://$BUCKET/nextcloud-backups/$TIMESTAMP/"
+          aws s3 ls "s3://$BUCKET/nextcloud-backups/$TIMESTAMP/" --recursive || { echo "No objects found for the timestamp"; exit 2; }
+
+      - name: Upload artifacts and env to staging host if needed
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker/nextcloud-traefik/.env"
+          target: "${{ github.event.inputs.deploy_path }}/docker/nextcloud-traefik/.env"
+
+      - name: Run dry-run restore on staging host
+        uses: appleboy/ssh-action@v0.1.8
+        id: dryrun
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+            TIMESTAMP="${{ github.event.inputs.timestamp }}"
+            cd "$DEPLOY_DIR/docker/nextcloud-traefik"
+            sudo chmod +x restore-from-objectstore.sh
+            echo "Running dry-run restore for $TIMESTAMP"
+            sudo S3_BUCKET="${{ secrets.S3_BUCKET }}" AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" S3_ENDPOINT="${{ secrets.S3_ENDPOINT }}" ./restore-from-objectstore.sh --timestamp "$TIMESTAMP" --dry-run || true
+
+      - name: Optionally run a destructive restore (confirm required)
+        if: ${{ github.event.inputs.do_restore == 'yes' && github.event.inputs.confirm_proceed == 'CONFIRM' }}
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            DEPLOY_DIR="${{ github.event.inputs.deploy_path }}"
+            TIMESTAMP="${{ github.event.inputs.timestamp }}"
+            cd "$DEPLOY_DIR/docker/nextcloud-traefik"
+            sudo chmod +x restore-from-objectstore.sh
+            echo "Running FULL RESTORE for $TIMESTAMP (destructive)"
+            sudo S3_BUCKET="${{ secrets.S3_BUCKET }}" AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" S3_ENDPOINT="${{ secrets.S3_ENDPOINT }}" ./restore-from-objectstore.sh --timestamp "$TIMESTAMP" --yes || true
+
+      - name: Post-restore validation (curl status)
+        if: ${{ github.event.inputs.do_restore == 'yes' && github.event.inputs.confirm_proceed == 'CONFIRM' }}
+        run: |
+          # quick check; you may want to validate further with occ commands
+          DOMAIN=${{ secrets.EXTROPOS_DOMAIN }}
+          if [[ -z "$DOMAIN" ]]; then DOMAIN="extropos.duckdns.org"; fi
+          echo "Checking $DOMAIN health"
+          curl -I --connect-timeout 10 -sS "https://$DOMAIN" || true

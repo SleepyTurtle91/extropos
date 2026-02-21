@@ -1,0 +1,93 @@
+services:
+  # ==================== Backend API Service ====================
+  backend-api:
+    build:
+      context: ../backend-api
+      dockerfile: Dockerfile
+    container_name: flutterpos-backend-api
+    image: flutterpos-backend-api:1.0.0
+    
+    # Load environment variables from file
+    env_file:
+      - .env.backend
+    
+    # Environment Configuration
+    environment:
+      # Server
+      PORT: 3001
+      NODE_ENV: production
+      
+      # Appwrite Integration (points to local Appwrite stack)
+      APPWRITE_ENDPOINT: http://appwrite-api:80/v1
+      APPWRITE_PROJECT_ID: ${APPWRITE_PROJECT_ID:-69792d39002f4a01e438}
+      # APPWRITE_API_KEY loaded from .env.backend file
+      
+      # Security
+      JWT_SECRET: ${JWT_SECRET:-change_this_to_secure_random_value}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-admin123}
+      SUPER_ADMIN_API_KEY: ${SUPER_ADMIN_API_KEY:-super_secret_api_key}
+      
+      # CORS
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:3001,http://localhost:8080"
+      
+      # Rate Limiting
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+      
+      # Logging
+      LOG_LEVEL: info
+    
+    # Port Mapping
+    ports:
+      - "3001:3001"
+    
+    # Volume Mounts
+    volumes:
+      # Persist logs
+      - E:\appwrite-cloud\logs\backend:/app/logs
+      # Mount source for development (optional, comment out for production)
+      # - ../backend-api:/app
+      # - /app/node_modules
+    
+    # Network Configuration
+    networks:
+      - appwrite
+    
+    # Health Check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    
+    # Restart Policy
+    restart: unless-stopped
+    
+    # Resource Limits (optional, uncomment to enable)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 256M
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Labels (for monitoring)
+    labels:
+      - "com.extropos.service=backend-api"
+      - "com.extropos.version=1.0.0"
+
+# Use existing Appwrite network
+networks:
+  appwrite:
+    name: appwrite
+    external: true

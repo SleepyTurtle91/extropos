@@ -1,0 +1,341 @@
+00:00 +0: loading E:/flutterpos/test/services/appwrite_phase1_service_test.dart
+00:00 +0: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service service can be instantiated
+00:00 +1: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service isInitialized defaults to false
+00:00 +2: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service errorMessage defaults to null
+00:00 +3: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action
+≡ƒô¥ Logging activity: INVALID_ACTION by Test User
+Γ£à Activity logged: INVALID_ACTION
+00:01 +3 -1: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action [E]
+  Expected: throws <Instance of 'Exception'>
+    Actual: <Closure: () => Future<ActivityLogModel>>
+     Which: returned a Future that emitted ActivityLogModel:<ActivityLogModel(id: null, action: INVALID_ACTION, resourceType: User, success: true)>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\audit_service_test.dart 14:7          main.<fn>.<fn>
+  
+00:01 +3 -1: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid resource type
+≡ƒô¥ Logging activity: CREATE by Test User
+Γ£à Activity logged: CREATE
+00:01 +3 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid resource type [E]
+  Expected: throws <Instance of 'Exception'>
+    Actual: <Closure: () => Future<ActivityLogModel>>
+     Which: returned a Future that emitted ActivityLogModel:<ActivityLogModel(id: null, action: CREATE, resourceType: InvalidType, success: true)>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\audit_service_test.dart 28:7          main.<fn>.<fn>
+  
+00:01 +3 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() records successful activity
+00:01 +4 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() records failed activity
+00:01 +5 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByUser() returns activities for user
+00:01 +6 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByResource() returns activities for resource
+00:01 +7 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByDateRange() filters by date
+00:01 +8 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivityById() returns specific activity
+00:01 +9 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService cache is cleared on clearCache()
+00:01 +10 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService statistics shows correct activity counts
+00:02 +11 -2: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserById() returns null for non-existent user
+≡ƒöì Fetching user: non_existent_id
+≡ƒÜÇ Initializing Appwrite Phase 1 Service...
+Γ£à Appwrite Phase 1 Service initialized
+00:02 +11 -3: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserById() returns null for non-existent user [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  package:flutter/src/foundation/binding.dart 314:9                                     BindingBase.checkInstance.<fn>
+  package:flutter/src/foundation/binding.dart 401:6                                     BindingBase.checkInstance
+  package:flutter/src/services/binding.dart 73:54                                       ServicesBinding.instance
+  package:flutter/src/services/platform_channel.dart 179:25                             _findBinaryMessenger
+  package:flutter/src/services/platform_channel.dart 320:56                             MethodChannel.binaryMessenger
+  package:flutter/src/services/platform_channel.dart 360:17                             MethodChannel._invokeMethod
+  package:flutter/src/services/platform_channel.dart 540:12                             MethodChannel.invokeMethod
+  package:path_provider_platform_interface/src/method_channel_path_provider.dart 52:10  MethodChannelPathProvider.getApplicationDocumentsPath
+  package:path_provider/path_provider.dart 121:40                                       getApplicationDocumentsDirectory
+  package:appwrite/src/client_io.dart 78:29                                             ClientIO._getCookiePath
+  package:appwrite/src/client_io.dart 166:39                                            ClientIO.init
+  package:appwrite/src/client_io.dart 71:5                                              new ClientIO
+  package:appwrite/src/client_io.dart 22:5                                              createClient
+  package:appwrite/src/client.dart 31:7                                                 new Client
+  package:extropos/services/appwrite_phase1_service.dart 57:17                          AppwritePhase1Service.initialize
+  package:extropos/services/backend_user_service_appwrite.dart 37:30                    BackendUserServiceAppwrite.ensureInitialized
+  package:extropos/services/backend_user_service_appwrite.dart 93:11                    BackendUserServiceAppwrite.getUserById
+  test\services\backend_user_service_appwrite_test.dart 14:34                           main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                            _CustomZone.registerBinaryCallback
+  package:appwrite/src/client_io.dart 166:33                                            ClientIO.init
+  package:appwrite/src/client_io.dart 71:5                                              new ClientIO
+  package:appwrite/src/client_io.dart 22:5                                              createClient
+  package:appwrite/src/client.dart 31:7                                                 new Client
+  package:extropos/services/appwrite_phase1_service.dart 57:17                          AppwritePhase1Service.initialize
+  package:extropos/services/backend_user_service_appwrite.dart 37:30                    BackendUserServiceAppwrite.ensureInitialized
+  package:extropos/services/backend_user_service_appwrite.dart 93:11                    BackendUserServiceAppwrite.getUserById
+  test\services\backend_user_service_appwrite_test.dart 14:34                           main.<fn>.<fn>
+  
+00:03 +11 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel creates admin role with all permissions
+00:03 +12 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel RoleModel converts to map and back
+00:03 +13 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel Permission constants are defined
+00:03 +14 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel creates activity log entry
+00:03 +15 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel activity log with changes tracks before/after
+00:03 +16 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel activity log supports error tracking
+00:03 +17 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel creates backend user
+00:03 +18 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel backend user can be deactivated
+00:03 +19 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel backend user converts to map
+00:03 +20 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel creates inventory item
+00:03 +21 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel inventory tracks stock level changes
+00:03 +22 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel inventory converts to map
+00:03 +23 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models Permission Constants all permission constants are defined
+00:03 +24 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models Permission Constants ALL_PERMISSIONS includes all 20 permissions
+00:04 +25 -3: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getInventoryByProductId() returns null for non-existent
+≡ƒöì Fetching inventory for product: non_existent
+≡ƒÜÇ Initializing Appwrite Phase 1 Service...
+Γ£à Appwrite Phase 1 Service initialized
+00:04 +25 -4: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getInventoryByProductId() returns null for non-existent [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  package:flutter/src/foundation/binding.dart 314:9                                     BindingBase.checkInstance.<fn>
+  package:flutter/src/foundation/binding.dart 401:6                                     BindingBase.checkInstance
+  package:flutter/src/services/binding.dart 73:54                                       ServicesBinding.instance
+  package:flutter/src/services/platform_channel.dart 179:25                             _findBinaryMessenger
+  package:flutter/src/services/platform_channel.dart 320:56                             MethodChannel.binaryMessenger
+  package:flutter/src/services/platform_channel.dart 360:17                             MethodChannel._invokeMethod
+  package:flutter/src/services/platform_channel.dart 540:12                             MethodChannel.invokeMethod
+  package:path_provider_platform_interface/src/method_channel_path_provider.dart 52:10  MethodChannelPathProvider.getApplicationDocumentsPath
+  package:path_provider/path_provider.dart 121:40                                       getApplicationDocumentsDirectory
+  package:appwrite/src/client_io.dart 78:29                                             ClientIO._getCookiePath
+  package:appwrite/src/client_io.dart 166:39                                            ClientIO.init
+  package:appwrite/src/client_io.dart 71:5                                              new ClientIO
+  package:appwrite/src/client_io.dart 22:5                                              createClient
+  package:appwrite/src/client.dart 31:7                                                 new Client
+  package:extropos/services/appwrite_phase1_service.dart 57:17                          AppwritePhase1Service.initialize
+  package:extropos/services/phase1_inventory_service_appwrite.dart 39:30                Phase1InventoryServiceAppwrite.ensureInitialized
+  package:extropos/services/phase1_inventory_service_appwrite.dart 76:11                Phase1InventoryServiceAppwrite.getInventoryByProductId
+  test\services\phase1_inventory_service_appwrite_test.dart 14:39                       main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                            _CustomZone.registerBinaryCallback
+  package:appwrite/src/client_io.dart 166:33                                            ClientIO.init
+  package:appwrite/src/client_io.dart 71:5                                              new ClientIO
+  package:appwrite/src/client_io.dart 22:5                                              createClient
+  package:appwrite/src/client.dart 31:7                                                 new Client
+  package:extropos/services/appwrite_phase1_service.dart 57:17                          AppwritePhase1Service.initialize
+  package:extropos/services/phase1_inventory_service_appwrite.dart 39:30                Phase1InventoryServiceAppwrite.ensureInitialized
+  package:extropos/services/phase1_inventory_service_appwrite.dart 76:11                Phase1InventoryServiceAppwrite.getInventoryByProductId
+  test\services\phase1_inventory_service_appwrite_test.dart 14:39                       main.<fn>.<fn>
+  
+00:05 +25 -4: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getSystemRoles() returns exactly 4 roles
+00:05 +26 -4: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite admin role has all permissions
+00:05 +27 -4: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getRoleById() returns null for non-existent role
+≡ƒöì Fetching role: non_existent_id
+≡ƒÜÇ Initializing Appwrite Phase 1 Service...
+Γ£à Appwrite Phase 1 Service initialized
+00:05 +27 -5: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getRoleById() returns null for non-existent role [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  package:flutter/src/foundation/binding.dart 314:9                                     BindingBase.checkInstance.<fn>
+  package:flutter/src/foundation/binding.dart 401:6                                     BindingBase.checkInstance
+  package:flutter/src/services/binding.dart 73:54                                       ServicesBinding.instance
+  package:flutter/src/services/platform_channel.dart 179:25                             _findBinaryMessenger
+  package:flutter/src/services/platform_channel.dart 320:56                             MethodChannel.binaryMessenger
+  package:flutter/src/services/platform_channel.dart 360:17                             MethodChannel._invokeMethod
+  package:flutter/src/services/platform_channel.dart 540:12                             MethodChannel.invokeMethod
+  package:path_provider_platform_interface/src/method_channel_path_provider.dart 52:10  MethodChannelPathProvider.getApplicationDocumentsPath
+  package:path_provider/path_provider.dart 121:40                                       getApplicationDocumentsDirectory
+  package:appwrite/src/client_io.dart 78:29                                             ClientIO._getCookiePath
+  package:appwrite/src/client_io.dart 166:39                                            ClientIO.init
+  package:appwrite/src/client_io.dart 71:5                                              new ClientIO
+  package:appwrite/src/client_io.dart 22:5                                              createClient
+  package:appwrite/src/client.dart 31:7                                                 new Client
+  package:extropos/services/appwrite_phase1_service.dart 57:17                          AppwritePhase1Service.initialize
+  package:extropos/services/role_service_appwrite.dart 174:30                           RoleServiceAppwrite.ensureInitialized
+  package:extropos/services/role_service_appwrite.dart 219:11                           RoleServiceAppwrite.getRoleById
+  test\services\role_service_appwrite_test.dart 30:34                                   main.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                                            _CustomZone.registerBinaryCallback
+  package:appwrite/src/client_io.dart 166:33                                            ClientIO.init
+  package:appwrite/src/client_io.dart 71:5                                              new ClientIO
+  package:appwrite/src/client_io.dart 22:5                                              createClient
+  package:appwrite/src/client.dart 31:7                                                 new Client
+  package:extropos/services/appwrite_phase1_service.dart 57:17                          AppwritePhase1Service.initialize
+  package:extropos/services/role_service_appwrite.dart 174:30                           RoleServiceAppwrite.ensureInitialized
+  package:extropos/services/role_service_appwrite.dart 219:11                           RoleServiceAppwrite.getRoleById
+  test\services\role_service_appwrite_test.dart 30:34                                   main.<fn>.<fn>
+  
+00:32 +27 -5: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserById() returns null for non-existent user [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+00:32 +27 -5: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email
+≡ƒöì Fetching user by email: notfound@example.com
+≡ƒôï Fetching all users from Appwrite...
+≡ƒöä Refreshing user cache...
+00:34 +27 -5: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getInventoryByProductId() returns null for non-existent [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+00:34 +27 -5: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getAllInventory() returns list
+≡ƒôª Fetching all inventory...
+≡ƒöä Refreshing inventory cache...
+00:35 +27 -5: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getRoleById() returns null for non-existent role [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+00:35 +27 -5: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getRoleById() returns system role
+≡ƒöì Fetching role: role_admin
+00:35 +28 -5: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email
+00:35 +28 -5: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite system roles cannot be modified
+Γ£Å∩╕Å Updating role: role_admin
+≡ƒöì Fetching role: role_admin
+00:35 +29 -5: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email
+00:35 +29 -5: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite system roles cannot be deleted
+≡ƒùæ∩╕Å Deleting role: role_admin
+≡ƒöì Fetching role: role_admin
+00:35 +30 -5: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email
+00:35 +30 -5: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite roleHasPermission() checks permission correctly
+≡ƒöì Fetching role: role_admin
+00:35 +30 -6: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email
+00:35 +30 -6: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite roleHasPermission() checks permission correctly [E]
+  Expected: <true>
+    Actual: <false>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\role_service_appwrite_test.dart 68:7  main.<fn>.<fn>
+  
+00:35 +30 -6: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite roleHasPermission() returns false for missing permission
+≡ƒöì Fetching role: role_viewer
+00:35 +31 -6: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email
+00:35 +31 -6: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getAllRoles() includes system roles
+≡ƒôï Fetching all roles...
+≡ƒöä Refreshing role cache...
+01:02 +31 -7: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getAllInventory() returns list
+01:02 +31 -7: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getUserByEmail() returns null for non-existent email [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+01:02 +31 -7: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getAllUsers() returns empty list initially
+≡ƒôï Fetching all users from Appwrite...
+≡ƒöä Refreshing user cache...
+01:04 +31 -8: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getAllRoles() includes system roles
+01:04 +31 -8: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getAllInventory() returns list [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+01:04 +31 -8: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires valid product ID
+Γ₧ò Creating inventory for product: Test
+≡ƒöì Fetching inventory for product: 
+01:05 +31 -9: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getAllUsers() returns empty list initially
+01:05 +31 -9: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite getAllRoles() includes system roles [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+01:05 +31 -9: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite createCustomRole() requires valid name
+Γ₧ò Creating role: 
+≡ƒöì Fetching role by name: 
+≡ƒôï Fetching all roles...
+≡ƒöä Refreshing role cache...
+01:32 +31 -10: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires valid product ID
+01:32 +31 -10: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite getAllUsers() returns empty list initially [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+01:32 +31 -10: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires valid email
+Γ₧ò Creating user: invalid-email
+≡ƒöì Fetching user by email: invalid-email
+≡ƒôï Fetching all users from Appwrite...
+≡ƒöä Refreshing user cache...
+01:34 +31 -11: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite createCustomRole() requires valid name
+01:34 +31 -11: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires valid product ID [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+01:34 +31 -11: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires valid product name
+Γ₧ò Creating inventory for product: 
+≡ƒöì Fetching inventory for product: prod_1
+01:35 +31 -12: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires valid email
+01:35 +31 -12: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite createCustomRole() requires valid name [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+01:35 +31 -12: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite createCustomRole() requires at least one permission
+Γ₧ò Creating role: Test Role
+≡ƒöì Fetching role by name: Test Role
+≡ƒôï Fetching all roles...
+≡ƒöä Refreshing role cache...
+02:02 +31 -13: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires valid product name
+02:02 +31 -13: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires valid email [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+02:02 +31 -13: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires non-empty display name
+Γ₧ò Creating user: test@example.com
+≡ƒöì Fetching user by email: test@example.com
+≡ƒôï Fetching all users from Appwrite...
+≡ƒöä Refreshing user cache...
+02:04 +31 -14: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite createCustomRole() requires at least one permission
+02:04 +31 -14: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires valid product name [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+02:04 +31 -14: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+Γ₧ò Creating inventory for product: Test
+≡ƒöì Fetching inventory for product: prod_1
+02:05 +31 -15: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires non-empty display name
+02:05 +31 -15: E:/flutterpos/test/services/role_service_appwrite_test.dart: RoleServiceAppwrite createCustomRole() requires at least one permission [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+02:05 +32 -15: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires non-empty display name
+02:32 +32 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:32 +32 -16: E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: BackendUserServiceAppwrite createUser() requires non-empty display name [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+02:32 +33 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:32 +34 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:32 +35 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:32 +36 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:32 +37 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:32 +38 -16: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity
+02:34 +38 -17: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() requires positive initial quantity [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+02:34 +38 -17: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite createInventoryItem() creates inventory
+02:34 +39 -17: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() requires positive quantity
+≡ƒô¥ Adding SALE movement to product: prod_1 (qty: -5.0)
+≡ƒöì Fetching inventory for product: prod_1
+03:04 +39 -18: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() requires positive quantity [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+03:04 +39 -18: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() prevents negative stock
+≡ƒô¥ Adding SALE movement to product: prod_1 (qty: 999.0)
+≡ƒöì Fetching inventory for product: prod_1
+03:34 +39 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() prevents negative stock [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+03:34 +39 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() records SALE
+03:34 +40 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() records RESTOCK
+03:34 +41 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite addStockMovement() records ADJUSTMENT
+03:34 +42 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite performStockTake() updates quantity to counted amount
+03:34 +43 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite performStockTake() records variance
+03:34 +44 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getLowStockItems() returns items below min level
+03:34 +45 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite getMovementHistory() returns all movements for product
+03:34 +46 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite calculateInventoryValue() returns total value
+03:34 +47 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite cache is cleared on clearCache()
+03:34 +48 -19: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite movement type validation enforces valid types
+≡ƒô¥ Adding INVALID_TYPE movement to product: prod_1 (qty: 5.0)
+≡ƒöì Fetching inventory for product: prod_1
+04:04 +48 -20: E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: Phase1InventoryServiceAppwrite movement type validation enforces valid types [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds. See https://pub.dev/packages/test#timeouts
+  dart:isolate  _RawReceivePort._handleMessage
+  
+04:04 +48 -20: Some tests failed.

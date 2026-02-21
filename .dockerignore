@@ -1,0 +1,14 @@
+appwrite-data/
+build/
+docker/appwrite-compose.yml
+docker/appwrite-*
+.git/
+.github/
+node_modules/
+/.dart_tool/
+.idea/
+*.iml
+*.log
+tmp/
+/.docker/
+**/secrets/**

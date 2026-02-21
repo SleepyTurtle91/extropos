@@ -1,0 +1,55 @@
+# This is the stable configuration file for your Cloudflare Tunnel
+# based on the settings observed in your log.
+
+# 1. Tunnel ID
+# The UUID of your tunnel to run.
+tunnel: 0239be02-9cf3-4c6c-8226-d4ce7c06f729
+
+# 2. Credential File
+# This points to the location of the credentials JSON file inside the Docker container.
+credentials-file: /etc/cloudflared/cert.json
+
+# 3. Ingress Rules
+# Define how traffic from Cloudflare should be routed to your local services.
+ingress:
+  # FIX: api.extropos.org ingress rule
+  # The original configuration was: https://172.20.0.2:443.
+  # We add noTLSVerify: true to fix the x509 certificate error (Cannot validate certificate for IP SANs).
+  # Updated to point to Traefik's container name: flutterpos-traefik
+  - hostname: api.extropos.org
+    service: https://flutterpos-traefik:443
+    originRequest:
+      noTLSVerify: true # This explicitly disables certificate validation for this specific service.
+
+      # Updated to point to proxy service IP: 172.20.0.100
+  - hostname: appwrite.extropos.org
+    service: http://172.20.0.100:80
+  - hostname: backend.extropos.org
+    service: http://172.20.0.100:80
+  - hostname: cloud.extropos.org
+    service: http://172.20.0.100:80
+  - hostname: mail.extropos.org
+    service: http://172.20.0.100:80
+  - hostname: portal.extropos.org
+    service: https://flutterpos-traefik:443
+    originRequest:
+      noTLSVerify: true
+  - hostname: dealer.extropos.org
+    # Route dealer domain to Traefik (same origin as api.extropos.org)
+    service: https://flutterpos-traefik:443
+    originRequest:
+      noTLSVerify: true
+  - hostname: extropos.org
+    service: http://172.20.0.100:80
+
+  # Default fallback rule for all other traffic
+  - service: http_status:404
+
+# 4. Optional Settings
+# Use the same logging and autoupdate settings you previously used.
+loglevel: debug
+no-autoupdate: true
+
+# Enable WARP routing (from your logs)
+warp-routing:
+  enabled: true

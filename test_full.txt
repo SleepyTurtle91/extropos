@@ -1,0 +1,79 @@
+00:00 +0: loading E:/flutterpos/test/services/appwrite_phase1_service_test.dart
+00:00 +0: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service service can be instantiated
+00:00 +1: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service isInitialized defaults to false
+00:00 +2: E:/flutterpos/test/services/appwrite_phase1_service_test.dart: AppwritePhase1Service errorMessage defaults to null
+lib/services/backend_user_service_appwrite.dart:331:38: Error: Required named parameter 'userName' must be provided.
+      await _auditService.logActivity(
+                                     ^
+00:00 +3: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action
+00:00 +3 -1: loading E:/flutterpos/test/services/backend_user_service_appwrite_test.dart [E]
+  Failed to load "E:/flutterpos/test/services/backend_user_service_appwrite_test.dart":
+  Compilation failed for testPath=E:/flutterpos/test/services/backend_user_service_appwrite_test.dart: lib/services/backend_user_service_appwrite.dart:331:38: Error: Required named parameter 'userName' must be provided.
+        await _auditService.logActivity(
+                                       ^
+  .
+00:00 +3 -1: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action
+≡ƒô¥ Logging activity: INVALID_ACTION by Test User
+Γ£à Activity logged: INVALID_ACTION
+00:00 +3 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid action [E]
+  Expected: throws <Instance of 'Exception'>
+    Actual: <Closure: () => Future<ActivityLogModel>>
+     Which: returned a Future that emitted ActivityLogModel:<ActivityLogModel(id: null, action: INVALID_ACTION, resourceType: User, success: true)>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\audit_service_test.dart 14:7          main.<fn>.<fn>
+  
+00:01 +3 -2: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid resource type
+≡ƒô¥ Logging activity: CREATE by Test User
+Γ£à Activity logged: CREATE
+00:01 +3 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() requires valid resource type [E]
+  Expected: throws <Instance of 'Exception'>
+    Actual: <Closure: () => Future<ActivityLogModel>>
+     Which: returned a Future that emitted ActivityLogModel:<ActivityLogModel(id: null, action: CREATE, resourceType: InvalidType, success: true)>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\services\audit_service_test.dart 28:7          main.<fn>.<fn>
+  
+00:01 +3 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() records successful activity
+00:01 +4 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService logActivity() records failed activity
+00:01 +5 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByUser() returns activities for user
+00:01 +6 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByResource() returns activities for resource
+00:01 +7 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivitiesByDateRange() filters by date
+00:01 +8 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService getActivityById() returns specific activity
+00:01 +9 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService cache is cleared on clearCache()
+00:01 +10 -3: E:/flutterpos/test/services/audit_service_test.dart: AuditService statistics shows correct activity counts
+lib/services/phase1_inventory_service_appwrite.dart:15:61: Error: Can't find '}' to match '{'.
+class Phase1InventoryServiceAppwrite extends ChangeNotifier {
+                                                            ^
+00:07 +11 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel creates admin role with all permissions
+00:07 +12 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel RoleModel converts to map and back
+00:07 +13 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models RoleModel Permission constants are defined
+00:07 +14 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel creates activity log entry
+00:07 +15 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel activity log with changes tracks before/after
+00:07 +16 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models ActivityLogModel activity log supports error tracking
+00:07 +17 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel creates backend user
+00:07 +18 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel backend user can be deactivated
+00:07 +19 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models BackendUserModel backend user converts to map
+00:07 +20 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel creates inventory item
+00:07 +21 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel inventory tracks stock level changes
+00:07 +22 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models InventoryModel inventory converts to map
+00:07 +23 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models Permission Constants all permission constants are defined
+00:07 +24 -3: E:/flutterpos/test/services/phase1a_models_test.dart: Phase 1a Models Permission Constants ALL_PERMISSIONS includes all 20 permissions
+00:07 +24 -4: loading E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart [E]
+  Failed to load "E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart":
+  Compilation failed for testPath=E:/flutterpos/test/services/phase1_inventory_service_appwrite_test.dart: lib/services/phase1_inventory_service_appwrite.dart:15:61: Error: Can't find '}' to match '{'.
+  class Phase1InventoryServiceAppwrite extends ChangeNotifier {
+                                                              ^
+  .
+lib/services/role_service_appwrite.dart:187:25: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+        _roleCache[role.id] = role;
+                        ^
+00:19 +25 -5: loading E:/flutterpos/test/services/role_service_appwrite_test.dart [E]
+  Failed to load "E:/flutterpos/test/services/role_service_appwrite_test.dart":
+  Compilation failed for testPath=E:/flutterpos/test/services/role_service_appwrite_test.dart: lib/services/role_service_appwrite.dart:187:25: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+          _roleCache[role.id] = role;
+                          ^
+  .
+00:19 +25 -5: Some tests failed.

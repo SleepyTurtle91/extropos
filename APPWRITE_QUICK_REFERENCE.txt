@@ -1,0 +1,126 @@
+╔════════════════════════════════════════════════════════════════╗
+║          FlutterPOS Appwrite - Quick Reference Card           ║
+╚════════════════════════════════════════════════════════════════╝
+
+🌐 CONNECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Endpoint:    http://localhost:8080/v1
+  Project ID:  69392e4c0017357bd3d5
+  API Key:     standard_b5f49e190cce...
+  Database:    pos_db
+  Console:     http://localhost:8080
+
+📝 CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Email:       abber8@gmail.com
+  Password:    Berneydaniel123
+
+📚 COLLECTIONS (14 Total)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Core POS:
+  • categories        Product categories/groups
+  • items             Products/menu items
+  • orders            Customer orders
+  • order_items       Items in orders
+
+Management:
+  • users             Staff/employees
+  • tables            Restaurant tables
+  • customers         Customer information
+  • payment_methods   Payment types
+
+Operations:
+  • transactions      Payment records
+  • printers          Printer config
+  • customer_displays External displays
+  • receipt_settings  Receipt config
+
+Advanced:
+  • modifier_groups   Modifier categories
+  • modifier_items    Individual modifiers
+
+🪣 STORAGE BUCKETS (4 Total)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ receipt_images   Receipt images
+  ✅ product_images   Menu item photos
+  ✅ logo_images      Business logo
+  ✅ reports          Generated reports
+
+💻 INITIALIZE CLIENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+final client = Client()
+    .setEndpoint('http://localhost:8080/v1')
+    .setProject('69392e4c0017357bd3d5');
+
+final databases = Databases(client);
+final storage = Storage(client);
+
+📖 CODE EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fetch Categories:
+  response = await databases.listDocuments(
+    databaseId: 'pos_db',
+    collectionId: 'categories',
+  );
+
+Create Order:
+  response = await databases.createDocument(
+    databaseId: 'pos_db',
+    collectionId: 'orders',
+    documentId: ID.unique(),
+    data: {...},
+  );
+
+Update Order Status:
+  await databases.updateDocument(
+    databaseId: 'pos_db',
+    collectionId: 'orders',
+    documentId: orderId,
+    data: {'status': 'completed'},
+  );
+
+Upload Image:
+  response = await storage.createFile(
+    bucketId: 'product_images',
+    fileId: ID.unique(),
+    file: inputFile,
+  );
+
+🔍 VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Test Setup:      ./appwrite_setup_summary.sh
+  View Collections: curl -X GET \
+    "http://localhost:8080/v1/databases/pos_db/collections" \
+    -H "X-Appwrite-Project: 69392e4c0017357bd3d5" \
+    -H "X-Appwrite-Key: standard_b5f49e190cce..."
+
+📁 FILES & DOCS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Config:         lib/config/environment.dart
+  Integration:    docs/APPWRITE_INTEGRATION_GUIDE.md
+  Setup Script:   ./setup_appwrite_collections.sh
+  Summary:        ./appwrite_setup_summary.sh
+
+🚀 QUICK START
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Run: flutter run -d windows
+  2. Open: http://localhost:8080 (console)
+  3. Test: Create sample categories/items
+  4. Read: docs/APPWRITE_INTEGRATION_GUIDE.md
+
+⚠️  IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DEVELOPMENT ONLY - For production:
+  • Use HTTPS, not HTTP
+  • Store API keys securely
+  • Implement proper authentication
+  • Enable encryption
+  • Set access permissions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Status: ✅ READY TO USE
+  Last Updated: 2025-12-10
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

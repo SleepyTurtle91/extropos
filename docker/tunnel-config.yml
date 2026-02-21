@@ -1,0 +1,24 @@
+tunnel: 6ab3d608-5cf2-47e9-b8a9-4d7a18d7616a
+credentials-file: /etc/cloudflared/tunnel-credentials.json
+
+ingress:
+  # Route api.extropos.org to local API
+  - hostname: api.extropos.org
+    service: http://super-admin-api:3001
+    originRequest:
+      noTLSVerify: true
+  
+  # Route backend.extropos.org to backend admin panel
+  - hostname: backend.extropos.org
+    service: http://backend-admin:8080
+    originRequest:
+      noTLSVerify: true
+  
+  # Route appwrite.extropos.org to Appwrite API
+  - hostname: appwrite.extropos.org
+    service: http://appwrite-api:80
+    originRequest:
+      noTLSVerify: true
+  
+  # Catch-all rule (required)
+  - service: http_status:404
