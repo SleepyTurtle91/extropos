@@ -1,4 +1,5 @@
 import 'package:extropos/screens/kitchen_display_screen.dart';
+import 'package:extropos/screens/refund_service_screen.dart';
 import 'package:extropos/screens/reports_dashboard_screen.dart';
 import 'package:extropos/screens/sales_dashboard_screen.dart';
 import 'package:extropos/screens/sales_history_screen.dart';
@@ -164,6 +165,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
                 _sidebarItem(Icons.history, 'Transactions'),
                 if (activeMode != POSMode.retail)
                   _sidebarItem(Icons.restaurant_menu, 'Kitchen'),
+                _sidebarItem(Icons.undo, 'Return & Void', highlight: true),
                 
                 const SizedBox(height: 24),
                 _sidebarSectionLabel('SYSTEM MODE'),
@@ -261,6 +263,12 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
           MaterialPageRoute(builder: (_) => const KitchenDisplayScreen()),
         );
         break;
+      case 'Return & Void':
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RefundServiceScreen()),
+        );
+        break;
       case 'Tables':
         if (activeMode == POSMode.restaurant) {
           // In restaurant mode, show table selection dialog instead of management
@@ -297,7 +305,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
     }
   }
 
-  Widget _sidebarItem(IconData icon, String label, {bool isActive = false}) {
+  Widget _sidebarItem(IconData icon, String label, {bool isActive = false, bool highlight = false}) {
     return InkWell(
       onTap: () => _handleSidebarAction(label),
       borderRadius: BorderRadius.circular(12),
@@ -305,16 +313,17 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
         margin: const EdgeInsets.symmetric(vertical: 2),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isActive ? Theme.of(context).primaryColor : Colors.transparent,
+          color: highlight ? const Color(0xFFFFF1F2) : (isActive ? Theme.of(context).primaryColor : Colors.transparent),
           borderRadius: BorderRadius.circular(12),
+          border: highlight ? Border.all(color: const Color(0xFFF43F5E)) : null,
         ),
         child: Row(
           mainAxisAlignment: isSidebarCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
           children: [
-            Icon(icon, color: isActive ? Colors.white : Colors.grey.shade600, size: 20),
+            Icon(icon, color: highlight ? const Color(0xFFF43F5E) : (isActive ? Colors.white : Colors.grey.shade600), size: 20),
             if (!isSidebarCollapsed) ...[
               const SizedBox(width: 12),
-              Text(label, style: TextStyle(color: isActive ? Colors.white : Colors.grey.shade700, fontWeight: FontWeight.w500, fontSize: 14)),
+              Text(label, style: TextStyle(color: highlight ? const Color(0xFFF43F5E) : (isActive ? Colors.white : Colors.grey.shade700), fontWeight: FontWeight.w500, fontSize: 14)),
             ]
           ],
         ),
