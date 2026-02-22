@@ -179,10 +179,22 @@ String generateReceiptTextWithSettings({
         buffer.writeln(center(line));
       }
     }
+    if (settings.showTaxId && data['tax_id'] != null) {
+      final taxId = (data['tax_id'] as String?) ?? '';
+      if (taxId.isNotEmpty) {
+        buffer.writeln(center(taxId));
+      }
+    }
   } else {
     // Customer receipt - minimal header
     if (data['store_name'] != null) {
       buffer.writeln(center(data['store_name']));
+    }
+    if (settings.showTaxId && data['tax_id'] != null) {
+      final taxId = (data['tax_id'] as String?) ?? '';
+      if (taxId.isNotEmpty) {
+        buffer.writeln(center(taxId));
+      }
     }
   }
 
@@ -420,6 +432,34 @@ String generateReceiptTextWithSettings({
     buffer.writeln();
     buffer.writeln(center('Terms & Conditions:'));
     buffer.writeln(settings.termsAndConditions);
+  }
+
+  if (settings.showWifiDetails && data['wifi_details'] != null) {
+    final wifi = (data['wifi_details'] as String?) ?? '';
+    if (wifi.isNotEmpty) {
+      buffer.writeln();
+      for (final line in wifi.split('\n')) {
+        buffer.writeln(center(line));
+      }
+    }
+  }
+
+  if (settings.showBarcode && data['barcode'] != null) {
+    final barcode = (data['barcode'] as String?) ?? '';
+    if (barcode.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln(center('[BARCODE]'));
+      buffer.writeln(center(barcode));
+    }
+  }
+
+  if (settings.showQrCode && data['qr_data'] != null) {
+    final qrData = (data['qr_data'] as String?) ?? '';
+    if (qrData.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln(center('[QR CODE]'));
+      buffer.writeln(center(qrData));
+    }
   }
 
   // Always show thank you for customer receipts

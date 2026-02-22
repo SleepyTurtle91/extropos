@@ -1,5 +1,4 @@
 import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/models/business_mode.dart';
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/product.dart';
 import 'package:flutter/material.dart';
@@ -105,7 +104,7 @@ void main() {
         final transactionData = {
           'transactionNumber': 'TEST-001',
           'timestamp': DateTime.now().toIso8601String(),
-          'businessMode': BusinessMode.retail.toString(),
+          'businessMode': 'retail',
           'cartItems': cartItems.map((item) => {
             'productName': item.product.name,
             'quantity': item.quantity,

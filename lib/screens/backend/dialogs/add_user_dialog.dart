@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:extropos/models/backend_user_model.dart';
 import 'package:extropos/models/role_model.dart';
 import 'package:extropos/services/backend_user_service.dart';
+import 'package:flutter/material.dart';
 
 /// Dialog for adding a new user
 ///

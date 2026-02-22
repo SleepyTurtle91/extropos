@@ -1,3 +1,5 @@
+// Deprecated enum - business mode selection UI removed. Keep for compatibility with existing data/tests.
+// Future cleanup may eliminate this file entirely.
 enum BusinessMode { retail, cafe, restaurant }
 
 extension BusinessModeExtension on BusinessMode {

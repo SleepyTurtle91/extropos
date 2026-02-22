@@ -852,8 +852,10 @@ std::string PrinterPlugin::BuildStructuredEscPosString(const flutter::EncodableM
 std::vector<uint8_t> PrinterPlugin::BuildStructuredEscPosBytes(const flutter::EncodableMap& receipt_map, int charsPerLine) {
   std::vector<uint8_t> out;
   try {
+    auto items_it = receipt_map.find(flutter::EncodableValue("items"));
+    bool hasItems = (items_it != receipt_map.end());
     auto content_it = receipt_map.find(flutter::EncodableValue("content"));
-    if (content_it != receipt_map.end()) {
+    if (!hasItems && content_it != receipt_map.end()) {
       const auto* content = std::get_if<std::string>(&content_it->second);
       if (content) {
         // Initialize
@@ -874,6 +876,13 @@ std::vector<uint8_t> PrinterPlugin::BuildStructuredEscPosBytes(const flutter::En
         return out;
       }
     }
+
+    auto pushBytes = [&](std::initializer_list<uint8_t> bytes) {
+      out.insert(out.end(), bytes.begin(), bytes.end());
+    };
+    auto pushString = [&](const std::string& value) {
+      for (char c: value) out.push_back(static_cast<uint8_t>(c));
+    };
     // Initialize
     out.push_back(0x1B); out.push_back(0x40);
     std::string currency = "RM";
@@ -895,7 +904,6 @@ std::vector<uint8_t> PrinterPlugin::BuildStructuredEscPosBytes(const flutter::En
     for (int i = 0; i < charsPerLine; ++i) out.push_back('-');
     out.push_back('\n');
     // Items
-    auto items_it = receipt_map.find(flutter::EncodableValue("items"));
     if (items_it != receipt_map.end()) {
       const auto* items = std::get_if<flutter::EncodableList>(&items_it->second);
       if (items) {
@@ -970,6 +978,40 @@ std::vector<uint8_t> PrinterPlugin::BuildStructuredEscPosBytes(const flutter::En
     if (total_it != receipt_map.end()) printTotal("TOTAL:", total_it->second);
     for (int i = 0; i < charsPerLine; ++i) out.push_back('=');
     out.push_back('\n');
+
+    auto barcode_it = receipt_map.find(flutter::EncodableValue("barcode"));
+    if (barcode_it != receipt_map.end()) {
+      std::string barcode = getStringFromEncodable(barcode_it->second);
+      if (!barcode.empty()) {
+        if (barcode.size() > 255) barcode = barcode.substr(0, 255);
+        pushBytes({0x1B, 0x61, 0x01}); // center
+        pushBytes({0x1D, 0x48, 0x02}); // HRI below
+        pushBytes({0x1D, 0x68, 0x50}); // Height
+        pushBytes({0x1D, 0x77, 0x02}); // Module width
+        pushBytes({0x1D, 0x6B, 0x49, static_cast<uint8_t>(barcode.size())}); // Code128
+        pushString(barcode);
+        out.push_back('\n');
+      }
+    }
+
+    auto qr_it = receipt_map.find(flutter::EncodableValue("qr_data"));
+    if (qr_it != receipt_map.end()) {
+      std::string qrData = getStringFromEncodable(qr_it->second);
+      if (!qrData.empty()) {
+        pushBytes({0x1B, 0x61, 0x01}); // center
+        pushBytes({0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00}); // Model 2
+        pushBytes({0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06}); // Size 6
+        pushBytes({0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30}); // Error correction L
+        int len = static_cast<int>(qrData.size()) + 3;
+        uint8_t pL = static_cast<uint8_t>(len & 0xFF);
+        uint8_t pH = static_cast<uint8_t>((len >> 8) & 0xFF);
+        pushBytes({0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30});
+        pushString(qrData);
+        pushBytes({0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30});
+        out.push_back('\n');
+      }
+    }
+
     out.push_back(0x0A);
     out.push_back(0x1D); out.push_back(0x56); out.push_back(0x42); out.push_back(0x00);
     return out;

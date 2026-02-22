@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:extropos/models/inventory_model.dart';
 import 'package:extropos/services/phase1_inventory_service.dart';
+import 'package:flutter/material.dart';
 
 /// Dialog for adjusting stock levels
 ///

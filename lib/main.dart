@@ -1,6 +1,8 @@
 import 'dart:developer' as developer;
 
+import 'package:extropos/migrations/pos_products_migration.dart';
 import 'package:extropos/models/business_info_model.dart';
+import 'package:extropos/repositories/product_repository.dart';
 import 'package:extropos/screens/activation_screen.dart';
 import 'package:extropos/screens/einvoice_config_screen.dart';
 import 'package:extropos/screens/einvoice_submission_screen.dart';
@@ -11,6 +13,7 @@ import 'package:extropos/screens/my_invois_settings_screen.dart';
 import 'package:extropos/screens/setup_screen.dart';
 import 'package:extropos/screens/unified_pos_screen.dart';
 import 'package:extropos/screens/vice_customer_display_screen.dart';
+import 'package:extropos/seeders/pos_product_seeder.dart';
 import 'package:extropos/services/appwrite_phase1_service.dart';
 import 'package:extropos/services/appwrite_service.dart';
 // services/printer_service_clean.dart already imported above
@@ -42,6 +45,25 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:universal_io/io.dart' show Platform;
 import 'package:window_manager/window_manager.dart';
+
+/// Seed POS products for all modes
+Future<String> _seedPOSProducts(ProductRepository repository) async {
+  // Check if products already exist
+  final existingProducts = await repository.getProducts();
+  if (existingProducts.isNotEmpty) {
+    return 'Already seeded (${existingProducts.length} products)';
+  }
+  
+  // Seed all modes
+  final seeder = POSProductSeeder(repository);
+  await seeder.seedAll();
+  
+  final retailCount = (await repository.getProducts(mode: 'retail')).length;
+  final cafeCount = (await repository.getProducts(mode: 'cafe')).length;
+  final restaurantCount = (await repository.getProducts(mode: 'restaurant')).length;
+  
+  return 'Retail: $retailCount, Cafe: $cafeCount, Restaurant: $restaurantCount';
+}
 
 /// Entry point for the vice (back) customer display screen
 /// This is called by the iMin SDK when launching the app on the secondary screen
@@ -76,6 +98,25 @@ void main() async {
       developer.log('🔧 Main: POS seed applied (if DB was empty)');
     } catch (e) {
       developer.log('⚠️ Main: POS seeding failed: $e');
+    }
+    
+    // Initialize POS Products database table and seed sample data
+    try {
+      final tableExists = await POSProductsMigration.isTableExists();
+      if (!tableExists) {
+        developer.log('🔧 Main: Creating pos_products table...');
+        await POSProductsMigration.migrate();
+        
+        // Seed sample products for all modes
+        developer.log('🔧 Main: Seeding POS products...');
+        final repository = DatabaseProductRepository();
+        final seedData = await _seedPOSProducts(repository);
+        developer.log('✅ Main: POS products seeded - $seedData');
+      } else {
+        developer.log('✅ Main: pos_products table already exists');
+      }
+    } catch (e) {
+      developer.log('⚠️ Main: POS products setup failed: $e');
     }
   } else {
     // Default to offline-only for now per release focus

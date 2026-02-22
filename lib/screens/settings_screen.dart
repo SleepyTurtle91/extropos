@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/models/business_mode.dart';
+// business_mode.dart no longer used after removing mode selection UI
 import 'package:extropos/screens/advanced_reports_screen.dart';
 import 'package:extropos/screens/analytics_dashboard_screen.dart';
 import 'package:extropos/screens/business_info_screen.dart';
@@ -53,11 +52,18 @@ import 'package:url_launcher/url_launcher.dart';
 typedef UpdateServiceFactory = UpdateService Function();
 typedef OpenFileFunction = Future<void> Function(String path);
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   final UpdateServiceFactory? updateServiceFactory;
   final OpenFileFunction? openFileFn;
 
   const SettingsScreen({super.key, this.updateServiceFactory, this.openFileFn});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String? _activeCategoryId;
 
   Future<Map<String, String>> _getAppInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -71,38 +77,72 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-      ),
-      body: FutureBuilder<Map<String, String>>(
-        future: _getAppInfo(),
-        builder: (context, snapshot) {
-          final appInfo =
-              snapshot.data ??
-              {'version': '1.0.5', 'buildNumber': '5', 'appName': 'ExtroPOS'};
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: _buildSettingsContent(context, appInfo),
-          );
-        },
+      body: SafeArea(
+        child: FutureBuilder<Map<String, String>>(
+          future: _getAppInfo(),
+          builder: (context, snapshot) {
+            final appInfo =
+                snapshot.data ??
+                {'version': '1.0.5', 'buildNumber': '5', 'appName': 'ExtroPOS'};
+            final trainingService = context.watch<TrainingModeService>();
+            final categories = _buildCategories(
+              context,
+              appInfo,
+              trainingService,
+            );
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                int crossAxisCount = 1;
+                if (constraints.maxWidth >= 600) crossAxisCount = 2;
+                if (constraints.maxWidth >= 900) crossAxisCount = 3;
+                if (constraints.maxWidth >= 1200) crossAxisCount = 4;
+
+                final activeCategory = _activeCategoryId == null
+                    ? null
+                    : categories.firstWhere(
+                        (category) => category.id == _activeCategoryId,
+                        orElse: () => categories.first,
+                      );
+
+                return Column(
+                  children: [
+                    _buildHeader(constraints.maxWidth, activeCategory),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: activeCategory == null
+                            ? _buildMainGrid(crossAxisCount, categories)
+                            : _buildSubGrid(crossAxisCount, activeCategory),
+                      ),
+                    ),
+                    _buildFooter(appInfo),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
-  List<Widget> _buildSettingsContent(
+  List<SettingsCategory> _buildCategories(
     BuildContext context,
     Map<String, String> appInfo,
+    TrainingModeService trainingService,
   ) {
     return [
-      _SettingsSection(
+      SettingsCategory(
+        id: 'hardware',
         title: 'Hardware',
-        children: [
-          _SettingsTile(
-            icon: Icons.print,
+        icon: Icons.print,
+        color: const Color(0xFF4F46E5),
+        items: [
+          SettingsItem(
             title: 'Printers Management',
-            subtitle: 'Configure receipt and kitchen printers',
+            icon: Icons.print,
+            description: 'Configure receipt and kitchen printers',
             onTap: () {
               Navigator.push(
                 context,
@@ -112,10 +152,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.receipt_long,
+          SettingsItem(
             title: 'Printer Integration',
-            subtitle: 'Thermal printer + PDF print tools',
+            icon: Icons.receipt_long,
+            description: 'Thermal printer + PDF print tools',
             onTap: () {
               Navigator.push(
                 context,
@@ -125,10 +165,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.monitor,
+          SettingsItem(
             title: 'Dual Display Settings',
-            subtitle: 'Configure customer display for IMIN hardware',
+            icon: Icons.monitor,
+            description: 'Configure customer display for IMIN hardware',
             onTap: () {
               Navigator.push(
                 context,
@@ -138,10 +178,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.desktop_windows,
+          SettingsItem(
             title: 'Customer Displays',
-            subtitle: 'Manage customer facing displays',
+            icon: Icons.desktop_windows,
+            description: 'Manage customer facing displays',
             onTap: () {
               Navigator.push(
                 context,
@@ -154,14 +194,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'user_mgmt',
         title: 'User Management',
-        children: [
-          _SettingsTile(
-            icon: Icons.people,
+        icon: Icons.people,
+        color: const Color(0xFF10B981),
+        items: [
+          SettingsItem(
             title: 'Users Management',
-            subtitle: 'Manage staff accounts and permissions',
+            icon: Icons.people,
+            description: 'Manage staff accounts and permissions',
             onTap: () {
               Navigator.push(
                 context,
@@ -171,10 +213,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.group,
+          SettingsItem(
             title: 'Customers Management',
-            subtitle: 'Manage customer database and loyalty',
+            icon: Icons.group,
+            description: 'Manage customer database and loyalty',
             onTap: () {
               Navigator.push(
                 context,
@@ -184,10 +226,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.security,
+          SettingsItem(
             title: 'Roles Management',
-            subtitle: 'Configure role permissions and access levels',
+            icon: Icons.security,
+            description: 'Configure role permissions and access levels',
             onTap: () {
               Navigator.push(
                 context,
@@ -199,14 +241,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'products',
         title: 'Products',
-        children: [
-          _SettingsTile(
-            icon: Icons.category,
+        icon: Icons.shopping_bag,
+        color: const Color(0xFFF59E0B),
+        items: [
+          SettingsItem(
             title: 'Categories Management',
-            subtitle: 'Organize products into categories',
+            icon: Icons.category,
+            description: 'Organize products into categories',
             onTap: () {
               Navigator.push(
                 context,
@@ -216,10 +260,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.inventory,
+          SettingsItem(
             title: 'Items Management',
-            subtitle: 'Add and manage products',
+            icon: Icons.inventory,
+            description: 'Add and manage products',
             onTap: () {
               Navigator.push(
                 context,
@@ -229,10 +273,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.tune,
+          SettingsItem(
             title: 'Modifier Groups',
-            subtitle: 'Manage product modifiers and options',
+            icon: Icons.tune,
+            description: 'Manage product modifiers and options',
             onTap: () {
               Navigator.push(
                 context,
@@ -242,10 +286,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.undo,
+          SettingsItem(
             title: 'Refunds & Returns',
-            subtitle: 'Process customer refunds and returns',
+            icon: Icons.undo,
+            description: 'Process customer refunds and returns',
             onTap: () {
               Navigator.push(
                 context,
@@ -255,14 +299,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'restaurant',
         title: 'Restaurant',
-        children: [
-          _SettingsTile(
-            icon: Icons.table_restaurant,
+        icon: Icons.restaurant,
+        color: const Color(0xFFF43F5E),
+        items: [
+          SettingsItem(
             title: 'Tables Management',
-            subtitle: 'Configure restaurant tables and layout',
+            icon: Icons.table_restaurant,
+            description: 'Configure restaurant tables and layout',
             onTap: () {
               Navigator.push(
                 context,
@@ -272,10 +318,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.restaurant,
+          SettingsItem(
             title: 'Kitchen Display System',
-            subtitle: 'Monitor and manage kitchen orders',
+            icon: Icons.restaurant,
+            description: 'Monitor and manage kitchen orders',
             onTap: () {
               Navigator.push(
                 context,
@@ -285,10 +331,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.monitor,
+          SettingsItem(
             title: 'Cafe Order Queue Display',
-            subtitle: 'Customer-facing order status display',
+            icon: Icons.monitor,
+            description: 'Customer-facing order status display',
             onTap: () {
               Navigator.push(
                 context,
@@ -300,14 +346,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'appearance',
         title: 'Appearance',
-        children: [
-          _SettingsTile(
-            icon: Icons.palette,
+        icon: Icons.palette,
+        color: const Color(0xFF8B5CF6),
+        items: [
+          SettingsItem(
             title: 'Theme & Color Scheme',
-            subtitle: 'Customize app colors and appearance',
+            icon: Icons.palette,
+            description: 'Customize app colors and appearance',
             onTap: () {
               Navigator.push(
                 context,
@@ -319,33 +367,35 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'general',
         title: 'General',
-        children: [
-          Consumer<TrainingModeService>(
-            builder: (context, trainingService, _) {
-              return SwitchListTile(
-                title: const Text('Training Mode'),
-                subtitle: const Text(
-                  'Enable demo mode - no persistent changes will be saved',
-                ),
-                value: trainingService.isTrainingMode,
-                onChanged: (value) async {
-                  await trainingService.toggleTrainingMode(value);
-                  ToastHelper.showToast(
-                    context,
-                    value ? 'Training mode enabled' : 'Training mode disabled',
-                  );
-                },
-                secondary: const Icon(Icons.school),
-              );
+        icon: Icons.settings,
+        color: const Color(0xFF475569),
+        items: [
+          SettingsItem(
+            title: 'Training Mode',
+            icon: Icons.school,
+            description: trainingService.isTrainingMode
+                ? 'Currently enabled'
+                : 'Currently disabled',
+            onTap: () async {
+              final nextValue = !trainingService.isTrainingMode;
+              await trainingService.toggleTrainingMode(nextValue);
+              if (context.mounted) {
+                ToastHelper.showToast(
+                  context,
+                  nextValue
+                      ? 'Training mode enabled'
+                      : 'Training mode disabled',
+                );
+              }
             },
           ),
-          _SettingsTile(
-            icon: Icons.business,
+          SettingsItem(
             title: 'Business Information',
-            subtitle: 'Store name, address, tax settings',
+            icon: Icons.business,
+            description: 'Store name, address, tax settings',
             onTap: () {
               Navigator.push(
                 context,
@@ -355,24 +405,18 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.store,
-            title: 'Business Mode',
-            subtitle: 'Select your business type (Retail, Cafe, Restaurant)',
-            onTap: () => _showBusinessModeDialog(context),
-          ),
-          _SettingsTile(
-            icon: Icons.vpn_key,
+          SettingsItem(
             title: 'Software Activation',
-            subtitle: 'Enter license key to unlock full features',
+            icon: Icons.vpn_key,
+            description: 'Enter license key to unlock full features',
             onTap: () {
               Navigator.pushNamed(context, '/activation');
             },
           ),
-          _SettingsTile(
-            icon: Icons.attach_money,
+          SettingsItem(
             title: 'Payment Methods',
-            subtitle: 'Configure payment options',
+            icon: Icons.attach_money,
+            description: 'Configure payment options',
             onTap: () {
               Navigator.push(
                 context,
@@ -382,10 +426,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.qr_code_2,
+          SettingsItem(
             title: 'E-Wallet Settings',
-            subtitle: 'Enable and configure QR payments',
+            icon: Icons.qr_code_2,
+            description: 'Enable and configure QR payments',
             onTap: () {
               Navigator.push(
                 context,
@@ -395,10 +439,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.history,
+          SettingsItem(
             title: 'Sales History',
-            subtitle: 'View recent orders and transactions',
+            icon: Icons.history,
+            description: 'View recent orders and transactions',
             onTap: () {
               Navigator.push(
                 context,
@@ -408,10 +452,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.receipt_long,
+          SettingsItem(
             title: 'Receipt Settings',
-            subtitle: 'Customize receipt layout and footer',
+            icon: Icons.receipt_long,
+            description: 'Customize receipt layout and footer',
             onTap: () {
               Navigator.push(
                 context,
@@ -421,10 +465,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.description,
+          SettingsItem(
             title: 'e-Invoice (Malaysia)',
-            subtitle: 'MyInvois integration for Malaysian tax compliance',
+            icon: Icons.description,
+            description: 'MyInvois integration for Malaysian tax compliance',
             onTap: () {
               Navigator.push(
                 context,
@@ -434,500 +478,43 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.sync_problem,
+          SettingsItem(
             title: 'MyInvois Queue',
-            subtitle: 'Manage failed e-invoice submissions and retry',
+            icon: Icons.sync_problem,
+            description: 'Manage failed e-invoice submissions and retry',
             onTap: () {
               Navigator.pushNamed(context, '/myinvois-queue');
             },
           ),
-          if (kDebugMode)
-            _SettingsTile(
-              icon: Icons.bug_report,
-              title: 'Debug Tools',
-              subtitle: 'Developer tools for debugging hardware & plugins',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DebugToolsScreen(),
-                  ),
-                );
-              },
-            ),
-          if (kDebugMode)
-            _SettingsTile(
-              icon: Icons.data_usage,
-              title: 'Generate Test Data',
-              subtitle: 'Create realistic sales data for testing reports',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const GenerateTestDataScreen(),
-                  ),
-                );
-              },
-            ),
-          _SettingsTile(
-            icon: Icons.refresh,
+          SettingsItem(
             title: 'Reset POS',
-            subtitle: 'Clear all POS data (optional backup before reset)',
-            onTap: () async {
-              final currentContext = context; // capture for async UI
-              // Only allow first admin to reset POS
-              final currentUser = LockManager.instance.currentUser;
-              if (currentUser?.id != 'first-admin-system') {
-                if (currentContext.mounted) {
-                  ToastHelper.showToast(
-                    currentContext,
-                    'Only the system administrator can reset the POS',
-                  );
-                }
-                return;
-              }
-
-              final result = await showDialog<Map<String, dynamic>>(
-                context: currentContext,
-                builder: (context) {
-                  bool backup = false;
-                  return StatefulBuilder(
-                    builder: (context, setState) => AlertDialog(
-                      title: const Text('Reset POS State'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'This will delete ALL persisted database data (categories, items, users, tables, orders, transactions) and clear in-memory POS state. This action is destructive and cannot be undone.',
-                          ),
-                          const SizedBox(height: 12),
-                          CheckboxListTile(
-                            value: backup,
-                            onChanged: (v) =>
-                                setState(() => backup = v ?? false),
-                            title: const Text('Create backup before resetting'),
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, {
-                            'confirmed': false,
-                            'backup': false,
-                          }),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          onPressed: () => Navigator.pop(context, {
-                            'confirmed': true,
-                            'backup': backup,
-                          }),
-                          child: const Text('Reset'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-
-              if (result == null) return;
-
-              final confirmed = result['confirmed'] == true;
-              final doBackup = result['backup'] == true;
-
-              if (!confirmed) return;
-
-              if (doBackup) {
-                try {
-                  final backupPath = await DatabaseHelper.instance
-                      .backupDatabase();
-                  if (currentContext.mounted) {
-                    ToastHelper.showToast(
-                      currentContext,
-                      'Database backed up to $backupPath',
-                    );
-                  }
-                } catch (e) {
-                  if (currentContext.mounted) {
-                    ToastHelper.showToast(currentContext, 'Backup failed: $e');
-                  }
-                  // Abort reset if backup is requested but fails
-                  return;
-                }
-              }
-
-              try {
-                // Safely reset on-disk database with automatic backup
-                final backupResult = await DatabaseHelper.instance
-                    .safeResetDatabase();
-                if (currentContext.mounted) {
-                  ToastHelper.showToast(
-                    currentContext,
-                    'Database reset complete. Backup: $backupResult',
-                  );
-                }
-              } catch (e) {
-                if (currentContext.mounted) {
-                  ToastHelper.showToast(
-                    currentContext,
-                    'Error resetting database: $e',
-                  );
-                }
-                return;
-              }
-
-              // Broadcast in-memory reset
-              ResetService.instance.triggerReset();
-              if (currentContext.mounted) {
-                ToastHelper.showToast(
-                  currentContext,
-                  'POS database and in-memory state cleared.',
-                );
-              }
-            },
+            icon: Icons.refresh,
+            description: 'Clear all POS data (optional backup before reset)',
+            onTap: () => _handleResetPos(context),
           ),
-          _SettingsTile(
+          SettingsItem(
+            title: 'Check for Updates',
             icon: Icons.system_update,
-            title: 'Check for updates',
-            subtitle: 'Download latest APK from GitHub releases',
-            onTap: () async {
-              try {
-                final currentContext = context;
-                // Show a progress dialog while downloading
-                showDialog(
-                  context: currentContext,
-                  barrierDismissible: false,
-                  builder: (ctx) => AlertDialog(
-                    content: Row(
-                      children: const [
-                        CircularProgressIndicator(),
-                        SizedBox(width: 16),
-                        Expanded(child: Text('Downloading latest APK...')),
-                      ],
-                    ),
-                  ),
-                );
-
-                // use injected factory if available for tests/mocking
-                final svc =
-                    updateServiceFactory?.call() ??
-                    UpdateService(owner: 'Giras91', repo: 'flutterpos');
-
-                // Show an option dialog to choose whether to open after download
-                final choice = await showDialog<String>(
-                  context: currentContext,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Download Update'),
-                    content: const Text(
-                      'Would you like to open the APK after download?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, 'cancel'),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, 'download'),
-                        child: const Text('Download'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () =>
-                            Navigator.pop(context, 'download_open'),
-                        child: const Text('Download & Open'),
-                      ),
-                    ],
-                  ),
-                );
-                if (choice == null || choice == 'cancel') {
-                  if (currentContext.mounted)
-                    Navigator.of(currentContext).pop();
-                  return;
-                }
-
-                final filePath = await svc.downloadLatestApk();
-
-                // Save to Downloads or Desktop if possible
-                // Prefer Desktop, fallback to Downloads, then HOME
-                Directory desktopPath;
-                final home = Platform.environment['HOME'] ?? '';
-                if (Platform.isWindows) {
-                  desktopPath = Directory(
-                    Platform.environment['USERPROFILE'] ?? '',
-                  );
-                } else {
-                  desktopPath = Directory('$home/Desktop');
-                }
-                if (!await desktopPath.exists()) {
-                  // Try Downloads
-                  final downloads = Directory('$home/Downloads');
-                  if (await downloads.exists()) {
-                    desktopPath = downloads;
-                  } else {
-                    // Fallback to home directory
-                    desktopPath = Directory(home);
-                  }
-                }
-                final file = File(filePath);
-                final target = File(
-                  '${desktopPath.path}/${file.uri.pathSegments.last}',
-                );
-                try {
-                  await file.copy(target.path);
-                } catch (e) {
-                  // Copy failed: show helpful dialog and fallback options
-                  if (currentContext.mounted) {
-                    Navigator.of(currentContext).pop(); // close progress
-                    final action = await showDialog<String>(
-                      context: currentContext,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Unable to save file'),
-                        content: Text(
-                          'Failed to write APK to ${desktopPath.path}: $e\n\nYou can pick a different location or open the APK directly if supported.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop('cancel'),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.of(context).pop('choose'),
-                            child: const Text('Choose location'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop('open'),
-                            child: const Text('Open APK'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (action == 'choose') {
-                      final fileSave = await getSaveLocation(
-                        suggestedName: file.uri.pathSegments.last,
-                      );
-                      if (fileSave != null) {
-                        await File(
-                          fileSave.path,
-                        ).writeAsBytes(await file.readAsBytes());
-                        ToastHelper.showToast(
-                          currentContext,
-                          'Saved to ${fileSave.path}',
-                        );
-                      }
-                    } else if (action == 'open') {
-                      // Try to open via injected openFileFn or default OpenFilex
-                      final openFn =
-                          openFileFn ?? (path) => OpenFilex.open(path);
-                      await openFn(file.path);
-                    }
-                    return;
-                  }
-                }
-
-                if (currentContext.mounted) {
-                  Navigator.of(currentContext).pop(); // close progress
-                  ToastHelper.showToast(
-                    currentContext,
-                    'Latest APK downloaded: ${target.path}',
-                  );
-                }
-
-                if (choice == 'download_open') {
-                  // Attempt to open: use injected function if provided (test override), otherwise use OpenFilex
-                  final openFn = openFileFn ?? (path) => OpenFilex.open(path);
-                  try {
-                    await openFn(target.path);
-                  } catch (e) {
-                    if (currentContext.mounted)
-                      ToastHelper.showToast(
-                        currentContext,
-                        'Unable to open APK: $e',
-                      );
-                  }
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ToastHelper.showToast(context, 'Update failed: $e');
-                }
-              }
-            },
+            description: 'Download latest APK from GitHub releases',
+            onTap: () => _downloadLatestApk(context),
           ),
-          _SettingsTile(
-            icon: Icons.school,
+          SettingsItem(
             title: 'Clear Training Data',
-            subtitle: 'Clear temporary training transactions and sample data',
-            onTap: () async {
-              // Clear in-memory training transactions
-              TrainingModeService.instance.clearTrainingData();
-              // Also attempt to clear sample training DB entries (if any were created)
-              try {
-                await TrainingDataGenerator.instance.clearTrainingData();
-                ToastHelper.showToast(context, 'Training data cleared');
-              } catch (e) {
-                ToastHelper.showToast(
-                  context,
-                  'Failed to clear training DB data: $e',
-                );
-              }
-            },
+            icon: Icons.school,
+            description:
+                'Clear temporary training transactions and sample data',
+            onTap: () => _handleClearTrainingData(context),
           ),
-          _SettingsTile(
-            icon: Icons.restart_alt,
+          SettingsItem(
             title: 'Reset Setup',
-            subtitle: 'Return to first-run setup (clears store name)',
-            onTap: () async {
-              final currentContext = context; // capture for async UI
-              // Only allow first admin to reset setup
-              final currentUser = LockManager.instance.currentUser;
-              if (currentUser?.id != 'first-admin-system') {
-                if (currentContext.mounted) {
-                  ToastHelper.showToast(
-                    currentContext,
-                    'Only the system administrator can reset the setup',
-                  );
-                }
-                return;
-              }
-
-              final result = await showDialog<Map<String, dynamic>>(
-                context: currentContext,
-                builder: (context) {
-                  bool resetDb = false;
-                  bool backup = false;
-                  return StatefulBuilder(
-                    builder: (context, setState) => AlertDialog(
-                      title: const Text('Reset Setup'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'This will clear the initial setup flag and store name so the app will show the setup screen on next start. Optionally you can reset the database to factory defaults (this will recreate seeded data).',
-                          ),
-                          const SizedBox(height: 12),
-                          CheckboxListTile(
-                            value: backup,
-                            onChanged: (v) =>
-                                setState(() => backup = v ?? false),
-                            title: const Text('Create backup before resetting'),
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
-                          CheckboxListTile(
-                            value: resetDb,
-                            onChanged: (v) =>
-                                setState(() => resetDb = v ?? false),
-                            title: const Text(
-                              'Also reset database to factory defaults',
-                            ),
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, {
-                            'confirmed': false,
-                            'resetDb': false,
-                            'backup': false,
-                          }),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          onPressed: () => Navigator.pop(context, {
-                            'confirmed': true,
-                            'resetDb': resetDb,
-                            'backup': backup,
-                          }),
-                          child: const Text('Reset Setup'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-
-              if (result == null) return;
-              final confirmed = result['confirmed'] == true;
-              final doResetDb = result['resetDb'] == true;
-              final doBackup = result['backup'] == true;
-              if (!confirmed) return;
-
-              // Clear setup flag and store name
-              try {
-                await ConfigService.instance.setSetupDone(false);
-                await ConfigService.instance.setStoreName('');
-              } catch (e) {
-                if (currentContext.mounted) {
-                  ToastHelper.showToast(
-                    currentContext,
-                    'Error clearing setup flag: $e',
-                  );
-                }
-                return;
-              }
-
-              if (doBackup) {
-                try {
-                  final backupPath = await DatabaseHelper.instance
-                      .backupDatabase();
-                  if (currentContext.mounted) {
-                    ToastHelper.showToast(
-                      currentContext,
-                      'Database backed up to $backupPath',
-                    );
-                  }
-                } catch (e) {
-                  if (currentContext.mounted) {
-                    ToastHelper.showToast(currentContext, 'Backup failed: $e');
-                  }
-                  // Abort reset if backup is requested but fails
-                  return;
-                }
-              }
-
-              if (doResetDb) {
-                try {
-                  await DatabaseHelper.instance.resetDatabase();
-                } catch (e) {
-                  if (currentContext.mounted) {
-                    ToastHelper.showToast(
-                      currentContext,
-                      'Error resetting database: $e',
-                    );
-                  }
-                  return;
-                }
-              }
-
-              // Broadcast in-memory reset and navigate to setup screen
-              ResetService.instance.triggerReset();
-              if (context.mounted) {
-                ToastHelper.showToast(
-                  context,
-                  'Setup cleared — showing Setup screen now',
-                );
-                // Replace stack with SetupScreen
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (c) => const SetupScreen()),
-                  (route) => false,
-                );
-              }
-            },
+            icon: Icons.restart_alt,
+            description: 'Return to first-run setup (clears store name)',
+            onTap: () => _handleResetSetup(context),
           ),
-          _SettingsTile(
-            icon: Icons.analytics,
+          SettingsItem(
             title: 'Advanced Reports',
-            subtitle:
+            icon: Icons.analytics,
+            description:
                 'Sales analytics, product performance, and business insights',
             onTap: () {
               Navigator.push(
@@ -938,10 +525,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.dashboard,
+          SettingsItem(
             title: 'Analytics Dashboard',
-            subtitle: 'Interactive charts and real-time sales analytics',
+            icon: Icons.dashboard,
+            description: 'Interactive charts and real-time sales analytics',
             onTap: () {
               Navigator.push(
                 context,
@@ -951,10 +538,10 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.people_outline,
+          SettingsItem(
             title: 'Employee Performance',
-            subtitle: 'Track sales, commissions, shifts, and leaderboards',
+            icon: Icons.people_outline,
+            description: 'Track sales, commissions, shifts, and leaderboards',
             onTap: () {
               Navigator.push(
                 context,
@@ -964,243 +551,80 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          if (kDebugMode)
+            SettingsItem(
+              title: 'Debug Tools',
+              icon: Icons.bug_report,
+              description: 'Developer tools for debugging hardware & plugins',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DebugToolsScreen(),
+                  ),
+                );
+              },
+            ),
+          if (kDebugMode)
+            SettingsItem(
+              title: 'Generate Test Data',
+              icon: Icons.data_usage,
+              description: 'Create realistic sales data for testing reports',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const GenerateTestDataScreen(),
+                  ),
+                );
+              },
+            ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'help',
         title: 'Help & Support',
-        children: [
-          _SettingsTile(
-            icon: Icons.help_outline,
+        icon: Icons.help_outline,
+        color: const Color(0xFF0EA5E9),
+        items: [
+          SettingsItem(
             title: 'Show Tutorial',
-            subtitle: 'Replay the getting started guide',
-            onTap: () async {
-              await AppSettings.instance.resetTutorial();
-              if (context.mounted) {
-                Navigator.popUntil(context, (route) => route.isFirst);
-                ToastHelper.showToast(
-                  context,
-                  'Tutorial will show on next app start',
-                );
-              }
-            },
+            icon: Icons.help_outline,
+            description: 'Replay the getting started guide',
+            onTap: () => _showTutorial(context),
           ),
-          _SettingsTile(
-            icon: Icons.school,
+          SettingsItem(
             title: 'Training Mode',
-            subtitle: AppSettings.instance.isTrainingMode
+            icon: Icons.school,
+            description: AppSettings.instance.isTrainingMode
                 ? 'Currently enabled'
                 : 'Currently disabled',
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Training Mode'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Training Mode allows you to practice using the system without affecting real data.',
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'When enabled:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text('• All transactions are marked as training'),
-                      const Text('• Data can be easily cleared'),
-                      const Text('• Perfect for staff training'),
-                      const SizedBox(height: 16),
-                      AnimatedBuilder(
-                        animation: AppSettings.instance,
-                        builder: (context, child) {
-                          return SwitchListTile(
-                            title: const Text('Enable Training Mode'),
-                            value: AppSettings.instance.isTrainingMode,
-                            onChanged: (value) {
-                              AppSettings.instance.setTrainingMode(value);
-                            },
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Training Data',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Load Training Data'),
-                              content: const Text(
-                                'This will add sample categories and items to your database for training purposes. This will not delete existing data.\n\nContinue?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Load Data'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true && context.mounted) {
-                            try {
-                              await TrainingDataGenerator.instance
-                                  .generateSampleCategories();
-                              await TrainingDataGenerator.instance
-                                  .generateSampleItems();
-                              if (context.mounted) {
-                                ToastHelper.showToast(
-                                  context,
-                                  'Training data loaded successfully',
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ToastHelper.showToast(
-                                  context,
-                                  'Error loading training data: $e',
-                                );
-                              }
-                            }
-                          }
-                        },
-                        icon: const Icon(Icons.download),
-                        label: const Text('Load Sample Data'),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Clear Training Data'),
-                              content: const Text(
-                                'This will delete ALL categories and items from the database. This action cannot be undone!\n\nAre you sure?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                  ),
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Clear All Data'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true && context.mounted) {
-                            try {
-                              await TrainingDataGenerator.instance
-                                  .clearTrainingData();
-                              if (context.mounted) {
-                                ToastHelper.showToast(
-                                  context,
-                                  'Training data cleared successfully',
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ToastHelper.showToast(
-                                  context,
-                                  'Error clearing training data: $e',
-                                );
-                              }
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.shade50,
-                          foregroundColor: Colors.red,
-                        ),
-                        icon: const Icon(Icons.delete_outline),
-                        label: const Text('Clear All Data'),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              );
-            },
+            onTap: () => _showTrainingModeDialog(context),
           ),
-          _SettingsTile(
-            icon: Icons.book,
+          SettingsItem(
             title: 'User Guide',
-            subtitle: 'Learn how to use ExtroPOS',
-            onTap: () {
-              _showUserGuideDialog(context);
-            },
+            icon: Icons.book,
+            description: 'Learn how to use ExtroPOS',
+            onTap: () => _showUserGuideDialog(context),
           ),
-          _SettingsTile(
-            icon: Icons.block,
+          SettingsItem(
             title: 'Require DB Products',
-            subtitle: 'Prevent adding products not present in the database',
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Require DB Products'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'When enabled, you cannot add mock/fallback products to the cart. Please add the item in Items Management first.',
-                      ),
-                      const SizedBox(height: 12),
-                      AnimatedBuilder(
-                        animation: AppSettings.instance,
-                        builder: (context, child) {
-                          return SwitchListTile(
-                            title: const Text('Enforce DB-only products'),
-                            value: AppSettings.instance.requireDbProducts,
-                            onChanged: (v) =>
-                                AppSettings.instance.setRequireDbProducts(v),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              );
-            },
+            icon: Icons.block,
+            description: 'Prevent adding products not present in the database',
+            onTap: () => _showRequireDbProductsDialog(context),
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'developer',
         title: 'Developer',
-        children: [
-          _SettingsTile(
-            icon: Icons.storage,
+        icon: Icons.code,
+        color: const Color(0xFFDB2777),
+        items: [
+          SettingsItem(
             title: 'Database Test',
-            subtitle: 'Test and verify database functionality',
+            icon: Icons.storage,
+            description: 'Test and verify database functionality',
             onTap: () {
               Navigator.push(
                 context,
@@ -1210,24 +634,24 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.speed,
+          SettingsItem(
             title: 'Performance Report',
-            subtitle: 'View app performance metrics and optimization data',
-            onTap: () {
-              _showPerformanceReportDialog(context);
-            },
+            icon: Icons.speed,
+            description: 'View app performance metrics and optimization data',
+            onTap: () => _showPerformanceReportDialog(context),
           ),
         ],
       ),
-      const SizedBox(height: 24),
-      _SettingsSection(
+      SettingsCategory(
+        id: 'about',
         title: 'About',
-        children: [
-          _SettingsTile(
-            icon: Icons.info,
+        icon: Icons.info_outline,
+        color: const Color(0xFF94A3B8),
+        items: [
+          SettingsItem(
             title: 'App Information',
-            subtitle:
+            icon: Icons.info_outline,
+            description:
                 '${appInfo['appName']} v${appInfo['version']} (Build ${appInfo['buildNumber']})',
             onTap: () {
               showAboutDialog(
@@ -1259,28 +683,796 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _SettingsTile(
-            icon: Icons.privacy_tip,
+          SettingsItem(
             title: 'Privacy Policy',
-            subtitle: 'View our privacy policy',
+            icon: Icons.privacy_tip,
+            description: 'View our privacy policy',
             onTap: () async {
               const url = 'https://extropos.org/privacy-policy';
               if (await canLaunchUrl(Uri.parse(url))) {
                 await launchUrl(Uri.parse(url));
               } else {
-                 if (context.mounted) ToastHelper.showToast(context, 'Could not launch privacy policy');
+                if (context.mounted) {
+                  ToastHelper.showToast(
+                    context,
+                    'Could not launch privacy policy',
+                  );
+                }
               }
             },
           ),
-          _SettingsTile(
-            icon: Icons.system_update,
+          SettingsItem(
             title: 'Check for Updates',
-            subtitle: 'Download latest version from GitHub',
+            icon: Icons.system_update,
+            description: 'Download latest version from GitHub',
             onTap: () => _checkForUpdates(context),
           ),
         ],
       ),
     ];
+  }
+
+  Widget _buildHeader(double width, SettingsCategory? activeCategory) {
+    final canPop = Navigator.of(context).canPop();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 32, 32, 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                if (activeCategory != null || canPop)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: InkWell(
+                      onTap: () {
+                        if (activeCategory != null) {
+                          setState(() => _activeCategoryId = null);
+                          return;
+                        }
+                        if (canPop) {
+                          Navigator.pop(context);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.grey.shade200),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.chevron_left,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        activeCategory?.title ?? 'System Settings',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        activeCategory != null
+                            ? 'Manage ${activeCategory.title.toLowerCase()} preferences'
+                            : 'Select a configuration tile to get started',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (width >= 600)
+            ElevatedButton.icon(
+              onPressed: () {
+                ToastHelper.showToast(
+                  context,
+                  'Settings are saved automatically',
+                );
+              },
+              icon: const Icon(Icons.save, size: 18),
+              label: const Text('Save Settings'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F172A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                shadowColor: const Color(0xFFE2E8F0),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainGrid(int crossAxisCount, List<SettingsCategory> categories) {
+    return GridView.builder(
+      key: const ValueKey('MainGrid'),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 24,
+        mainAxisSpacing: 24,
+        mainAxisExtent: 180,
+      ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final category = categories[index];
+        return SettingsTileWidget(
+          title: category.title,
+          description: '${category.items.length} management areas available.',
+          icon: category.icon,
+          color: category.color,
+          onTap: () => setState(() => _activeCategoryId = category.id),
+        );
+      },
+    );
+  }
+
+  Widget _buildSubGrid(int crossAxisCount, SettingsCategory category) {
+    final items = category.items;
+    return GridView.builder(
+      key: ValueKey('SubGrid_${category.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 24,
+        mainAxisSpacing: 24,
+        mainAxisExtent: 180,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return SettingsTileWidget(
+          title: item.title,
+          description: item.description,
+          subLabel: category.title,
+          icon: item.icon,
+          color: category.color,
+          onTap: item.onTap,
+        );
+      },
+    );
+  }
+
+  Widget _buildFooter(Map<String, String> appInfo) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Color(0xFF10B981),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${appInfo['appName']} v${appInfo['version']} (Build ${appInfo['buildNumber']})',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF64748B),
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleResetPos(BuildContext context) async {
+    final currentContext = context;
+    final currentUser = LockManager.instance.currentUser;
+    if (currentUser?.id != 'first-admin-system') {
+      if (currentContext.mounted) {
+        ToastHelper.showToast(
+          currentContext,
+          'Only the system administrator can reset the POS',
+        );
+      }
+      return;
+    }
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: currentContext,
+      builder: (context) {
+        bool backup = false;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text('Reset POS State'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'This will delete ALL persisted database data (categories, items, users, tables, orders, transactions) and clear in-memory POS state. This action is destructive and cannot be undone.',
+                ),
+                const SizedBox(height: 12),
+                CheckboxListTile(
+                  value: backup,
+                  onChanged: (v) => setState(() => backup = v ?? false),
+                  title: const Text('Create backup before resetting'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, {
+                  'confirmed': false,
+                  'backup': false,
+                }),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () => Navigator.pop(context, {
+                  'confirmed': true,
+                  'backup': backup,
+                }),
+                child: const Text('Reset'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result == null) return;
+
+    final confirmed = result['confirmed'] == true;
+    final doBackup = result['backup'] == true;
+
+    if (!confirmed) return;
+
+    if (doBackup) {
+      try {
+        final backupPath = await DatabaseHelper.instance.backupDatabase();
+        if (currentContext.mounted) {
+          ToastHelper.showToast(
+            currentContext,
+            'Database backed up to $backupPath',
+          );
+        }
+      } catch (e) {
+        if (currentContext.mounted) {
+          ToastHelper.showToast(currentContext, 'Backup failed: $e');
+        }
+        return;
+      }
+    }
+
+    try {
+      final backupResult = await DatabaseHelper.instance.safeResetDatabase();
+      if (currentContext.mounted) {
+        ToastHelper.showToast(
+          currentContext,
+          'Database reset complete. Backup: $backupResult',
+        );
+      }
+    } catch (e) {
+      if (currentContext.mounted) {
+        ToastHelper.showToast(currentContext, 'Error resetting database: $e');
+      }
+      return;
+    }
+
+    ResetService.instance.triggerReset();
+    if (currentContext.mounted) {
+      ToastHelper.showToast(
+        currentContext,
+        'POS database and in-memory state cleared.',
+      );
+    }
+  }
+
+  Future<void> _downloadLatestApk(BuildContext context) async {
+    try {
+      final currentContext = context;
+      showDialog(
+        context: currentContext,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          content: Row(
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Expanded(child: Text('Downloading latest APK...')),
+            ],
+          ),
+        ),
+      );
+
+      final svc =
+          widget.updateServiceFactory?.call() ??
+          UpdateService(owner: 'Giras91', repo: 'flutterpos');
+
+      final choice = await showDialog<String>(
+        context: currentContext,
+        builder: (context) => AlertDialog(
+          title: const Text('Download Update'),
+          content: const Text('Would you like to open the APK after download?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'cancel'),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'download'),
+              child: const Text('Download'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, 'download_open'),
+              child: const Text('Download & Open'),
+            ),
+          ],
+        ),
+      );
+      if (choice == null || choice == 'cancel') {
+        if (currentContext.mounted) {
+          Navigator.of(currentContext).pop();
+        }
+        return;
+      }
+
+      final filePath = await svc.downloadLatestApk();
+
+      Directory desktopPath;
+      final home = Platform.environment['HOME'] ?? '';
+      if (Platform.isWindows) {
+        desktopPath = Directory(Platform.environment['USERPROFILE'] ?? '');
+      } else {
+        desktopPath = Directory('$home/Desktop');
+      }
+      if (!await desktopPath.exists()) {
+        final downloads = Directory('$home/Downloads');
+        if (await downloads.exists()) {
+          desktopPath = downloads;
+        } else {
+          desktopPath = Directory(home);
+        }
+      }
+      final file = File(filePath);
+      final target = File('${desktopPath.path}/${file.uri.pathSegments.last}');
+      try {
+        await file.copy(target.path);
+      } catch (e) {
+        if (currentContext.mounted) {
+          Navigator.of(currentContext).pop();
+          final action = await showDialog<String>(
+            context: currentContext,
+            builder: (context) => AlertDialog(
+              title: const Text('Unable to save file'),
+              content: Text(
+                'Failed to write APK to ${desktopPath.path}: $e\n\nYou can pick a different location or open the APK directly if supported.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop('cancel'),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop('choose'),
+                  child: const Text('Choose location'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop('open'),
+                  child: const Text('Open APK'),
+                ),
+              ],
+            ),
+          );
+          if (action == 'choose') {
+            final fileSave = await getSaveLocation(
+              suggestedName: file.uri.pathSegments.last,
+            );
+            if (fileSave != null) {
+              await File(fileSave.path).writeAsBytes(await file.readAsBytes());
+              ToastHelper.showToast(
+                currentContext,
+                'Saved to ${fileSave.path}',
+              );
+            }
+          } else if (action == 'open') {
+            final openFn = widget.openFileFn ?? (path) => OpenFilex.open(path);
+            await openFn(file.path);
+          }
+          return;
+        }
+      }
+
+      if (currentContext.mounted) {
+        Navigator.of(currentContext).pop();
+        ToastHelper.showToast(
+          currentContext,
+          'Latest APK downloaded: ${target.path}',
+        );
+      }
+
+      if (choice == 'download_open') {
+        final openFn = widget.openFileFn ?? (path) => OpenFilex.open(path);
+        try {
+          await openFn(target.path);
+        } catch (e) {
+          if (currentContext.mounted) {
+            ToastHelper.showToast(currentContext, 'Unable to open APK: $e');
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ToastHelper.showToast(context, 'Update failed: $e');
+      }
+    }
+  }
+
+  Future<void> _handleClearTrainingData(BuildContext context) async {
+    TrainingModeService.instance.clearTrainingData();
+    try {
+      await TrainingDataGenerator.instance.clearTrainingData();
+      ToastHelper.showToast(context, 'Training data cleared');
+    } catch (e) {
+      ToastHelper.showToast(context, 'Failed to clear training DB data: $e');
+    }
+  }
+
+  Future<void> _handleResetSetup(BuildContext context) async {
+    final currentContext = context;
+    final currentUser = LockManager.instance.currentUser;
+    if (currentUser?.id != 'first-admin-system') {
+      if (currentContext.mounted) {
+        ToastHelper.showToast(
+          currentContext,
+          'Only the system administrator can reset the setup',
+        );
+      }
+      return;
+    }
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: currentContext,
+      builder: (context) {
+        bool resetDb = false;
+        bool backup = false;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text('Reset Setup'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'This will clear the initial setup flag and store name so the app will show the setup screen on next start. Optionally you can reset the database to factory defaults (this will recreate seeded data).',
+                ),
+                const SizedBox(height: 12),
+                CheckboxListTile(
+                  value: backup,
+                  onChanged: (v) => setState(() => backup = v ?? false),
+                  title: const Text('Create backup before resetting'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+                CheckboxListTile(
+                  value: resetDb,
+                  onChanged: (v) => setState(() => resetDb = v ?? false),
+                  title: const Text('Also reset database to factory defaults'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, {
+                  'confirmed': false,
+                  'resetDb': false,
+                  'backup': false,
+                }),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () => Navigator.pop(context, {
+                  'confirmed': true,
+                  'resetDb': resetDb,
+                  'backup': backup,
+                }),
+                child: const Text('Reset Setup'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result == null) return;
+    final confirmed = result['confirmed'] == true;
+    final doResetDb = result['resetDb'] == true;
+    final doBackup = result['backup'] == true;
+    if (!confirmed) return;
+
+    try {
+      await ConfigService.instance.setSetupDone(false);
+      await ConfigService.instance.setStoreName('');
+    } catch (e) {
+      if (currentContext.mounted) {
+        ToastHelper.showToast(currentContext, 'Error clearing setup flag: $e');
+      }
+      return;
+    }
+
+    if (doBackup) {
+      try {
+        final backupPath = await DatabaseHelper.instance.backupDatabase();
+        if (currentContext.mounted) {
+          ToastHelper.showToast(
+            currentContext,
+            'Database backed up to $backupPath',
+          );
+        }
+      } catch (e) {
+        if (currentContext.mounted) {
+          ToastHelper.showToast(currentContext, 'Backup failed: $e');
+        }
+        return;
+      }
+    }
+
+    if (doResetDb) {
+      try {
+        await DatabaseHelper.instance.resetDatabase();
+      } catch (e) {
+        if (currentContext.mounted) {
+          ToastHelper.showToast(currentContext, 'Error resetting database: $e');
+        }
+        return;
+      }
+    }
+
+    ResetService.instance.triggerReset();
+    if (context.mounted) {
+      ToastHelper.showToast(
+        context,
+        'Setup cleared — showing Setup screen now',
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (c) => const SetupScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  Future<void> _showTutorial(BuildContext context) async {
+    await AppSettings.instance.resetTutorial();
+    if (context.mounted) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+      ToastHelper.showToast(context, 'Tutorial will show on next app start');
+    }
+  }
+
+  void _showTrainingModeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Training Mode'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Training Mode allows you to practice using the system without affecting real data.',
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'When enabled:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text('• All transactions are marked as training'),
+            const Text('• Data can be easily cleared'),
+            const Text('• Perfect for staff training'),
+            const SizedBox(height: 16),
+            AnimatedBuilder(
+              animation: AppSettings.instance,
+              builder: (context, child) {
+                return SwitchListTile(
+                  title: const Text('Enable Training Mode'),
+                  value: AppSettings.instance.isTrainingMode,
+                  onChanged: (value) {
+                    AppSettings.instance.setTrainingMode(value);
+                  },
+                );
+              },
+            ),
+            const Divider(),
+            const SizedBox(height: 8),
+            const Text(
+              'Training Data',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Load Training Data'),
+                    content: const Text(
+                      'This will add sample categories and items to your database for training purposes. This will not delete existing data.\n\nContinue?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Load Data'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && context.mounted) {
+                  try {
+                    await TrainingDataGenerator.instance
+                        .generateSampleCategories();
+                    await TrainingDataGenerator.instance.generateSampleItems();
+                    if (context.mounted) {
+                      ToastHelper.showToast(
+                        context,
+                        'Training data loaded successfully',
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ToastHelper.showToast(
+                        context,
+                        'Error loading training data: $e',
+                      );
+                    }
+                  }
+                }
+              },
+              icon: const Icon(Icons.download),
+              label: const Text('Load Sample Data'),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Clear Training Data'),
+                    content: const Text(
+                      'This will delete ALL categories and items from the database. This action cannot be undone!\n\nAre you sure?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Clear All Data'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && context.mounted) {
+                  try {
+                    await TrainingDataGenerator.instance.clearTrainingData();
+                    if (context.mounted) {
+                      ToastHelper.showToast(
+                        context,
+                        'Training data cleared successfully',
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ToastHelper.showToast(
+                        context,
+                        'Error clearing training data: $e',
+                      );
+                    }
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                foregroundColor: Colors.red,
+              ),
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Clear All Data'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRequireDbProductsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Require DB Products'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'When enabled, you cannot add mock/fallback products to the cart. Please add the item in Items Management first.',
+            ),
+            const SizedBox(height: 12),
+            AnimatedBuilder(
+              animation: AppSettings.instance,
+              builder: (context, child) {
+                return SwitchListTile(
+                  title: const Text('Enforce DB-only products'),
+                  value: AppSettings.instance.requireDbProducts,
+                  onChanged: (v) =>
+                      AppSettings.instance.setRequireDbProducts(v),
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _checkForUpdates(BuildContext context) async {
@@ -1710,77 +1902,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showBusinessModeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Business Mode'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.shopping_cart),
-              title: const Text('Retail'),
-              subtitle: const Text('Direct sales and checkout'),
-              onTap: () {
-                // Update business mode to retail
-                final info = BusinessInfo.instance.copyWith(
-                  selectedBusinessMode: BusinessMode.retail,
-                );
-                BusinessInfo.updateInstance(info);
-                
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Switched to Retail mode')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.local_cafe),
-              title: const Text('Cafe'),
-              subtitle: const Text('Order numbers and takeaway'),
-              onTap: () {
-                // Update business mode to cafe
-                final info = BusinessInfo.instance.copyWith(
-                  selectedBusinessMode: BusinessMode.cafe,
-                );
-                BusinessInfo.updateInstance(info);
-                
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Switched to Cafe mode')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.restaurant),
-              title: const Text('Restaurant'),
-              subtitle: const Text('Table management and dining'),
-              onTap: () {
-                // Update business mode to restaurant
-                final info = BusinessInfo.instance.copyWith(
-                  selectedBusinessMode: BusinessMode.restaurant,
-                );
-                BusinessInfo.updateInstance(info);
-                
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Switched to Restaurant mode')),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showPerformanceReportDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -1799,10 +1920,7 @@ class SettingsScreen extends StatelessWidget {
             children: [
               const Text(
                 'Performance Metrics',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               FutureBuilder<Map<String, dynamic>>(
@@ -1818,7 +1936,9 @@ class SettingsScreen extends StatelessWidget {
                   }
 
                   if (snapshot.hasError) {
-                    return Text('Error loading performance data: ${snapshot.error}');
+                    return Text(
+                      'Error loading performance data: ${snapshot.error}',
+                    );
                   }
 
                   final stats = snapshot.data ?? {};
@@ -1914,7 +2034,8 @@ class SettingsScreen extends StatelessWidget {
       final allStats = PerformanceMonitor.instance.getAllStats();
       final monitorStats = {
         'loadData': allStats['loadData']?.avgMs.toStringAsFixed(2) ?? 'N/A',
-        'filterProducts': allStats['filterProducts']?.avgMs.toStringAsFixed(2) ?? 'N/A',
+        'filterProducts':
+            allStats['filterProducts']?.avgMs.toStringAsFixed(2) ?? 'N/A',
         'addToCart': allStats['addToCart']?.avgMs.toStringAsFixed(2) ?? 'N/A',
       };
 
@@ -1936,13 +2057,15 @@ class SettingsScreen extends StatelessWidget {
         'imageCachingEnabled': true,
       };
     } catch (e) {
-      return {
-        'error': 'Failed to load performance data: $e',
-      };
+      return {'error': 'Failed to load performance data: $e'};
     }
   }
 
-  Widget _buildPerformanceMetric(String label, String value, String description) {
+  Widget _buildPerformanceMetric(
+    String label,
+    String value,
+    String description,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -1969,10 +2092,7 @@ class SettingsScreen extends StatelessWidget {
             flex: 3,
             child: Text(
               description,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ),
         ],
@@ -1980,7 +2100,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOptimizationStatus(String feature, bool enabled, String description) {
+  Widget _buildOptimizationStatus(
+    String feature,
+    bool enabled,
+    String description,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -2000,10 +2124,7 @@ class SettingsScreen extends StatelessWidget {
           Expanded(
             child: Text(
               description,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ),
         ],
@@ -2016,66 +2137,162 @@ class SettingsScreen extends StatelessWidget {
     PerformanceMonitor.instance.printReport();
 
     // Show confirmation
-    ToastHelper.showToast(context, 'Performance report generated. Check console for details.');
-  }
-}
-
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SettingsSection({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
-            ),
-          ),
-        ),
-        Card(child: Column(children: children)),
-      ],
+    ToastHelper.showToast(
+      context,
+      'Performance report generated. Check console for details.',
     );
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
+class SettingsItem {
   final String title;
-  final String subtitle;
+  final IconData icon;
+  final String? description;
   final VoidCallback onTap;
 
-  const _SettingsTile({
-    required this.icon,
+  const SettingsItem({
     required this.title,
-    required this.subtitle,
+    required this.icon,
+    this.description,
+    required this.onTap,
+  });
+}
+
+class SettingsCategory {
+  final String id;
+  final String title;
+  final IconData icon;
+  final Color color;
+  final List<SettingsItem> items;
+
+  const SettingsCategory({
+    required this.id,
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.items,
+  });
+}
+
+class SettingsTileWidget extends StatelessWidget {
+  final String title;
+  final String? description;
+  final String? subLabel;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const SettingsTileWidget({
+    super.key,
+    required this.title,
+    this.description,
+    this.subLabel,
+    required this.icon,
+    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: const Color.fromRGBO(37, 99, 235, 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: const Color(0xFF2563EB)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(32),
+          hoverColor: const Color(0xFFEEF2FF),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 24),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E293B),
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (description != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    description!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (subLabel != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subLabel!.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF6366F1),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+                const Spacer(),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF8FAFC),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: Color(0xFFCBD5E1),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

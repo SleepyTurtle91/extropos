@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/models/business_mode.dart';
 import 'package:extropos/screens/advanced_reports_screen.dart';
 import 'package:extropos/screens/analytics_dashboard_screen.dart';
 import 'package:extropos/screens/business_info_screen.dart';
@@ -334,12 +333,6 @@ class SettingsScreen extends StatelessWidget {
                 ),
               );
             },
-          ),
-          _SettingsTile(
-            icon: Icons.store,
-            title: 'Business Mode',
-            subtitle: 'Select your business type (Retail, Cafe, Restaurant)',
-            onTap: () => _showBusinessModeDialog(context),
           ),
           _SettingsTile(
             icon: Icons.vpn_key,
@@ -1630,10 +1623,9 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showBusinessModeDialog(BuildContext context) {
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
+      context = context,
+      builder = (BuildContext context) {
         return AlertDialog(
           title: const Text('Select Business Mode'),
           content: Column(

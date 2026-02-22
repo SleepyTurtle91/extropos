@@ -1751,22 +1751,30 @@ class _RetailPOSScreenModernState extends State<RetailPOSScreenModern>
           if (billDiscount > 0) _buildTotalRow('Discount', -billDiscount),
           const Divider(color: Colors.white24, height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'TOTAL:',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Text(
+                  'TOTAL:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              Text(
-                '${BusinessInfo.instance.currencySymbol} ${getTotal().toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: accentGreen,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 12),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '${BusinessInfo.instance.currencySymbol} ${getTotal().toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: accentGreen,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -2369,102 +2377,112 @@ class _RetailPOSScreenModernState extends State<RetailPOSScreenModern>
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Quantity input display
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: darkNavyLight,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _selectedProductForQuantity != null
-                          ? _selectedProductForQuantity!.name
-                          : 'Quantity',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Quantity input display
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: darkNavyLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _selectedProductForQuantity != null
+                                    ? _selectedProductForQuantity!.name
+                                    : 'Quantity',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _quantityInput,
+                              style: TextStyle(
+                                color: accentGreen,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Text(
-                      _quantityInput,
-                      style: TextStyle(
-                        color: accentGreen,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 8),
+                      // Number pad buttons
+                      Row(
+                        children: [
+                          Expanded(child: _buildNumberButton('1')),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildNumberButton('2')),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildNumberButton('3')),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Number pad buttons
-              Row(
-                children: [
-                  Expanded(child: _buildNumberButton('1')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildNumberButton('2')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildNumberButton('3')),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(child: _buildNumberButton('4')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildNumberButton('5')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildNumberButton('6')),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(child: _buildNumberButton('7')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildNumberButton('8')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildNumberButton('9')),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(child: _buildNumberButton('0')),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildNumberButton(
-                      '0',
-                      label: '.',
-                      hideNumber: true,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildNumberButton(
-                      'C',
-                      isAction: true,
-                      label: 'Clear',
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildNumberButton(
-                      'Back',
-                      isAction: true,
-                      label: 'Delete',
-                    ),
-                  ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildNumberButton('4')),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildNumberButton('5')),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildNumberButton('6')),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildNumberButton('7')),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildNumberButton('8')),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildNumberButton('9')),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(child: _buildNumberButton('0')),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildNumberButton(
+                              '0',
+                              label: '.',
+                              hideNumber: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildNumberButton(
+                              'C',
+                              isAction: true,
+                              label: 'Clear',
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: _buildNumberButton(
+                              'Back',
+                              isAction: true,
+                              label: 'Delete',
+                            ),
+                          ),
                   const SizedBox(width: 8),
                   Expanded(
                     flex: 3,

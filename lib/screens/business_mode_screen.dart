@@ -1,13 +1,15 @@
-import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/models/business_mode.dart';
-import 'package:extropos/utils/toast_helper.dart';
+// Deprecated: business mode selection removed. Unified POS screens handle mode internally.
+// This file is kept for reference and should be removed in a future cleanup.
+
 import 'package:flutter/material.dart';
 
-class BusinessModeScreen extends StatefulWidget {
+class BusinessModeScreen extends StatelessWidget {
   const BusinessModeScreen({super.key});
 
   @override
-  State<BusinessModeScreen> createState() => _BusinessModeScreenState();
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
 }
 
 class _BusinessModeScreenState extends State<BusinessModeScreen> {

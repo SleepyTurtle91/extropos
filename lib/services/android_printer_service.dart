@@ -302,6 +302,20 @@ class AndroidPrinterService {
         }
       }
 
+      if (receiptData['qr_data'] != null) {
+        try {
+          final qrBytes = await QRCodeGenerator.generateQRImageBytes(
+            data: receiptData['qr_data'] as String,
+            size: charWidth == 48 ? 200 : 150,
+          );
+          if (qrBytes != null) {
+            outgoingReceiptData['qr_image'] = qrBytes;
+          }
+        } catch (e) {
+          developer.log('Failed to generate receipt QR image: $e');
+        }
+      }
+
       final printData = {
         'printerId': printer.id,
         'printerType': printer.connectionType.name,

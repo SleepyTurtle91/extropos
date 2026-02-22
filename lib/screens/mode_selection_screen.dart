@@ -1,24 +1,15 @@
-import 'dart:math' as math;
+// Deprecated: mode selection screen removed in favor of unified POS implementation.
+// Retained as stub for compatibility; consider deleting later.
 
-import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/models/business_mode.dart';
-import 'package:extropos/screens/reports_home_screen.dart';
-import 'package:extropos/screens/settings_screen.dart';
-import 'package:extropos/services/app_settings.dart';
-import 'package:extropos/services/business_session_service.dart';
-import 'package:extropos/services/lock_manager.dart';
-import 'package:extropos/utils/toast_helper.dart';
-import 'package:extropos/widgets/business_session_dialogs.dart';
-import 'package:extropos/widgets/tutorial_overlay.dart';
 import 'package:flutter/material.dart';
-import 'package:universal_io/io.dart' show Platform;
-import 'package:window_manager/window_manager.dart';
 
-class ModeSelectionScreen extends StatefulWidget {
+class ModeSelectionScreen extends StatelessWidget {
   const ModeSelectionScreen({super.key});
 
   @override
-  State<ModeSelectionScreen> createState() => _ModeSelectionScreenState();
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
 }
 
 class _ModeSelectionScreenState extends State<ModeSelectionScreen> {

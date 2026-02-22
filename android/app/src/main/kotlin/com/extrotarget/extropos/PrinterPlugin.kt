@@ -2094,6 +2094,50 @@ class PrinterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         output.write(0) // Left align
     }
 
+    private fun appendBarcode(output: java.io.ByteArrayOutputStream, data: String) {
+        val trimmed = data.trim()
+        if (trimmed.isEmpty()) return
+        val barcodeBytes = trimmed.toByteArray(Charsets.US_ASCII)
+
+        centerAlign(output)
+        output.write(0x1D)
+        output.write(0x48)
+        output.write(2) // HRI below
+        output.write(0x1D)
+        output.write(0x68)
+        output.write(80) // Height
+        output.write(0x1D)
+        output.write(0x77)
+        output.write(2) // Module width
+        output.write(0x1D)
+        output.write(0x6B)
+        output.write(0x49) // Code128
+        output.write(barcodeBytes.size)
+        output.write(barcodeBytes)
+        output.write('\n'.code)
+        resetFormatting(output)
+    }
+
+    private fun appendQrCode(output: java.io.ByteArrayOutputStream, data: String) {
+        val trimmed = data.trim()
+        if (trimmed.isEmpty()) return
+        val qrBytes = trimmed.toByteArray(Charsets.UTF_8)
+
+        centerAlign(output)
+        output.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00)) // Model 2
+        output.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06)) // Size 6
+        output.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30)) // Error correction L
+
+        val len = qrBytes.size + 3
+        val pL = (len and 0xFF).toByte()
+        val pH = ((len shr 8) and 0xFF).toByte()
+        output.write(byteArrayOf(0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30))
+        output.write(qrBytes)
+        output.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30)) // Print
+        output.write('\n'.code)
+        resetFormatting(output)
+    }
+
     private fun repeatChar(char: Char, count: Int): String {
         return char.toString().repeat(count)
     }
@@ -2511,6 +2555,18 @@ class PrinterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         printTotalLine(output, "Amount Paid:", amountPaid, currency, charsPerLine)
         if (change > 0) {
             printTotalLine(output, "Change:", change, currency, charsPerLine)
+        }
+
+        val barcodeData = (data["barcode"] as? String)?.trim().orEmpty()
+        val qrData = (data["qr_data"] as? String)?.trim().orEmpty()
+        if (barcodeData.isNotEmpty() || qrData.isNotEmpty()) {
+            output.write('\n'.code)
+        }
+        if (barcodeData.isNotEmpty()) {
+            appendBarcode(output, barcodeData)
+        }
+        if (qrData.isNotEmpty()) {
+            appendQrCode(output, qrData)
         }
         
         // Footer

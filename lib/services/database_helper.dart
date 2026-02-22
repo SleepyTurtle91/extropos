@@ -66,7 +66,7 @@ class DatabaseHelper {
       path,
       // Phase 1 features: MyInvois, E-Wallet, Loyalty, PDPA, Inventory
       // v34: Table Management System (restaurant mode)
-      version: 34,
+      version: 35,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
       onDowngrade: _onDowngrade,
@@ -98,6 +98,49 @@ class DatabaseHelper {
             updated_at INTEGER NOT NULL
           )
         ''');
+      } catch (_) {}
+    }
+    // v35: Receipt template fields for tax ID, WiFi, barcode, QR
+    if (oldVersion < 35) {
+      try {
+        await db.execute(
+          'ALTER TABLE receipt_settings ADD COLUMN show_tax_id INTEGER DEFAULT 1',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          "ALTER TABLE receipt_settings ADD COLUMN tax_id_text TEXT DEFAULT ''",
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE receipt_settings ADD COLUMN show_wifi_details INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          "ALTER TABLE receipt_settings ADD COLUMN wifi_details TEXT DEFAULT ''",
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE receipt_settings ADD COLUMN show_barcode INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          "ALTER TABLE receipt_settings ADD COLUMN barcode_data TEXT DEFAULT ''",
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          'ALTER TABLE receipt_settings ADD COLUMN show_qr_code INTEGER DEFAULT 0',
+        );
+      } catch (_) {}
+      try {
+        await db.execute(
+          "ALTER TABLE receipt_settings ADD COLUMN qr_data TEXT DEFAULT ''",
+        );
       } catch (_) {}
     }
     // v33: E-Wallet QR expiry tracking
@@ -1527,6 +1570,14 @@ class DatabaseHelper {
         show_tax_breakdown INTEGER DEFAULT 1,
         show_service_charge_breakdown INTEGER DEFAULT 1,
         show_thank_you_message INTEGER DEFAULT 1,
+        show_tax_id INTEGER DEFAULT 1,
+        tax_id_text TEXT DEFAULT '',
+        show_wifi_details INTEGER DEFAULT 0,
+        wifi_details TEXT DEFAULT '',
+        show_barcode INTEGER DEFAULT 0,
+        barcode_data TEXT DEFAULT '',
+        show_qr_code INTEGER DEFAULT 0,
+        qr_data TEXT DEFAULT '',
         auto_print INTEGER DEFAULT 1,
         paper_size TEXT DEFAULT 'mm80',
         paper_width INTEGER DEFAULT 80,
@@ -1905,6 +1956,14 @@ class DatabaseHelper {
       'show_tax_breakdown': 1,
       'show_service_charge_breakdown': 1,
       'show_thank_you_message': 1,
+      'show_tax_id': 1,
+      'tax_id_text': '',
+      'show_wifi_details': 0,
+      'wifi_details': '',
+      'show_barcode': 0,
+      'barcode_data': '',
+      'show_qr_code': 0,
+      'qr_data': '',
       'auto_print': 1,
       'paper_size': 'mm80',
       'paper_width': 80,

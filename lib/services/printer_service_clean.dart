@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/printer_model.dart';
+import 'package:extropos/models/receipt_settings_model.dart';
 import 'package:extropos/services/android_printer_service.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/error_handler.dart';
@@ -247,6 +249,13 @@ class PrinterService {
       'PrinterService: printReceipt called for ${printer.name} with ${receiptData.length} data fields',
     );
     return await _synchronized(() async {
+      final receiptPayload = Map<String, dynamic>.from(receiptData);
+      ReceiptSettings? settings;
+      try {
+        settings = await DatabaseService.instance.getReceiptSettings();
+        _applyTemplateFields(settings, receiptPayload);
+      } catch (_) {}
+
       if (_printerLogEnabled) {
         _printerLogController.add(
           'printReceipt invoked for ${printer.name} (${printer.id})',
@@ -259,12 +268,12 @@ class PrinterService {
       }
       if (_printerLogEnabled) {
         _printerLogController.add(
-          'receiptData keys: ${receiptData.keys.toList()}',
+          'receiptData keys: ${receiptPayload.keys.toList()}',
         );
       }
       if (_printerLogEnabled) {
-        final title = receiptData['title'] ?? '<no title>';
-        final content = (receiptData['content'] as String?) ?? '';
+        final title = receiptPayload['title'] ?? '<no title>';
+        final content = (receiptPayload['content'] as String?) ?? '';
         final preview = content.length > 200
             ? '${content.substring(0, 200)}... (truncated)'
             : content;
@@ -275,11 +284,11 @@ class PrinterService {
       // Additionally log trimmed JSON for debugging
       if (_printerLogEnabled) {
         try {
-          final jsonPreview = jsonEncode(receiptData).substring(
+          final jsonPreview = jsonEncode(receiptPayload).substring(
             0,
-            (jsonEncode(receiptData).length > 400
+            (jsonEncode(receiptPayload).length > 400
                 ? 400
-                : jsonEncode(receiptData).length),
+                : jsonEncode(receiptPayload).length),
           );
           developer.log(
             'PrinterService: printReceipt payload JSON (preview): $jsonPreview',
@@ -294,7 +303,7 @@ class PrinterService {
         try {
           final iminService = IminPrinterService();
           await iminService.initialize();
-          final content = receiptData['content'] as String? ?? '';
+          final content = receiptPayload['content'] as String? ?? '';
           return await iminService.printReceipt(content);
         } catch (e) {
           developer.log('iMin printer error: $e');
@@ -324,7 +333,10 @@ class PrinterService {
               await DatabaseService.instance.savePrinter(printer);
             }
           }
-          final result = await _androidService.printReceipt(printer, receiptData);
+          final result = await _androidService.printReceipt(
+            printer,
+            receiptPayload,
+          );
           if (result) {
             if (!printer.hasPermission) {
               printer.hasPermission = true;
@@ -350,12 +362,12 @@ class PrinterService {
             final charWidth = (printer.paperSize?.name == 'mm80') ? 48 : 32;
             final settings = await DatabaseService.instance.getReceiptSettings();
             final formattedText = generateReceiptTextWithSettings(
-              data: receiptData,
+              data: receiptPayload,
               settings: settings,
               charWidth: charWidth,
               receiptType: receiptType,
             );
-            final fallbackReceiptData = Map<String, dynamic>.from(receiptData);
+            final fallbackReceiptData = Map<String, dynamic>.from(receiptPayload);
             fallbackReceiptData['content'] = formattedText;
 
             final fallbackResult = await _androidService.printViaExternalService(
@@ -374,7 +386,8 @@ class PrinterService {
         }
       } else if (Platform.isWindows) {
         try {
-          final result = await _windowsService.printReceipt(printer, receiptData);
+          final result =
+              await _windowsService.printReceipt(printer, receiptPayload);
           if (_printerLogEnabled) {
             _printerLogController.add('Windows printReceipt result: $result');
             if (!result) {
@@ -395,6 +408,44 @@ class PrinterService {
       }
       return false;
     });
+  }
+
+  void _applyTemplateFields(
+    ReceiptSettings settings,
+    Map<String, dynamic> data,
+  ) {
+    final taxId = settings.taxIdText.trim();
+    if (settings.showTaxId) {
+      final fallbackTax = BusinessInfo.instance.taxNumber ?? '';
+      final effectiveTax = taxId.isNotEmpty ? taxId : fallbackTax;
+      if (effectiveTax.isNotEmpty) {
+        data.putIfAbsent('tax_id', () => effectiveTax);
+      }
+    }
+
+    final wifi = settings.wifiDetails.trim();
+    if (settings.showWifiDetails && wifi.isNotEmpty) {
+      data.putIfAbsent('wifi_details', () => wifi);
+    }
+
+    if (settings.showBarcode) {
+      final barcode = settings.barcodeData.trim();
+      if (barcode.isNotEmpty) {
+        data.putIfAbsent('barcode', () => barcode);
+      } else {
+        final fallback = data['bill_no'] ?? data['orderNumber'] ?? data['order_number'];
+        if (fallback != null) {
+          data.putIfAbsent('barcode', () => fallback.toString());
+        }
+      }
+    }
+
+    if (settings.showQrCode) {
+      final qr = settings.qrData.trim();
+      if (qr.isNotEmpty) {
+        data.putIfAbsent('qr_data', () => qr);
+      }
+    }
   }
 
   String? validatePrinterConfig(Printer printer) {

@@ -8,6 +8,14 @@ class ReceiptSettings {
   final bool showTaxBreakdown;
   final bool showServiceChargeBreakdown;
   final bool showThankYouMessage;
+  final bool showTaxId;
+  final String taxIdText;
+  final bool showWifiDetails;
+  final String wifiDetails;
+  final bool showBarcode;
+  final String barcodeData;
+  final bool showQrCode;
+  final String qrData;
   final bool autoPrint;
   final ReceiptPaperSize paperSize;
   final int paperWidth; // in mm
@@ -35,6 +43,14 @@ class ReceiptSettings {
     this.showTaxBreakdown = true,
     this.showServiceChargeBreakdown = true,
     this.showThankYouMessage = true,
+    this.showTaxId = true,
+    this.taxIdText = '',
+    this.showWifiDetails = false,
+    this.wifiDetails = '',
+    this.showBarcode = false,
+    this.barcodeData = '',
+    this.showQrCode = false,
+    this.qrData = '',
     this.autoPrint = true,
     this.paperSize = ReceiptPaperSize.mm80,
     this.paperWidth = 80,
@@ -62,6 +78,14 @@ class ReceiptSettings {
     bool? showTaxBreakdown,
     bool? showServiceChargeBreakdown,
     bool? showThankYouMessage,
+    bool? showTaxId,
+    String? taxIdText,
+    bool? showWifiDetails,
+    String? wifiDetails,
+    bool? showBarcode,
+    String? barcodeData,
+    bool? showQrCode,
+    String? qrData,
     bool? autoPrint,
     ReceiptPaperSize? paperSize,
     int? paperWidth,
@@ -88,6 +112,14 @@ class ReceiptSettings {
       showServiceChargeBreakdown:
           showServiceChargeBreakdown ?? this.showServiceChargeBreakdown,
       showThankYouMessage: showThankYouMessage ?? this.showThankYouMessage,
+        showTaxId: showTaxId ?? this.showTaxId,
+        taxIdText: taxIdText ?? this.taxIdText,
+        showWifiDetails: showWifiDetails ?? this.showWifiDetails,
+        wifiDetails: wifiDetails ?? this.wifiDetails,
+        showBarcode: showBarcode ?? this.showBarcode,
+        barcodeData: barcodeData ?? this.barcodeData,
+        showQrCode: showQrCode ?? this.showQrCode,
+        qrData: qrData ?? this.qrData,
       autoPrint: autoPrint ?? this.autoPrint,
       paperSize: paperSize ?? this.paperSize,
       paperWidth: paperWidth ?? this.paperWidth,
@@ -117,6 +149,14 @@ class ReceiptSettings {
       'showTaxBreakdown': showTaxBreakdown,
       'showServiceChargeBreakdown': showServiceChargeBreakdown,
       'showThankYouMessage': showThankYouMessage,
+      'showTaxId': showTaxId,
+      'taxIdText': taxIdText,
+      'showWifiDetails': showWifiDetails,
+      'wifiDetails': wifiDetails,
+      'showBarcode': showBarcode,
+      'barcodeData': barcodeData,
+      'showQrCode': showQrCode,
+      'qrData': qrData,
       'autoPrint': autoPrint,
       'paperSize': paperSize.name,
       'paperWidth': paperWidth,
@@ -147,6 +187,14 @@ class ReceiptSettings {
       showServiceChargeBreakdown:
           json['showServiceChargeBreakdown'] as bool? ?? true,
       showThankYouMessage: json['showThankYouMessage'] as bool? ?? true,
+        showTaxId: json['showTaxId'] as bool? ?? true,
+        taxIdText: json['taxIdText'] as String? ?? '',
+        showWifiDetails: json['showWifiDetails'] as bool? ?? false,
+        wifiDetails: json['wifiDetails'] as String? ?? '',
+        showBarcode: json['showBarcode'] as bool? ?? false,
+        barcodeData: json['barcodeData'] as String? ?? '',
+        showQrCode: json['showQrCode'] as bool? ?? false,
+        qrData: json['qrData'] as String? ?? '',
       autoPrint: json['autoPrint'] as bool? ?? false,
       paperSize: ReceiptPaperSize.values.firstWhere(
         (e) => e.name == json['paperSize'],
