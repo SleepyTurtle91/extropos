@@ -50,26 +50,6 @@ class Transaction {
       this.customerPhone, this.total, this.paymentMethod, this.status, this.items);
 }
 
-// --- Mock Data ---
-final List<Transaction> mockTransactions = [
-  Transaction(
-    "FP-8829", "2026-02-22", "14:30", "Kasim Ali", "Walk-in Customer",
-    "+60 12-xxx 8829", 45.40, "DuitNow", "Paid",
-    [
-      TransactionItem(1, "Kopi Ping (Cold)", 4.50, 2, "drinks"),
-      TransactionItem(2, "Nasi Lemak Ayam", 12.90, 1, "food"),
-      TransactionItem(3, "Tenom Coffee Powder (500g)", 23.50, 1, "retail"),
-    ],
-  ),
-  Transaction(
-    "FP-8830", "2026-02-22", "15:15", "Sarah Tan", "Member: John Doe",
-    "+60 11-xxx 9910", 12.00, "Cash", "Paid",
-    [
-      TransactionItem(4, "Hot Latte", 12.00, 1, "drinks"),
-    ],
-  ),
-];
-
 // --- Refund Service Screen ---
 class RefundServiceScreen extends StatefulWidget {
   const RefundServiceScreen({super.key});
@@ -92,13 +72,15 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
   String _managerPin = "";
 
   void _handleSearch() {
-    final result = mockTransactions.where((t) => t.id.toLowerCase().contains(_searchQuery.toLowerCase())).firstOrNull;
-    if (result != null) {
-      setState(() {
-        _selectedTransaction = result;
-        _currentView = RefundView.details;
-      });
-    }
+    // TODO: Implement actual database/API call to search transactions
+    // Example:
+    // final result = await DatabaseHelper.instance.searchTransaction(_searchQuery);
+    // if (result != null) {
+    //   setState(() {
+    //     _selectedTransaction = result;
+    //     _currentView = RefundView.details;
+    //   });
+    // }
   }
 
   void _toggleItem(int itemId) {
@@ -246,44 +228,17 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.separated(
-              itemCount: mockTransactions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final tx = mockTransactions[index];
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      _selectedTransaction = tx;
-                      _currentView = RefundView.details;
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.slate50, borderRadius: BorderRadius.circular(12)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(tx.id, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.slate900)),
-                            Text("${tx.time} • ${tx.cashier}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text("RM ${tx.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.slate900)),
-                            Text(tx.paymentMethod, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                );
-              },
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.history, color: AppColors.slate200, size: 40),
+                  const SizedBox(height: 12),
+                  const Text("No transactions loaded", style: TextStyle(fontSize: 14, color: AppColors.slate400, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 4),
+                  const Text("Search by receipt ID to begin", style: TextStyle(fontSize: 12, color: AppColors.slate400)),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
