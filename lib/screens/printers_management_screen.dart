@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/printer_model.dart';
 import 'package:extropos/screens/printer_debug_console.dart';
 import 'package:extropos/services/app_settings.dart';
@@ -9,7 +10,7 @@ import 'package:extropos/services/printer_service_clean.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:extropos/widgets/dialog_helpers.dart';
 import 'package:extropos/widgets/responsive_row.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -45,9 +46,13 @@ class PrintersManagementScreen extends StatefulWidget {
 
 class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
   List<Printer> printers = [];
+  List<Category> _availableCategories = [];
   final PrinterService _printerService = PrinterService();
   bool _isLoading = true;
   bool _isInitialized = false;
+  String _searchQuery = '';
+  String? _selectedPrinterId;
+  bool _isTesting = false;
 
   @override
   void initState() {
@@ -63,6 +68,9 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
 
     // Load cached printers first (fast)
     await _loadPrinters();
+
+    // Load categories for kitchen/bar assignment
+    await _loadCategories();
 
     // Then initialize printer service in background (slow)
     try {
@@ -154,11 +162,31 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
       setState(() {
         printers = savedPrinters;
         _isLoading = false;
+        final preferred = widget.openPrinterId ?? _selectedPrinterId;
+        if (preferred != null &&
+            printers.any((printer) => printer.id == preferred)) {
+          _selectedPrinterId = preferred;
+        } else if (printers.isNotEmpty) {
+          _selectedPrinterId = printers.first.id;
+        } else {
+          _selectedPrinterId = null;
+        }
       });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
       ToastHelper.showToast(context, 'Error loading printers: $e');
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await DatabaseService.instance.getCategories();
+      if (!mounted) return;
+      setState(() => _availableCategories = categories);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _availableCategories = []);
     }
   }
 
@@ -481,7 +509,10 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
             final savedPrinters = await DatabaseService.instance.getPrinters();
             final saved = savedPrinters.any((p) => p.id == printer.id);
 
-            setState(() => printers.add(printer));
+            setState(() {
+              printers.add(printer);
+              _selectedPrinterId = printer.id;
+            });
             if (mounted) {
               ToastHelper.showToast(
                 context,
@@ -535,7 +566,13 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
               // Delete from database
               await DatabaseService.instance.deletePrinter(printer.id);
               if (!mounted) return;
-              setState(() => printers.removeWhere((p) => p.id == printer.id));
+              setState(() {
+                printers.removeWhere((p) => p.id == printer.id);
+                if (_selectedPrinterId == printer.id) {
+                  _selectedPrinterId =
+                      printers.isNotEmpty ? printers.first.id : null;
+                }
+              });
               if (!mounted) return;
               Navigator.pop(context);
               if (mounted) ToastHelper.showToast(context, 'Printer deleted');
@@ -1320,48 +1357,6 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Printers Management'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            tooltip: 'Search Bluetooth Printers',
-            icon: const Icon(Icons.bluetooth_searching),
-            onPressed: _isLoading ? null : _searchBluetoothPrinters,
-          ),
-          IconButton(
-            tooltip: 'Search USB Printers',
-            icon: const Icon(Icons.usb),
-            onPressed: _isLoading ? null : _searchUsbPrinters,
-          ),
-          IconButton(
-            tooltip: 'Discover Printers',
-            icon: const Icon(Icons.search),
-            onPressed: _isLoading ? null : _discoverPrintersAsync,
-          ),
-          IconButton(
-            tooltip: 'Refresh All Printers',
-            icon: const Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _loadPrinters,
-          ),
-          IconButton(
-            tooltip: 'Print via ESCPrint Service',
-            icon: const Icon(Icons.outgoing_mail),
-            onPressed: _isLoading ? null : _printViaExternalServiceTest,
-          ),
-          IconButton(
-            tooltip: 'Open debug console',
-            icon: const Icon(Icons.bug_report),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PrinterDebugConsole()),
-              );
-            },
-          ),
-        ],
-      ),
       body: _isLoading
           ? const Center(
               child: Column(
@@ -1373,44 +1368,1323 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
                 ],
               ),
             )
-          : printers.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.print_disabled,
-                    size: 64,
-                    color: Colors.grey,
+          : Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 900;
+                      if (isNarrow) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildLeftPanel(isNarrow: true),
+                            Expanded(child: _buildRightPanel()),
+                          ],
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildLeftPanel(isNarrow: false),
+                          Expanded(child: _buildRightPanel()),
+                        ],
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  const Text('No printers configured'),
-                  const SizedBox(height: 8),
-                  ElevatedButton.icon(
-                    onPressed: _addPrinter,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Printer'),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Printer? get _selectedPrinter {
+    if (_selectedPrinterId == null) {
+      return printers.isNotEmpty ? printers.first : null;
+    }
+    try {
+      return printers.firstWhere((p) => p.id == _selectedPrinterId);
+    } catch (_) {
+      return printers.isNotEmpty ? printers.first : null;
+    }
+  }
+
+  Future<void> _handleTestPrint() async {
+    final printer = _selectedPrinter;
+    if (printer == null || _isTesting) return;
+    setState(() => _isTesting = true);
+    await _sampleReceiptPrint(printer);
+    if (mounted) setState(() => _isTesting = false);
+  }
+
+  void _updateSelectedPrinter(Printer updated) {
+    setState(() {
+      final index = printers.indexWhere((p) => p.id == updated.id);
+      if (index == -1) return;
+      printers[index] = updated;
+      _selectedPrinterId = updated.id;
+    });
+  }
+
+  void _updatePrinterField({
+    String? name,
+    PrinterConnectionType? connectionType,
+    String? address,
+    int? port,
+    ThermalPaperSize? paperSize,
+    PrinterType? type,
+    List<String>? categories,
+  }) {
+    final printer = _selectedPrinter;
+    if (printer == null) return;
+
+    String? ipAddress = printer.ipAddress;
+    String? usbDeviceId = printer.usbDeviceId;
+    String? bluetoothAddress = printer.bluetoothAddress;
+    String? platformSpecificId = printer.platformSpecificId;
+
+    final nextConnection = connectionType ?? printer.connectionType;
+    if (address != null) {
+      switch (nextConnection) {
+        case PrinterConnectionType.network:
+          ipAddress = address;
+          break;
+        case PrinterConnectionType.usb:
+          usbDeviceId = address;
+          break;
+        case PrinterConnectionType.bluetooth:
+          bluetoothAddress = address;
+          break;
+        case PrinterConnectionType.posmac:
+          platformSpecificId = address;
+          break;
+      }
+    }
+
+    final updated = printer.copyWith(
+      name: name,
+      connectionType: nextConnection,
+      ipAddress: ipAddress,
+      usbDeviceId: usbDeviceId,
+      bluetoothAddress: bluetoothAddress,
+      platformSpecificId: platformSpecificId,
+      port: port,
+      paperSize: paperSize,
+      type: type,
+      categories: categories,
+    );
+
+    _updateSelectedPrinter(updated);
+  }
+
+  String _connectionAddress(Printer printer) {
+    switch (printer.connectionType) {
+      case PrinterConnectionType.network:
+        return printer.ipAddress ?? '';
+      case PrinterConnectionType.usb:
+        return printer.usbDeviceId ?? '';
+      case PrinterConnectionType.bluetooth:
+        return printer.bluetoothAddress ?? '';
+      case PrinterConnectionType.posmac:
+        return printer.platformSpecificId ?? '';
+    }
+  }
+
+  IconData _connectionIcon(PrinterConnectionType type) {
+    switch (type) {
+      case PrinterConnectionType.network:
+        return Icons.wifi;
+      case PrinterConnectionType.bluetooth:
+        return Icons.bluetooth;
+      case PrinterConnectionType.usb:
+        return Icons.usb;
+      case PrinterConnectionType.posmac:
+        return Icons.print;
+    }
+  }
+
+  Color _statusBadgeColor(PrinterStatus status) {
+    switch (status) {
+      case PrinterStatus.online:
+        return const Color(0xFFD1FAE5);
+      case PrinterStatus.offline:
+        return const Color(0xFFFFE4E6);
+      case PrinterStatus.error:
+        return const Color(0xFFFFE4E6);
+    }
+  }
+
+  Color _statusTextColor(PrinterStatus status) {
+    switch (status) {
+      case PrinterStatus.online:
+        return const Color(0xFF047857);
+      case PrinterStatus.offline:
+        return const Color(0xFFBE123C);
+      case PrinterStatus.error:
+        return const Color(0xFFBE123C);
+    }
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(16),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    color: Color(0xFF475569),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Printer Management',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Text(
+                    'Configure receipt and kitchen printers',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              key: const PageStorageKey('printers_list'),
-              padding: const EdgeInsets.all(16),
-              itemCount: printers.length,
-              itemBuilder: (context, index) {
-                final printer = printers[index];
-                return _buildPrinterCard(printer);
+            ],
+          ),
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'Search Bluetooth Printers',
+                icon: const Icon(Icons.bluetooth_searching),
+                onPressed: _isLoading ? null : _searchBluetoothPrinters,
+              ),
+              IconButton(
+                tooltip: 'Search USB Printers',
+                icon: const Icon(Icons.usb),
+                onPressed: _isLoading ? null : _searchUsbPrinters,
+              ),
+              IconButton(
+                tooltip: 'Discover Printers',
+                icon: const Icon(Icons.search),
+                onPressed: _isLoading ? null : _discoverPrintersAsync,
+              ),
+              IconButton(
+                tooltip: 'Refresh All Printers',
+                icon: const Icon(Icons.refresh),
+                onPressed: _isLoading ? null : _loadPrinters,
+              ),
+              IconButton(
+                tooltip: 'Print via ESCPrint Service',
+                icon: const Icon(Icons.outgoing_mail),
+                onPressed: _isLoading ? null : _printViaExternalServiceTest,
+              ),
+              IconButton(
+                tooltip: 'Open debug console',
+                icon: const Icon(Icons.bug_report),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PrinterDebugConsole(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: _addPrinter,
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text('Add Printer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  shadowColor: const Color(0xFF4F46E5).withOpacity(0.4),
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLeftPanel({required bool isNarrow}) {
+    final filteredPrinters = printers.where((printer) {
+      if (_searchQuery.trim().isEmpty) return true;
+      final query = _searchQuery.toLowerCase();
+      return printer.name.toLowerCase().contains(query) ||
+          printer.connectionTypeDisplayName.toLowerCase().contains(query);
+    }).toList();
+
+    return Container(
+      width: isNarrow ? double.infinity : 400,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          right: isNarrow
+              ? BorderSide.none
+              : BorderSide(color: Colors.grey.shade200),
+          bottom: isNarrow
+              ? BorderSide(color: Colors.grey.shade200)
+              : BorderSide.none,
+        ),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: TextField(
+              onChanged: (value) {
+                setState(() => _searchQuery = value);
               },
+              decoration: InputDecoration(
+                hintText: 'Search printers...',
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontWeight: FontWeight.w500,
+                ),
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: Color(0xFF4F46E5), width: 2),
+                ),
+              ),
             ),
-      floatingActionButton: _isLoading
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: _addPrinter,
-              backgroundColor: const Color(0xFF2563EB),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Printer'),
+          ),
+          if (filteredPrinters.isEmpty)
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.print_disabled,
+                      size: 56,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('No printers configured'),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _addPrinter,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Printer'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                itemCount: filteredPrinters.length,
+                itemBuilder: (context, index) {
+                  final printer = filteredPrinters[index];
+                  final isSelected = _selectedPrinterId == printer.id;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: InkWell(
+                      onTap: () =>
+                          setState(() => _selectedPrinterId = printer.id),
+                      borderRadius: BorderRadius.circular(16),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFFEEF2FF)
+                              : Colors.white,
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF4F46E5)
+                                : Colors.grey.shade100,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFF4F46E5)
+                                        : Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: const Color(0xFF4F46E5)
+                                                  .withOpacity(0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
+                                            )
+                                          ]
+                                        : [],
+                                  ),
+                                  child: Icon(
+                                    Icons.print,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.grey.shade500,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        printer.name,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected
+                                              ? const Color(0xFF312E81)
+                                              : const Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            _connectionIcon(
+                                              printer.connectionType,
+                                            ),
+                                            size: 12,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            printer.connectionType
+                                                .name
+                                                .toUpperCase(),
+                                            style: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF94A3B8),
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    if (printer.type == PrinterType.receipt)
+                                      _buildRoleDot(Colors.blue),
+                                    if (printer.type == PrinterType.kitchen)
+                                      _buildRoleDot(Colors.orange),
+                                    if (printer.type == PrinterType.bar)
+                                      _buildRoleDot(Colors.purple),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _statusBadgeColor(printer.status),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        printer.status == PrinterStatus.online
+                                            ? Icons.check_circle
+                                            : Icons.error_outline,
+                                        size: 12,
+                                        color:
+                                            _statusTextColor(printer.status),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        printer.statusDisplayName
+                                            .toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                          color: _statusTextColor(printer.status),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleDot(Color color) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+
+  Widget _buildRightPanel() {
+    final selectedPrinter = _selectedPrinter;
+    if (selectedPrinter == null) {
+      return const Center(child: Text('Select a printer to configure.'));
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(40),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 768),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedPrinter.name,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Device ID: ${selectedPrinter.id.toUpperCase()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: (_isTesting ||
+                            selectedPrinter.status == PrinterStatus.offline)
+                        ? null
+                        : _handleTestPrint,
+                    icon: _isTesting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.print, size: 18),
+                    label: Text(_isTesting ? 'Printing...' : 'Test Print'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF334155),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEEF2FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.tune,
+                            color: Color(0xFF4F46E5),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Connection Details',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'PRINTER NAME',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF94A3B8),
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                key: ValueKey('${selectedPrinter.id}_name'),
+                                initialValue: selectedPrinter.name,
+                                onChanged: (value) =>
+                                    _updatePrinterField(name: value),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                                decoration: _inputDecoration(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'PAPER SIZE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF94A3B8),
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildToggleBtn(
+                                        '80mm',
+                                        '80mm',
+                                        selectedPrinter.paperSize !=
+                                            ThermalPaperSize.mm58,
+                                        (value) => _updatePrinterField(
+                                          paperSize: ThermalPaperSize.mm80,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: _buildToggleBtn(
+                                        '58mm',
+                                        '58mm',
+                                        selectedPrinter.paperSize ==
+                                            ThermalPaperSize.mm58,
+                                        (value) => _updatePrinterField(
+                                          paperSize: ThermalPaperSize.mm58,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'CONNECTION TYPE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTypeSelectBtn(
+                            'network',
+                            'Network / LAN',
+                            Icons.wifi,
+                            selectedPrinter.connectionType ==
+                                PrinterConnectionType.network,
+                            () => _updatePrinterField(
+                              connectionType: PrinterConnectionType.network,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTypeSelectBtn(
+                            'bluetooth',
+                            'Bluetooth',
+                            Icons.bluetooth,
+                            selectedPrinter.connectionType ==
+                                PrinterConnectionType.bluetooth,
+                            () => _updatePrinterField(
+                              connectionType:
+                                  PrinterConnectionType.bluetooth,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTypeSelectBtn(
+                            'usb',
+                            'USB Direct',
+                            Icons.usb,
+                            selectedPrinter.connectionType ==
+                                PrinterConnectionType.usb,
+                            () => _updatePrinterField(
+                              connectionType: PrinterConnectionType.usb,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTypeSelectBtn(
+                            'posmac',
+                            'POSMAC',
+                            Icons.print,
+                            selectedPrinter.connectionType ==
+                                PrinterConnectionType.posmac,
+                            () => _updatePrinterField(
+                              connectionType: PrinterConnectionType.posmac,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      selectedPrinter.connectionType ==
+                              PrinterConnectionType.network
+                          ? 'IP ADDRESS'
+                          : selectedPrinter.connectionType ==
+                                  PrinterConnectionType.bluetooth
+                              ? 'MAC ADDRESS'
+                              : selectedPrinter.connectionType ==
+                                      PrinterConnectionType.posmac
+                                  ? 'DEVICE ID'
+                                  : 'USB PORT',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF94A3B8),
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      key: ValueKey('${selectedPrinter.id}_addr'),
+                      initialValue: _connectionAddress(selectedPrinter),
+                      onChanged: (value) =>
+                          _updatePrinterField(address: value),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontFamily: 'monospace',
+                      ),
+                      decoration: _inputDecoration(),
+                    ),
+                    if (selectedPrinter.connectionType ==
+                        PrinterConnectionType.network) ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'PORT',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF94A3B8),
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        key: ValueKey('${selectedPrinter.id}_port'),
+                        initialValue:
+                            (selectedPrinter.port ?? 9100).toString(),
+                        onChanged: (value) => _updatePrinterField(
+                          port: int.tryParse(value) ?? 9100,
+                        ),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          fontFamily: 'monospace',
+                        ),
+                        decoration: _inputDecoration(),
+                      ),
+                    ]
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD1FAE5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.receipt_long,
+                            color: Color(0xFF059669),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Print Assignments',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _buildJobToggle(
+                      title: 'Customer Receipts',
+                      description:
+                          'Print final bills and customer receipts upon payment.',
+                      icon: Icons.receipt_long,
+                      isActive: selectedPrinter.type == PrinterType.receipt,
+                      onToggle: () => _updatePrinterField(
+                        type: PrinterType.receipt,
+                        categories: const [],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildJobToggle(
+                      title: 'Kitchen Order Tickets (KOT)',
+                      description:
+                          'Send food and beverage orders directly to the kitchen.',
+                      icon: Icons.restaurant_menu,
+                      isActive: selectedPrinter.type == PrinterType.kitchen,
+                      onToggle: () => _updatePrinterField(
+                        type: PrinterType.kitchen,
+                      ),
+                      expandedContent:
+                          selectedPrinter.type == PrinterType.kitchen
+                              ? _buildKitchenCategories(selectedPrinter)
+                              : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildJobToggle(
+                      title: 'Bar Tickets',
+                      description:
+                          'Print beverage orders to the bar station printer.',
+                      icon: Icons.local_bar,
+                      isActive: selectedPrinter.type == PrinterType.bar,
+                      onToggle: () => _updatePrinterField(
+                        type: PrinterType.bar,
+                      ),
+                      expandedContent: selectedPrinter.type == PrinterType.bar
+                          ? _buildKitchenCategories(selectedPrinter)
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _deletePrinter(selectedPrinter),
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Remove Printer'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFF43F5E),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await DatabaseService.instance
+                          .savePrinter(selectedPrinter);
+                      if (!mounted) return;
+                      ToastHelper.showToast(
+                        context,
+                        'Configuration saved for ${selectedPrinter.name}',
+                      );
+                      await _loadPrinters();
+                    },
+                    icon: const Icon(Icons.save),
+                    label: const Text('Save Configuration'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4F46E5),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 20,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 8,
+                      shadowColor: const Color(0xFF4F46E5).withOpacity(0.4),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF4F46E5), width: 2),
+      ),
+    );
+  }
+
+  Widget _buildToggleBtn(
+    String id,
+    String label,
+    bool isActive,
+    Function(String) onTap,
+  ) {
+    return InkWell(
+      onTap: () => onTap(id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isActive
+                  ? const Color(0xFF4F46E5)
+                  : Colors.grey.shade500,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeSelectBtn(
+    String id,
+    String label,
+    IconData icon,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFFEEF2FF) : Colors.white,
+          border: Border.all(
+            color: isActive ? const Color(0xFF4F46E5) : Colors.grey.shade100,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color:
+                  isActive ? const Color(0xFF4F46E5) : Colors.grey.shade400,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: isActive
+                    ? const Color(0xFF4F46E5)
+                    : Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJobToggle({
+    required String title,
+    required String description,
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onToggle,
+    Widget? expandedContent,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFFEEF2FF).withOpacity(0.5) : Colors.white,
+        border: Border.all(
+          color: isActive ? const Color(0xFF4F46E5) : Colors.grey.shade100,
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? const Color(0xFFE0E7FF)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: isActive
+                          ? const Color(0xFF4F46E5)
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(
+                    width: 56,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color:
+                          isActive ? const Color(0xFF4F46E5) : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      alignment:
+                          isActive ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (expandedContent != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+              child: expandedContent,
+            )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKitchenCategories(Printer printer) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 1,
+          color: const Color(0xFFE0E7FF).withOpacity(0.6),
+          margin: const EdgeInsets.only(bottom: 16),
+        ),
+        const Text(
+          'ASSIGNED CATEGORIES',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF818CF8),
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (_availableCategories.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'No categories found. Create categories in Settings.',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _availableCategories.map<Widget>((cat) {
+              final isActive = printer.categories.contains(cat.id);
+              return InkWell(
+                onTap: () {
+                  final nextCategories = List<String>.from(printer.categories);
+                  if (isActive) {
+                    nextCategories.remove(cat.id);
+                  } else {
+                    nextCategories.add(cat.id);
+                  }
+                  _updatePrinterField(categories: nextCategories);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isActive ? const Color(0xFF4F46E5) : Colors.white,
+                    border: Border.all(
+                      color: isActive
+                          ? const Color(0xFF4F46E5)
+                          : Colors.grey.shade200,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color:
+                                  const Color(0xFF4F46E5).withOpacity(0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : [],
+                  ),
+                  child: Text(
+                    cat.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isActive ? Colors.white : Colors.grey.shade500,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        if (_availableCategories.isNotEmpty && printer.categories.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 12.0),
+            child: Text(
+              'Select at least one category to print.',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFF43F5E),
+              ),
+            ),
+          )
+      ],
     );
   }
 }
