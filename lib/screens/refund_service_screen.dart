@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:extropos/services/database_service.dart';
+import 'package:extropos/services/formatting_service.dart';import 'package:extropos/services/database_service.dart';
+import 'package:extropos/services/formatting_service.dart';import 'package:flutter/material.dart'
 
 // --- Theme Colors ---
 class AppColors {
@@ -62,6 +64,8 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
   RefundView _currentView = RefundView.lookup;
   String _searchQuery = "";
   Transaction? _selectedTransaction;
+  List<Map<String, dynamic>> _recentTransactions = [];
+  bool _isLoadingTransactions = false;
 
   Set<int> _refundItems = {};
   Map<int, bool> _restockMap = {};
@@ -71,16 +75,138 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
   String _internalNotes = "";
   String _managerPin = "";
 
-  void _handleSearch() {
-    // TODO: Implement actual database/API call to search transactions
-    // Example:
-    // final result = await DatabaseHelper.instance.searchTransaction(_searchQuery);
-    // if (result != null) {
-    //   setState(() {
-    //     _selectedTransaction = result;
-    //     _currentView = RefundView.details;
-    //   });
-    // }
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentTransactions();
+  }
+
+  /// Load recent transactions from database
+  Future<void> _loadRecentTransactions() async {
+    setState(() => _isLoadingTransactions = true);
+    try {
+      final orders = await DatabaseService.instance.getOrders(
+        limit: 20,
+        offset: 0,
+      );
+      if (mounted) {
+        setState(() {
+          _recentTransactions = orders;
+          _isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading recent transactions: $e');
+      if (mounted) {
+        setState(() => _isLoadingTransactions = false);
+      }
+    }
+  }
+
+  /// Search for a transaction by order number/receipt ID
+  Future<void> _handleSearch() async {
+    if (_searchQuery.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a receipt ID'), duration: Duration(seconds: 2)),
+      );
+      return;
+    }
+
+    try {
+      setState(() => _isLoadingTransactions = true);
+      
+      // Search through recent transactions for matching order number
+      final matchingOrder = _recentTransactions.firstWhere(
+        (order) {
+          final orderNumber = order['order_number']?.toString() ?? '';
+          final orderId = order['id']?.toString() ?? '';
+          return orderNumber.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              orderId.toLowerCase().contains(_searchQuery.toLowerCase());
+        },
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (matchingOrder.isNotEmpty) {
+        // Found a matching order, now load its items
+        final orderId = matchingOrder['id'].toString();
+        final items = await DatabaseService.instance.getOrderItems(orderId);
+        
+        // Convert to Transaction model
+        final transaction = _mapOrderToTransaction(matchingOrder, items);
+        
+        if (mounted) {
+          setState(() {
+            _selectedTransaction = transaction;
+            _currentView = RefundView.details;
+            _isLoadingTransactions = false;
+          });
+        }
+      } else {
+        // No match found, show error
+        if (mounted) {
+          setState(() => _isLoadingTransactions = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Receipt not found'), duration: Duration(seconds: 2)),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error searching transactions: $e');
+      if (mounted) {
+        setState(() => _isLoadingTransactions = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
+        );
+      }
+    }
+  }
+
+  /// Map database order and order items to Transaction model
+  Transaction _mapOrderToTransaction(
+    Map<String, dynamic> order,
+    List<Map<String, dynamic>> orderItems,
+  ) {
+    final items = <TransactionItem>[];
+    for (int i = 0; i < orderItems.length; i++) {
+      final item = orderItems[i];
+      items.add(
+        TransactionItem(
+          i + 1, // id
+          item['item_name'] as String? ?? 'Unknown Item',
+          (item['item_price'] as num?)?.toDouble() ?? 0.0,
+          (item['quantity'] as num?)?.toInt() ?? 1,
+          'general', // category
+        ),
+      );
+    }
+
+    // Parse created_at to extract date and time
+    DateTime createdAt = DateTime.now();
+    String date = FormattingService.date(createdAt);
+    String time = FormattingService.time(createdAt);
+    
+    try {
+      if (order['created_at'] != null) {
+        createdAt = DateTime.parse(order['created_at'] as String);
+        date = FormattingService.date(createdAt);
+        time = FormattingService.time(createdAt);
+      }
+    } catch (e) {
+      print('Error parsing date: $e');
+    }
+
+    return Transaction(
+      order['order_number']?.toString() ?? order['id']?.toString() ?? 'N/A',
+      date,
+      time,
+      order['created_by'] as String? ?? 'POS System',
+      order['customer_name'] as String? ?? 'Walk-in Customer',
+      order['customer_phone'] as String? ?? 'N/A',
+      (order['total'] as num?)?.toDouble() ?? 0.0,
+      order['payment_method'] as String? ?? 'Unknown',
+      order['status'] as String? ?? 'completed',
+      items,
+    );
   }
 
   void _toggleItem(int itemId) {
@@ -228,18 +354,65 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history, color: AppColors.slate200, size: 40),
-                  const SizedBox(height: 12),
-                  const Text("No transactions loaded", style: TextStyle(fontSize: 14, color: AppColors.slate400, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 4),
-                  const Text("Search by receipt ID to begin", style: TextStyle(fontSize: 12, color: AppColors.slate400)),
-                ],
-              ),
-            ),
+            child: _isLoadingTransactions
+                ? const Center(child: CircularProgressIndicator())
+                : _recentTransactions.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.history, color: AppColors.slate200, size: 40),
+                            const SizedBox(height: 12),
+                            const Text("No transactions loaded", style: TextStyle(fontSize: 14, color: AppColors.slate400, fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 4),
+                            const Text("Search by receipt ID to begin", style: TextStyle(fontSize: 12, color: AppColors.slate400)),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: _recentTransactions.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final tx = _recentTransactions[index];
+                          return InkWell(
+                            onTap: () async {
+                              final orderId = tx['id'].toString();
+                              final items = await DatabaseService.instance.getOrderItems(orderId);
+                              final transaction = _mapOrderToTransaction(tx, items);
+                              if (mounted) {
+                                setState(() {
+                                  _selectedTransaction = transaction;
+                                  _currentView = RefundView.details;
+                                });
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(color: AppColors.slate50, borderRadius: BorderRadius.circular(12)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(tx['order_number']?.toString() ?? tx['id']?.toString() ?? 'N/A', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.slate900)),
+                                      Text("${FormattingService.time(DateTime.parse(tx['created_at'] as String? ?? ''))} • ${tx['created_by'] as String? ?? 'POS'}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
+                                    ],
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text("RM ${((tx['total'] as num?)?.toDouble() ?? 0.0).toStringAsFixed(2)}", style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.slate900)),
+                                      Text(tx['payment_method'] as String? ?? 'Unknown', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
           const SizedBox(height: 16),
           Container(
