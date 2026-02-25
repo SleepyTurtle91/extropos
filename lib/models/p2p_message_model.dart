@@ -140,13 +140,11 @@ class P2PMessage {
 /// Specialized message for discovery announcements
 class P2PDiscoveryMessage extends P2PMessage {
   P2PDiscoveryMessage({
-    required String messageId,
-    required String fromDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
     required Map<String, dynamic> deviceInfo,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.discovery,
-    fromDeviceId: fromDeviceId,
     timestamp: DateTime.now(),
     payload: deviceInfo,
     priority: 8,
@@ -156,14 +154,11 @@ class P2PDiscoveryMessage extends P2PMessage {
 /// Specialized message for heartbeat
 class P2PHeartbeatMessage extends P2PMessage {
   P2PHeartbeatMessage({
-    required String messageId,
-    required String fromDeviceId,
-    String? toDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
+    super.toDeviceId,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.heartbeat,
-    fromDeviceId: fromDeviceId,
-    toDeviceId: toDeviceId,
     timestamp: DateTime.now(),
     priority: 2,
   );
@@ -174,15 +169,12 @@ class P2PAckMessage extends P2PMessage {
   final String? acknowledgedMessageId;
 
   P2PAckMessage({
-    required String messageId,
-    required String fromDeviceId,
-    required String toDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
+    required String super.toDeviceId,
     this.acknowledgedMessageId,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.acknowledgement,
-    fromDeviceId: fromDeviceId,
-    toDeviceId: toDeviceId,
     timestamp: DateTime.now(),
     payload: {
       if (acknowledgedMessageId != null) 'acknowledgedMessageId': acknowledgedMessageId,
@@ -198,17 +190,14 @@ class P2PErrorMessage extends P2PMessage {
   final String? errorDetails;
 
   P2PErrorMessage({
-    required String messageId,
-    required String fromDeviceId,
-    String? toDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
+    super.toDeviceId,
     required this.errorCode,
     required this.errorDescription,
     this.errorDetails,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.error,
-    fromDeviceId: fromDeviceId,
-    toDeviceId: toDeviceId,
     timestamp: DateTime.now(),
     payload: {
       'errorCode': errorCode,

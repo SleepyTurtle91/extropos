@@ -1,4 +1,8 @@
+import 'package:extropos/models/cart_item.dart' as pos_cart;
+import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/product.dart' as pos_product;
 import 'package:extropos/screens/kitchen_display_screen.dart';
+import 'package:extropos/screens/payment_screen.dart';
 import 'package:extropos/screens/refund_service_screen.dart';
 import 'package:extropos/screens/reports_dashboard_screen.dart';
 import 'package:extropos/screens/sales_dashboard_screen.dart';
@@ -7,6 +11,8 @@ import 'package:extropos/screens/settings_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:extropos/screens/user/sign_out_dialog_simple.dart';
 import 'package:extropos/services/config_service.dart';
+import 'package:extropos/services/database_service.dart';
+import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 
 // --- Models used by the unified POS screen ---
@@ -57,6 +63,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
   List<CartItem> cart = [];
   String searchQuery = '';
   String activeCategory = 'All';
+  List<PaymentMethod> paymentMethods = [];
 
   // --- Restaurant Mode Table Selection ---
   String? selectedTableId; // Current table being ordered for in restaurant mode
@@ -72,17 +79,71 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
   void initState() {
     super.initState();
     _fetchData();
+    _loadPaymentMethods();
   }
 
-  // PLACEHOLDER: Database Fetching Logic
+  // Load categories and products from database
   Future<void> _fetchData() async {
     setState(() => isLoading = true);
     
-    // TODO: Implement your POS database fetch here.
-    // 1. Fetch Categories based on activeMode
-    // 2. Fetch Products based on activeMode
-    
-    setState(() => isLoading = false);
+    try {
+      // Fetch categories from database
+      final dbCategories = await DatabaseService.instance.getCategories();
+      final categoryNames = dbCategories.map((cat) => cat.name).toList();
+      
+      // Fetch items from database
+      final dbItems = await DatabaseService.instance.getItems();
+      
+      // Map database items to simplified Product model
+      final loadedProducts = dbItems.map((item) {
+        return Product(
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          category: _getCategoryName(item.categoryId, dbCategories),
+          mode: activeMode, // All items available in all modes
+          color: item.color,
+        );
+      }).toList();
+      
+      setState(() {
+        categories = ['All', ...categoryNames];
+        products = loadedProducts;
+        isLoading = false;
+      });
+      
+      print('✅ Loaded ${products.length} products and ${categories.length} categories');
+    } catch (e) {
+      print('❌ Error loading data: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _loadPaymentMethods() async {
+    try {
+      final methods = await DatabaseService.instance.getPaymentMethods();
+      final activeMethods = methods
+          .where((method) => method.status == PaymentMethodStatus.active)
+          .toList();
+      if (!mounted) return;
+      setState(() => paymentMethods = activeMethods);
+    } catch (e) {
+      if (!mounted) return;
+      ToastHelper.showToast(context, 'Failed to load payment methods');
+    }
+  }
+  
+  // Helper to get category name from ID
+  String _getCategoryName(String categoryId, List<dynamic> categories) {
+    try {
+      final category = categories.firstWhere(
+        (cat) => cat.id == categoryId,
+        orElse: () => null,
+      );
+      return category?.name ?? 'Uncategorized';
+    } catch (e) {
+      return 'Uncategorized';
+    }
   }
 
   void addToCart(Product product) {
@@ -111,6 +172,53 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
   double get subtotal => cart.fold(0, (sum, item) => sum + item.total);
   double get tax => subtotal * 0.08;
   double get total => subtotal + tax;
+
+  List<pos_cart.CartItem> _buildPaymentCartItems() {
+    return cart
+        .map(
+          (item) => pos_cart.CartItem(
+            pos_product.Product(
+              item.product.name,
+              item.product.price,
+              item.product.category,
+              Icons.shopping_cart,
+            ),
+            item.quantity,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> _startPayment() async {
+    if (cart.isEmpty) {
+      ToastHelper.showToast(context, 'Cart is empty');
+      return;
+    }
+
+    if (paymentMethods.isEmpty) {
+      ToastHelper.showToast(context, 'No active payment methods');
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          totalAmount: total,
+          availablePaymentMethods: paymentMethods,
+          cartItems: _buildPaymentCartItems(),
+          orderType: activeMode.name,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result is Map && result['success'] == true) {
+      setState(() => cart.clear());
+      ToastHelper.showToast(context, 'Payment completed');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -504,7 +612,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                Text('RM \\${item.total.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text('RM ${item.total.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -541,13 +649,13 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
       decoration: BoxDecoration(color: const Color(0xFFF8FAFC), border: Border(top: BorderSide(color: Colors.grey.shade200))),
       child: Column(
         children: [
-          _summaryRow('Subtotal', 'RM \\${subtotal.toStringAsFixed(2)}'),
-          _summaryRow('SST (8%)', 'RM \\${tax.toStringAsFixed(2)}'),
+          _summaryRow('Subtotal', 'RM ${subtotal.toStringAsFixed(2)}'),
+          _summaryRow('SST (8%)', 'RM ${tax.toStringAsFixed(2)}'),
           const Divider(height: 24),
-          _summaryRow('Total', 'RM \\${total.toStringAsFixed(2)}', isTotal: true),
+          _summaryRow('Total', 'RM ${total.toStringAsFixed(2)}', isTotal: true),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: cart.isEmpty ? null : () {},
+            onPressed: cart.isEmpty ? null : _startPayment,
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
               foregroundColor: Colors.white,
@@ -813,7 +921,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
                             Text(p.category.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.indigo)),
                             const Spacer(),
                             Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 2),
-                            Text('RM \\${p.price.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                            Text('RM ${p.price.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),

@@ -1118,10 +1118,28 @@ class DatabaseService {
 
   // ==================== HELPER METHODS ====================
 
+  static final Map<int, IconData> _materialIconMap = {
+    Icons.category.codePoint: Icons.category,
+    Icons.shopping_bag.codePoint: Icons.shopping_bag,
+    Icons.local_cafe.codePoint: Icons.local_cafe,
+    Icons.restaurant.codePoint: Icons.restaurant,
+    Icons.cake.codePoint: Icons.cake,
+    Icons.restaurant_menu.codePoint: Icons.restaurant_menu,
+    Icons.coffee.codePoint: Icons.coffee,
+    Icons.local_drink.codePoint: Icons.local_drink,
+  };
+
   /// Convert IconData to string representation
   IconData _iconFromDb(int? codePoint, String? fontFamily) {
-    // Temporarily return constant icon for tree shaking compatibility
-    return Icons.category;
+    if (codePoint == null) return Icons.shopping_bag;
+
+    if (fontFamily != null &&
+        fontFamily.isNotEmpty &&
+        fontFamily != 'MaterialIcons') {
+      return Icons.shopping_bag;
+    }
+
+    return _materialIconMap[codePoint] ?? Icons.shopping_bag;
   }
 
   Color _colorFromDb(int? colorValue) {

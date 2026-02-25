@@ -2,6 +2,7 @@
 /// 
 /// This file demonstrates practical usage of the P2P system in the FlutterPOS application.
 /// Copy these patterns into your screens and services.
+library;
 
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/p2p_device_model.dart';
@@ -59,7 +60,7 @@ class OrderForwardingExample extends StatefulWidget {
   final List<CartItem> cartItems;
   final void Function()? onOrderSent;
 
-  const OrderForwardingExample({
+  const OrderForwardingExample({super.key, 
     required this.cartItems,
     this.onOrderSent,
   });

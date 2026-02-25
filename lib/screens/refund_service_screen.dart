@@ -1,6 +1,6 @@
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/services/formatting_service.dart';import 'package:extropos/services/database_service.dart';
-import 'package:extropos/services/formatting_service.dart';import 'package:flutter/material.dart'
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 // --- Theme Colors ---
 class AppColors {
@@ -62,7 +62,7 @@ class RefundServiceScreen extends StatefulWidget {
 
 class _RefundServiceScreenState extends State<RefundServiceScreen> {
   RefundView _currentView = RefundView.lookup;
-  String _searchQuery = "";
+  String _searchQuery = '';
   Transaction? _selectedTransaction;
   List<Map<String, dynamic>> _recentTransactions = [];
   bool _isLoadingTransactions = false;
@@ -70,10 +70,10 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
   Set<int> _refundItems = {};
   Map<int, bool> _restockMap = {};
 
-  String _refundReason = "";
-  String _refundMethod = "";
-  String _internalNotes = "";
-  String _managerPin = "";
+  String _refundReason = '';
+  String _refundMethod = '';
+  String _internalNotes = '';
+  String _managerPin = '';
 
   @override
   void initState() {
@@ -182,14 +182,14 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
 
     // Parse created_at to extract date and time
     DateTime createdAt = DateTime.now();
-    String date = FormattingService.date(createdAt);
-    String time = FormattingService.time(createdAt);
+    String date = DateFormat('yyyy-MM-dd').format(createdAt);
+    String time = DateFormat('HH:mm').format(createdAt);
     
     try {
       if (order['created_at'] != null) {
         createdAt = DateTime.parse(order['created_at'] as String);
-        date = FormattingService.date(createdAt);
-        time = FormattingService.time(createdAt);
+        date = DateFormat('yyyy-MM-dd').format(createdAt);
+        time = DateFormat('HH:mm').format(createdAt);
       }
     } catch (e) {
       print('Error parsing date: $e');
@@ -234,9 +234,9 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
     setState(() {
       _refundItems.clear();
       _restockMap.clear();
-      _refundMethod = "";
-      _refundReason = "";
-      _internalNotes = "";
+      _refundMethod = '';
+      _refundReason = '';
+      _internalNotes = '';
     });
   }
 
@@ -297,8 +297,8 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Refund & Void Service", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.slate900)),
-                  Text("ORDER CORRECTION PROTOCOL", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
+                  Text('Refund & Void Service', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.slate900)),
+                  Text('ORDER CORRECTION PROTOCOL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
                 ],
               ),
             ],
@@ -306,7 +306,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
           TextButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back, color: AppColors.slate400, size: 18),
-            label: const Text("Exit to POS", style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.bold)),
+            label: const Text('Exit to POS', style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.bold)),
           )
         ],
       ),
@@ -321,12 +321,12 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("TRANSACTION LOOKUP", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+          const Text('TRANSACTION LOOKUP', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate400)),
           const SizedBox(height: 16),
           TextField(
             onChanged: (val) => _searchQuery = val,
             decoration: InputDecoration(
-              hintText: "Scan receipt or enter ID (FP-...)",
+              hintText: 'Scan receipt or enter ID (FP-...)',
               prefixIcon: const Icon(Icons.search, color: AppColors.slate400),
               filled: true,
               fillColor: AppColors.slate50,
@@ -341,15 +341,15 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
             child: ElevatedButton(
               onPressed: _handleSearch,
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.slate900, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              child: const Text("Search", style: TextStyle(color: Colors.white)),
+              child: const Text('Search', style: TextStyle(color: Colors.white)),
             ),
           ),
           const SizedBox(height: 32),
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("RECENT TRANSACTIONS", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate400)),
-              Text("View All", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.indigo600)),
+              Text('RECENT TRANSACTIONS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+              Text('View All', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.indigo600)),
             ],
           ),
           const SizedBox(height: 16),
@@ -363,9 +363,9 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                           children: [
                             Icon(Icons.history, color: AppColors.slate200, size: 40),
                             const SizedBox(height: 12),
-                            const Text("No transactions loaded", style: TextStyle(fontSize: 14, color: AppColors.slate400, fontWeight: FontWeight.w500)),
+                            const Text('No transactions loaded', style: TextStyle(fontSize: 14, color: AppColors.slate400, fontWeight: FontWeight.w500)),
                             const SizedBox(height: 4),
-                            const Text("Search by receipt ID to begin", style: TextStyle(fontSize: 12, color: AppColors.slate400)),
+                            const Text('Search by receipt ID to begin', style: TextStyle(fontSize: 12, color: AppColors.slate400)),
                           ],
                         ),
                       )
@@ -397,7 +397,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(tx['order_number']?.toString() ?? tx['id']?.toString() ?? 'N/A', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.slate900)),
-                                      Text("${FormattingService.time(DateTime.parse(tx['created_at'] as String? ?? ''))} • ${tx['created_by'] as String? ?? 'POS'}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
+                                      Text("${DateFormat('HH:mm').format(DateTime.parse(tx['created_at'] as String? ?? DateTime.now().toIso8601String()))} • ${tx['created_by'] as String? ?? 'POS'}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate400)),
                                     ],
                                   ),
                                   Column(
@@ -423,7 +423,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
               children: [
                 Icon(Icons.warning_amber_rounded, color: AppColors.amber600, size: 20),
                 SizedBox(width: 12),
-                Expanded(child: Text("Refund Policy: Items returned after 24 hours require regional manager approval.", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.amber800))),
+                Expanded(child: Text('Refund Policy: Items returned after 24 hours require regional manager approval.', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.amber800))),
               ],
             ),
           )
@@ -469,9 +469,9 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
             child: const Icon(Icons.refresh, color: AppColors.slate200, size: 48),
           ),
           const SizedBox(height: 24),
-          const Text("Ready for Refund", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+          const Text('Ready for Refund', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.slate400)),
           const SizedBox(height: 8),
-          const Text("Search or select a transaction to start.", style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.w500)),
+          const Text('Search or select a transaction to start.', style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -492,13 +492,13 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildHeaderCol("RECEIPT ID", tx.id, isLarge: true),
-              _buildHeaderCol("CUSTOMER", tx.customer),
-              _buildHeaderCol("ORIGINAL TOTAL", "RM ${tx.total.toStringAsFixed(2)}", isLarge: true),
+              _buildHeaderCol('RECEIPT ID', tx.id, isLarge: true),
+              _buildHeaderCol('CUSTOMER', tx.customer),
+              _buildHeaderCol('ORIGINAL TOTAL', 'RM ${tx.total.toStringAsFixed(2)}', isLarge: true),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text("PAID VIA", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+                  const Text('PAID VIA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.slate400)),
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -523,10 +523,10 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("SELECT ITEMS TO REFUND", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+                        const Text('SELECT ITEMS TO REFUND', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
                         TextButton(
                           onPressed: _selectAllItems,
-                          child: Text(_isWholeBill ? "ALL SELECTED" : "SELECT ALL", style: TextStyle(color: _isWholeBill ? AppColors.rose600 : AppColors.indigo600, fontWeight: FontWeight.w900)),
+                          child: Text(_isWholeBill ? 'ALL SELECTED' : 'SELECT ALL', style: TextStyle(color: _isWholeBill ? AppColors.rose600 : AppColors.indigo600, fontWeight: FontWeight.w900)),
                         )
                       ],
                     ),
@@ -568,7 +568,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                                   if (selected)
                                     Column(
                                       children: [
-                                        const Text("RESTOCK?", style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+                                        const Text('RESTOCK?', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.slate400)),
                                         Switch(
                                           value: _restockMap[item.id] ?? true,
                                           activeColor: AppColors.emerald500,
@@ -582,8 +582,8 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Text("RM ${(item.price * item.qty).toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                                      Text("Qty: ${item.qty}", style: const TextStyle(fontSize: 10, color: AppColors.slate400, fontWeight: FontWeight.bold)),
+                                      Text('RM ${(item.price * item.qty).toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                                      Text('Qty: ${item.qty}', style: const TextStyle(fontSize: 10, color: AppColors.slate400, fontWeight: FontWeight.bold)),
                                     ],
                                   )
                                 ],
@@ -609,24 +609,24 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("SUMMARY", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+                          const Text('SUMMARY', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
                           if (_isWholeBill)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(color: AppColors.rose100, borderRadius: BorderRadius.circular(4)),
-                              child: const Text("FULL VOID", style: TextStyle(color: AppColors.rose600, fontSize: 8, fontWeight: FontWeight.w900)),
+                              child: const Text('FULL VOID', style: TextStyle(color: AppColors.rose600, fontSize: 8, fontWeight: FontWeight.w900)),
                             )
                         ],
                       ),
                       const SizedBox(height: 24),
-                      const Text("REASON FOR RETURN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+                      const Text('REASON FOR RETURN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.slate400)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: _refundReason.isEmpty ? null : _refundReason,
-                        hint: const Text("Select a reason..."),
-                        items: ["Damaged Goods", "Expired Item", "Wrong Order Taken", "Customer Change of Mind", "Full Bill Cancellation"]
+                        hint: const Text('Select a reason...'),
+                        items: ['Damaged Goods', 'Expired Item', 'Wrong Order Taken', 'Customer Change of Mind', 'Full Bill Cancellation']
                             .map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                        onChanged: (val) => setState(() => _refundReason = val ?? ""),
+                        onChanged: (val) => setState(() => _refundReason = val ?? ''),
                         decoration: InputDecoration(
                           filled: true, fillColor: AppColors.slate50,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -634,7 +634,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text("REFUND VIA", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+                      const Text('REFUND VIA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.slate400)),
                       const SizedBox(height: 8),
                       SizedBox(
                         height: 120,
@@ -644,10 +644,10 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                           mainAxisSpacing: 8,
                           childAspectRatio: 3,
                           children: [
-                            _buildMethodBtn("Original", Icons.refresh),
-                            _buildMethodBtn("Cash", Icons.attach_money),
-                            _buildMethodBtn("E-Wallet", Icons.account_balance_wallet),
-                            _buildMethodBtn("Credit", Icons.person),
+                            _buildMethodBtn('Original', Icons.refresh),
+                            _buildMethodBtn('Cash', Icons.attach_money),
+                            _buildMethodBtn('E-Wallet', Icons.account_balance_wallet),
+                            _buildMethodBtn('Credit', Icons.person),
                           ],
                         ),
                       ),
@@ -657,16 +657,16 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("ITEMS SELECTED", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.slate400)),
-                          Text("${_refundItems.length}", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate900)),
+                          const Text('ITEMS SELECTED', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.slate400)),
+                          Text('${_refundItems.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate900)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("TOTAL REFUND", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate400)),
-                          Text("RM ${_refundTotal.toStringAsFixed(2)}", style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.rose600)),
+                          const Text('TOTAL REFUND', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.slate400)),
+                          Text('RM ${_refundTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.rose600)),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -678,10 +678,10 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                             child: ElevatedButton(
                               onPressed: () {
                                 _selectAllItems();
-                                setState(() => _refundReason = "Full Bill Cancellation");
+                                setState(() => _refundReason = 'Full Bill Cancellation');
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: AppColors.slate900, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                              child: const Text("Return Whole Bill", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                              child: const Text('Return Whole Bill', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
                             ),
                           ),
                         ),
@@ -694,14 +694,14 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                             disabledBackgroundColor: AppColors.slate200,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
                           ),
-                          child: Text(_isWholeBill ? "Void Whole Bill" : "Authorize Refund", style: TextStyle(color: isFormValid ? Colors.white : AppColors.slate400, fontSize: 18, fontWeight: FontWeight.w900)),
+                          child: Text(_isWholeBill ? 'Void Whole Bill' : 'Authorize Refund', style: TextStyle(color: isFormValid ? Colors.white : AppColors.slate400, fontSize: 18, fontWeight: FontWeight.w900)),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Center(
                         child: TextButton(
                           onPressed: _resetSelection,
-                          child: const Text("Reset Selection", style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.bold)),
+                          child: const Text('Reset Selection', style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.bold)),
                         ),
                       )
                     ],
@@ -754,11 +754,11 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
               child: const Icon(Icons.lock, color: Colors.white, size: 40),
             ),
             const SizedBox(height: 24),
-            const Text("Security Verification", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.slate900)),
+            const Text('Security Verification', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.slate900)),
             const SizedBox(height: 8),
-            Text(_isWholeBill ? "CRITICAL: Full transaction void." : "Required for partial return.", style: const TextStyle(fontSize: 14, color: AppColors.slate400)),
+            Text(_isWholeBill ? 'CRITICAL: Full transaction void.' : 'Required for partial return.', style: const TextStyle(fontSize: 14, color: AppColors.slate400)),
             const SizedBox(height: 8),
-            Text("RM ${_refundTotal.toStringAsFixed(2)} via $_refundMethod", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.rose600)),
+            Text('RM ${_refundTotal.toStringAsFixed(2)} via $_refundMethod', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.rose600)),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -773,7 +773,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                     border: Border.all(color: active ? AppColors.rose600 : AppColors.slate100, width: 2),
                   ),
                   alignment: Alignment.center,
-                  child: active ? const Text("•", style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.rose600)) : null,
+                  child: active ? const Text('•', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.rose600)) : null,
                 );
               }),
             ),
@@ -786,13 +786,13 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 childAspectRatio: 1.5,
-                children: ["1","2","3","4","5","6","7","8","9","C","0","DEL"].map((key) {
+                children: ['1','2','3','4','5','6','7','8','9','C','0','DEL'].map((key) {
                   return InkWell(
                     onTap: () {
                       setState(() {
-                        if (key == "C") {
-                          _managerPin = "";
-                        } else if (key == "DEL") {
+                        if (key == 'C') {
+                          _managerPin = '';
+                        } else if (key == 'DEL') {
                           if (_managerPin.isNotEmpty) _managerPin = _managerPin.substring(0, _managerPin.length - 1);
                         } else {
                           if (_managerPin.length < 4) {
@@ -820,9 +820,9 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
             TextButton(
               onPressed: () => setState(() {
                 _currentView = RefundView.details;
-                _managerPin = "";
+                _managerPin = '';
               }),
-              child: const Text("GO BACK", style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.bold, letterSpacing: 1)),
+              child: const Text('GO BACK', style: TextStyle(color: AppColors.slate400, fontWeight: FontWeight.bold, letterSpacing: 1)),
             )
           ],
         ),
@@ -842,9 +842,9 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
             child: const Icon(Icons.check_circle, color: AppColors.emerald600, size: 64),
           ),
           const SizedBox(height: 32),
-          Text(_isWholeBill ? "Receipt Voided" : "Refund Successful", style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: AppColors.slate900)),
+          Text(_isWholeBill ? 'Receipt Voided' : 'Refund Successful', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: AppColors.slate900)),
           const SizedBox(height: 16),
-          Text("Balance of RM ${_refundTotal.toStringAsFixed(2)} has been issued via $_refundMethod.", style: const TextStyle(fontSize: 20, color: AppColors.slate400, fontWeight: FontWeight.w500)),
+          Text('Balance of RM ${_refundTotal.toStringAsFixed(2)} has been issued via $_refundMethod.', style: const TextStyle(fontSize: 20, color: AppColors.slate400, fontWeight: FontWeight.w500)),
           const SizedBox(height: 48),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -854,7 +854,7 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.print, color: Colors.white),
-                  label: const Text("Print Note", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  label: const Text('Print Note', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.slate900, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                 ),
               ),
@@ -865,14 +865,14 @@ class _RefundServiceScreenState extends State<RefundServiceScreen> {
                   onPressed: () {
                     _resetSelection();
                     setState(() {
-                      _managerPin = "";
+                      _managerPin = '';
                       _selectedTransaction = null;
-                      _searchQuery = "";
+                      _searchQuery = '';
                       _currentView = RefundView.lookup;
                     });
                   },
                   style: OutlinedButton.styleFrom(backgroundColor: Colors.white, side: const BorderSide(color: AppColors.slate200), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                  child: const Text("Back to Lookup", style: TextStyle(color: AppColors.slate900, fontWeight: FontWeight.bold)),
+                  child: const Text('Back to Lookup', style: TextStyle(color: AppColors.slate900, fontWeight: FontWeight.bold)),
                 ),
               )
             ],

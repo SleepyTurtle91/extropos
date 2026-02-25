@@ -8,6 +8,11 @@
 -keep class com.sersoluciones.flutter_pos_printer_platform.R$** { *; }
 -dontwarn com.sersoluciones.flutter_pos_printer_platform.**
 
+# Flutter Toast Plugin
+-keep class io.github.ponnamkarthik.toast.fluttertoast.** { *; }
+-keep class io.github.ponnamkarthik.toast.fluttertoast.R$** { *; }
+-dontwarn io.github.ponnamkarthik.toast.fluttertoast.**
+
 # General Flutter plugins
 -keep class io.flutter.** { *; }
 -dontwarn io.flutter.**

@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:extropos/models/p2p_device_model.dart';
 import 'package:extropos/models/p2p_message_model.dart';
 import 'package:extropos/models/p2p_order_message_model.dart';
-import 'package:universal_io/io.dart' show Platform;
 import 'package:uuid/uuid.dart';
 
 /// Callback for handling incoming messages
@@ -195,7 +194,7 @@ class LocalNetworkP2PService {
         },
       );
 
-      socket.add(utf8.encode(introMessage.toJsonString() + '\n'));
+      socket.add(utf8.encode('${introMessage.toJsonString()}\n'));
 
       // Update device status
       _updateDeviceStatus(device.copyWith(
@@ -227,7 +226,7 @@ class LocalNetworkP2PService {
       print('[P2P] Sending message: ${message.messageType.value} to ${message.toDeviceId ?? "all"}');
 
       final messageString = message.toJsonString();
-      final messageBytes = utf8.encode(messageString + '\n');
+      final messageBytes = utf8.encode('$messageString\n');
 
       if (message.isBroadcast) {
         // Broadcast to all connected devices

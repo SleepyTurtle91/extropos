@@ -493,7 +493,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
                   ),
                 ),
                 Text(
-                  'RM \\${item.total.toStringAsFixed(2)}',
+                  'RM ${item.total.toStringAsFixed(2)}',
                   style: TextStyle(
                     color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
@@ -554,12 +554,12 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
       ),
       child: Column(
         children: [
-          _summaryRow('Subtotal', 'RM \\${subtotal.toStringAsFixed(2)}'),
-          _summaryRow('SST (8%)', 'RM \\${tax.toStringAsFixed(2)}'),
+          _summaryRow('Subtotal', 'RM ${subtotal.toStringAsFixed(2)}'),
+          _summaryRow('SST (8%)', 'RM ${tax.toStringAsFixed(2)}'),
           const Divider(height: 24),
           _summaryRow(
             'Total',
-            'RM \\${total.toStringAsFixed(2)}',
+            'RM ${total.toStringAsFixed(2)}',
             isTotal: true,
           ),
           const SizedBox(height: 24),
@@ -679,7 +679,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
                                 maxLines: 2,
                               ),
                               Text(
-                                'RM \\${p.price.toStringAsFixed(2)}',
+                                'RM ${p.price.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   color: Theme.of(context).primaryColor,
                                   fontWeight: FontWeight.bold,

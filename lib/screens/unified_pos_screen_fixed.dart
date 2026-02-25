@@ -369,7 +369,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                Text('RM \\${item.total.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text('RM ${item.total.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -406,10 +406,10 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
       decoration: BoxDecoration(color: const Color(0xFFF8FAFC), border: Border(top: BorderSide(color: Colors.grey.shade200))),
       child: Column(
         children: [
-          _summaryRow('Subtotal', 'RM \\${subtotal.toStringAsFixed(2)}'),
-          _summaryRow('SST (8%)', 'RM \\${tax.toStringAsFixed(2)}'),
+          _summaryRow('Subtotal', 'RM ${subtotal.toStringAsFixed(2)}'),
+          _summaryRow('SST (8%)', 'RM ${tax.toStringAsFixed(2)}'),
           const Divider(height: 24),
-          _summaryRow('Total', 'RM \\${total.toStringAsFixed(2)}', isTotal: true),
+          _summaryRow('Total', 'RM ${total.toStringAsFixed(2)}', isTotal: true),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: cart.isEmpty ? null : () {},
@@ -480,7 +480,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
                             Text(p.category.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.indigo)),
                             const Spacer(),
                             Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 2),
-                            Text('RM \\${p.price.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+                            Text('RM ${p.price.toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),

@@ -5,6 +5,7 @@ import 'package:extropos/screens/advanced_reports_screen.dart';
 import 'package:extropos/screens/analytics_dashboard_screen.dart';
 import 'package:extropos/screens/business_info_screen.dart';
 import 'package:extropos/screens/categories_management_screen.dart';
+import 'package:extropos/screens/changelog_screen.dart';
 import 'package:extropos/screens/customer_displays_management_screen.dart';
 import 'package:extropos/screens/customers_management_screen.dart';
 import 'package:extropos/screens/database_test_screen.dart';
@@ -18,6 +19,7 @@ import 'package:extropos/screens/kitchen_display_screen.dart';
 import 'package:extropos/screens/modifier_groups_management_screen.dart';
 import 'package:extropos/screens/my_invois_settings_screen.dart';
 import 'package:extropos/screens/order_queue_screen.dart';
+import 'package:extropos/screens/p2p_management_screen.dart';
 import 'package:extropos/screens/payment_methods_management_screen.dart';
 import 'package:extropos/screens/printers_management_screen.dart';
 import 'package:extropos/screens/receipt_settings_screen.dart';
@@ -188,6 +190,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 MaterialPageRoute(
                   builder: (context) =>
                       const CustomerDisplaysManagementScreen(),
+                ),
+              );
+            },
+          ),
+          SettingsItem(
+            title: 'P2P Network Setup',
+            icon: Icons.device_hub,
+            description: 'Configure server/client P2P connections',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const P2PManagementScreen(),
                 ),
               );
             },
@@ -680,6 +695,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(fontSize: 12),
                   ),
                 ],
+              );
+            },
+          ),
+          SettingsItem(
+            title: 'Changelog',
+            icon: Icons.history,
+            description: 'View version history and recent changes',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChangelogScreen(),
+                ),
               );
             },
           ),

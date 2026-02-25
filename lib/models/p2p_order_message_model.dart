@@ -90,7 +90,7 @@ class P2POrderItem {
   /// Convert from CartItem (with product and variant data)
   factory P2POrderItem.fromCartItem(CartItem cartItem) {
     return P2POrderItem(
-      productId: cartItem.product.id,
+      productId: cartItem.product.name, // Using product name as ID since Product model doesn't have id field
       productName: cartItem.product.name,
       price: cartItem.finalPrice,
       quantity: cartItem.quantity,
@@ -120,8 +120,8 @@ class P2POrderMessage extends P2PMessage {
   final DateTime? targetDeliveryTime;
 
   P2POrderMessage({
-    required String messageId,
-    required String fromDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
     required this.orderId,
     required this.items,
     required this.subtotal,
@@ -137,9 +137,7 @@ class P2POrderMessage extends P2PMessage {
     this.specialInstructions,
     this.targetDeliveryTime,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.orderForward,
-    fromDeviceId: fromDeviceId,
     toDeviceId: destinationDeviceId,
     timestamp: DateTime.now(),
     payload: {
@@ -216,18 +214,15 @@ class P2POrderStatusMessage extends P2PMessage {
   final int? estimatedTime; // in seconds
 
   P2POrderStatusMessage({
-    required String messageId,
-    required String fromDeviceId,
-    String? toDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
+    super.toDeviceId,
     required this.orderId,
     required this.newStatus,
     this.statusReason,
     this.estimatedTime,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.orderStatus,
-    fromDeviceId: fromDeviceId,
-    toDeviceId: toDeviceId,
     timestamp: DateTime.now(),
     payload: {
       'orderId': orderId,
@@ -262,17 +257,14 @@ class P2POrderCancelMessage extends P2PMessage {
   final bool refund;
 
   P2POrderCancelMessage({
-    required String messageId,
-    required String fromDeviceId,
-    String? toDeviceId,
+    required super.messageId,
+    required super.fromDeviceId,
+    super.toDeviceId,
     required this.orderId,
     required this.reason,
     this.refund = false,
   }) : super(
-    messageId: messageId,
     messageType: P2PMessageType.orderCancel,
-    fromDeviceId: fromDeviceId,
-    toDeviceId: toDeviceId,
     timestamp: DateTime.now(),
     payload: {
       'orderId': orderId,

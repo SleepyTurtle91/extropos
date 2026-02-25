@@ -66,11 +66,6 @@ class P2POrderRouterService {
       final device = _p2pService.connectedDevices
           .firstWhere((d) => d.deviceId == deviceId, orElse: () => null as dynamic);
 
-      if (device == null) {
-        print('[OrderRouter] Device $deviceId not found');
-        return false;
-      }
-
       final p2pItems = items.map((item) => P2POrderItem.fromCartItem(item)).toList();
 
       final orderMessage = P2POrderMessage(

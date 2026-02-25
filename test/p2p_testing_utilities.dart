@@ -2,6 +2,7 @@
 /// 
 /// This file provides mock implementations and test helpers for P2P functionality
 /// Use these for unit testing and integration testing
+library;
 
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/p2p_device_model.dart';
@@ -271,20 +272,18 @@ class P2PTestScenario {
       orElse: () => null as dynamic,
     );
 
-    if (device != null) {
-      connectedDevices.removeWhere((d) => d.deviceId == deviceId);
-      final disconnected = device.copyWith(
-        connectionStatus: P2PConnectionStatus.disconnected,
-      );
-      messageLog.add(P2PMessage(
-        messageId: const Uuid().v4(),
-        messageType: P2PMessageType.error,
-        fromDeviceId: deviceId,
-        timestamp: DateTime.now(),
-        payload: {'event': 'disconnected'},
-      ));
+    connectedDevices.removeWhere((d) => d.deviceId == deviceId);
+    final disconnected = device.copyWith(
+      connectionStatus: P2PConnectionStatus.disconnected,
+    );
+    messageLog.add(P2PMessage(
+      messageId: const Uuid().v4(),
+      messageType: P2PMessageType.error,
+      fromDeviceId: deviceId,
+      timestamp: DateTime.now(),
+      payload: {'event': 'disconnected'},
+    ));
     }
-  }
 
   /// Get all sent orders from log
   List<P2POrderMessage> getSentOrders() {
