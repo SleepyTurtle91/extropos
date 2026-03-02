@@ -132,12 +132,16 @@ enum ReportType {
   customerAnalysis,
   basketAnalysis,
   loyaltyProgram,
-  profitLoss, // NEW
-  cashFlow, // NEW
-  taxSummary, // NEW
-  inventoryValuation, // NEW
-  abcAnalysis, // NEW
-  demandForecasting, // NEW
+  dayClosing,
+  profitLoss,
+  cashFlow,
+  taxSummary,
+  inventoryValuation,
+  abcAnalysis,
+  demandForecasting,
+  menuEngineering,
+  tablePerformance,
+  dailyStaffPerformance,
 }
 
 /// Comparative analysis data

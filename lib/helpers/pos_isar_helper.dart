@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
-import 'package:extropos/models/isar/inventory_model.dart';
-import 'package:extropos/models/isar/transaction_model.dart';
 import 'package:extropos/services/isar_database_service.dart';
+import 'package:isar_models/isar_models.dart';
 
 /// POS-specific helper methods for Isar integration.
 /// 

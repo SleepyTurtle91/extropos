@@ -1,4 +1,4 @@
-import 'package:extropos/models/activation_mode.dart';
+import 'package:extropos/models/enum_models.dart';
 import 'package:extropos/screens/iap_debug_screen.dart';
 import 'package:extropos/services/iap_service.dart';
 import 'package:extropos/services/license_service.dart';

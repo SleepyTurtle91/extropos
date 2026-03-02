@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+part 'unified_pos_screen_fixed_ui.dart';
+
 // --- Models used by the unified POS screen ---
 
 enum POSMode { retail, cafe, restaurant }
@@ -100,31 +102,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
   double get total => subtotal + tax;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Row(
-        children: [
-          _buildSidebar(),
-          Expanded(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: Row(
-                    children: [
-                      if (activeTab == 'POS') _buildCartSection(),
-                      Expanded(child: _buildMainView()),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => throw UnimplementedError('Use UnifiedPOSScreenUI extension');
 
   Widget _buildSidebar() {
     return AnimatedContainer(

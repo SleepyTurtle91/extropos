@@ -1,5 +1,7 @@
 import 'dart:developer' as developer;
 
+import 'package:extropos/features/auth/services/business_session_service.dart';
+import 'package:extropos/features/pos/screens/unified_pos/unified_pos_screen.dart';
 import 'package:extropos/migrations/pos_products_migration.dart';
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/repositories/product_repository.dart';
@@ -11,14 +13,12 @@ import 'package:extropos/screens/maintenance_screen.dart';
 import 'package:extropos/screens/my_invois_queue_screen.dart';
 import 'package:extropos/screens/my_invois_settings_screen.dart';
 import 'package:extropos/screens/setup_screen.dart';
-import 'package:extropos/screens/unified_pos_screen.dart';
 import 'package:extropos/screens/vice_customer_display_screen.dart';
 import 'package:extropos/seeders/pos_product_seeder.dart';
 import 'package:extropos/services/appwrite_phase1_service.dart';
 import 'package:extropos/services/appwrite_service.dart';
 // services/printer_service_clean.dart already imported above
 import 'package:extropos/services/backup_service.dart';
-import 'package:extropos/services/business_session_service.dart';
 import 'package:extropos/services/config_service.dart';
 import 'package:extropos/services/dual_display_service.dart';
 import 'package:extropos/services/einvoice_service.dart';

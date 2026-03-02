@@ -3,7 +3,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:extropos/config/environment.dart';
-import 'package:extropos/models/activation_mode.dart';
+import 'package:extropos/models/enum_models.dart';
 import 'package:extropos/services/license_key_generator.dart';
 import 'package:extropos/services/tenant_service.dart';
 import 'package:flutter/foundation.dart';

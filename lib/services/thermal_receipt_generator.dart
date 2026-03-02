@@ -1,6 +1,6 @@
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
-import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:universal_io/io.dart';

@@ -1,5 +1,5 @@
+import 'package:extropos/features/auth/services/business_session_service.dart';
 import 'package:extropos/models/business_session_model.dart';
-import 'package:extropos/services/business_session_service.dart';
 import 'package:extropos/widgets/business_session_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

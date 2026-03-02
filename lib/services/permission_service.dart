@@ -1,6 +1,6 @@
+import 'package:extropos/features/auth/services/user_session_service.dart';
 import 'package:extropos/models/user_model.dart';
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/services/user_session_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 

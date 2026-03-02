@@ -1,7 +1,5 @@
-import 'package:extropos/models/isar/inventory_model.dart';
-import 'package:extropos/models/isar/product_model.dart';
-import 'package:extropos/models/isar/transaction_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar_models/isar_models.dart';
 
 // Note: These are example unit test stubs.
 // To run these in your project, you'll need to:

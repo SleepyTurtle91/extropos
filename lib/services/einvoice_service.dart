@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
+import 'package:extropos/exceptions/myinvois_exception.dart';
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/einvoice/einvoice_config.dart';
 import 'package:extropos/models/einvoice/einvoice_document.dart';
+import 'package:extropos/services/rate_limiter.dart';
+import 'package:extropos/services/retry_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +21,9 @@ class EInvoiceService {
   String? _accessToken;
   DateTime? _tokenExpiry;
   SharedPreferences? _prefs;
+  final RateLimiter _submitRateLimiter = RateLimiter.forSubmitEndpoint();
+  final RateLimiter _queryRateLimiter = RateLimiter.forQueryEndpoint();
+  static const RetryHelper _retryHelper = RetryHelper();
 
   bool get _isProduction => !BusinessInfo.instance.useMyInvoisSandbox;
 
@@ -147,6 +153,11 @@ class EInvoiceService {
 
   /// Validate Tax Identification Number (TIN)
   Future<Map<String, dynamic>> validateTin(String tin) async {
+    await _enforceRateLimit(
+      limiter: _queryRateLimiter,
+      endpointName: 'TIN validation',
+    );
+
     final token = await authenticate();
 
     try {
@@ -164,16 +175,25 @@ class EInvoiceService {
           )
           .timeout(const Duration(seconds: 30));
 
+      _queryRateLimiter.recordRequest();
+
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
-      } else if (response.statusCode == 404) {
-        throw Exception('TIN not found');
       } else {
-        throw Exception('Validation failed: ${response.statusCode}');
+        throw MyInvoisException.fromHttpResponse(
+          response,
+          defaultMessage: 'TIN validation failed',
+        );
       }
+    } on MyInvoisException {
+      rethrow;
     } catch (e) {
       log('TIN validation error: $e');
-      rethrow;
+      throw MyInvoisException(
+        code: 'ValidateTinError',
+        message: 'Unexpected TIN validation error',
+        detail: e.toString(),
+      );
     }
   }
 
@@ -183,8 +203,16 @@ class EInvoiceService {
     List<EInvoiceDocument> documents,
   ) async {
     if (documents.isEmpty) {
-      throw Exception('No documents to submit');
+      throw const MyInvoisException(
+        code: 'EmptySubmission',
+        message: 'No documents to submit',
+      );
     }
+
+    await _enforceRateLimit(
+      limiter: _submitRateLimiter,
+      endpointName: 'document submission',
+    );
 
     final token = await authenticate();
 
@@ -211,41 +239,56 @@ class EInvoiceService {
 
       log('Submitting ${documents.length} document(s) to MyInvois...');
 
-      final response = await http
-          .post(
-            url,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode(submission),
-          )
-          .timeout(const Duration(seconds: 60));
+      final response = await _retryHelper.execute<http.Response>(
+        () async {
+          final result = await http
+              .post(
+                url,
+                headers: {
+                  'Authorization': 'Bearer $token',
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+                body: jsonEncode(submission),
+              )
+              .timeout(const Duration(seconds: 60));
 
-      if (response.statusCode == 202) {
-        // Accepted - documents submitted successfully
-        final result = jsonDecode(response.body);
-        log('Submission successful: ${result['submissionUID']}');
-        return result;
-      } else if (response.statusCode == 400) {
-        final error = jsonDecode(response.body);
-        throw Exception('Invalid submission: ${error['error']}');
-      } else if (response.statusCode == 422) {
-        throw Exception(
-          'Duplicate submission detected. Please wait before retrying.',
-        );
-      } else {
-        throw Exception('Submission failed: ${response.statusCode}');
-      }
+          _submitRateLimiter.recordRequest();
+
+          if (result.statusCode == 202) {
+            return result;
+          }
+
+          throw MyInvoisException.fromHttpResponse(
+            result,
+            defaultMessage: 'Document submission failed',
+          );
+        },
+        operationName: 'MyInvois submitDocuments',
+      );
+
+      final result = jsonDecode(response.body);
+      log('Submission successful: ${result['submissionUID']}');
+      return result;
+    } on MyInvoisException {
+      rethrow;
     } catch (e) {
       log('Document submission error: $e');
-      rethrow;
+      throw MyInvoisException(
+        code: 'SubmissionError',
+        message: 'Unexpected submission error',
+        detail: e.toString(),
+      );
     }
   }
 
   /// Get document details by UUID
   Future<Map<String, dynamic>> getDocument(String uuid) async {
+    await _enforceRateLimit(
+      limiter: _queryRateLimiter,
+      endpointName: 'document retrieval',
+    );
+
     final token = await authenticate();
 
     try {
@@ -264,21 +307,35 @@ class EInvoiceService {
           )
           .timeout(const Duration(seconds: 30));
 
+      _queryRateLimiter.recordRequest();
+
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
-      } else if (response.statusCode == 404) {
-        throw Exception('Document not found');
       } else {
-        throw Exception('Failed to retrieve document: ${response.statusCode}');
+        throw MyInvoisException.fromHttpResponse(
+          response,
+          defaultMessage: 'Failed to retrieve document',
+        );
       }
+    } on MyInvoisException {
+      rethrow;
     } catch (e) {
       log('Get document error: $e');
-      rethrow;
+      throw MyInvoisException(
+        code: 'GetDocumentError',
+        message: 'Unexpected error retrieving document',
+        detail: e.toString(),
+      );
     }
   }
 
   /// Get submission details by submission UID
   Future<Map<String, dynamic>> getSubmission(String submissionUid) async {
+    await _enforceRateLimit(
+      limiter: _queryRateLimiter,
+      endpointName: 'submission retrieval',
+    );
+
     final token = await authenticate();
 
     try {
@@ -296,18 +353,25 @@ class EInvoiceService {
           )
           .timeout(const Duration(seconds: 30));
 
+      _queryRateLimiter.recordRequest();
+
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
-      } else if (response.statusCode == 404) {
-        throw Exception('Submission not found');
       } else {
-        throw Exception(
-          'Failed to retrieve submission: ${response.statusCode}',
+        throw MyInvoisException.fromHttpResponse(
+          response,
+          defaultMessage: 'Failed to retrieve submission',
         );
       }
+    } on MyInvoisException {
+      rethrow;
     } catch (e) {
       log('Get submission error: $e');
-      rethrow;
+      throw MyInvoisException(
+        code: 'GetSubmissionError',
+        message: 'Unexpected error retrieving submission',
+        detail: e.toString(),
+      );
     }
   }
 
@@ -316,6 +380,11 @@ class EInvoiceService {
     String uuid,
     String reason,
   ) async {
+    await _enforceRateLimit(
+      limiter: _submitRateLimiter,
+      endpointName: 'document cancellation',
+    );
+
     final token = await authenticate();
 
     try {
@@ -335,14 +404,25 @@ class EInvoiceService {
           )
           .timeout(const Duration(seconds: 30));
 
+      _submitRateLimiter.recordRequest();
+
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to cancel document: ${response.statusCode}');
+        throw MyInvoisException.fromHttpResponse(
+          response,
+          defaultMessage: 'Failed to cancel document',
+        );
       }
+    } on MyInvoisException {
+      rethrow;
     } catch (e) {
       log('Cancel document error: $e');
-      rethrow;
+      throw MyInvoisException(
+        code: 'CancelDocumentError',
+        message: 'Unexpected document cancellation error',
+        detail: e.toString(),
+      );
     }
   }
 
@@ -353,6 +433,11 @@ class EInvoiceService {
     String? submissionDateFrom,
     String? submissionDateTo,
   }) async {
+    await _enforceRateLimit(
+      limiter: _queryRateLimiter,
+      endpointName: 'recent document search',
+    );
+
     final token = await authenticate();
 
     try {
@@ -378,16 +463,45 @@ class EInvoiceService {
           )
           .timeout(const Duration(seconds: 30));
 
+      _queryRateLimiter.recordRequest();
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return List<Map<String, dynamic>>.from(data['result'] ?? []);
       } else {
-        throw Exception('Failed to get documents: ${response.statusCode}');
+        throw MyInvoisException.fromHttpResponse(
+          response,
+          defaultMessage: 'Failed to get recent documents',
+        );
       }
+    } on MyInvoisException {
+      rethrow;
     } catch (e) {
       log('Get recent documents error: $e');
-      rethrow;
+      throw MyInvoisException(
+        code: 'GetRecentDocumentsError',
+        message: 'Unexpected error getting recent documents',
+        detail: e.toString(),
+      );
     }
+  }
+
+  Future<void> _enforceRateLimit({
+    required RateLimiter limiter,
+    required String endpointName,
+  }) async {
+    if (limiter.canRequest()) {
+      return;
+    }
+
+    final wait = limiter.waitDuration();
+    throw MyInvoisException(
+      code: 'RateLimitExceeded',
+      message: 'Local rate limit reached for $endpointName',
+      detail: 'Please retry after ${wait.inSeconds} second(s)',
+      statusCode: 429,
+      retryAfterSeconds: wait.inSeconds,
+    );
   }
 
   /// Calculate SHA256 hash for document

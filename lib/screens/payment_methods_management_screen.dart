@@ -1,4 +1,4 @@
-import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 

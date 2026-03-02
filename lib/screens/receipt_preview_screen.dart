@@ -4,7 +4,7 @@ import 'dart:developer' as developer;
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/merchant_model.dart';
-import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/printer_service_clean.dart';
 import 'package:extropos/utils/toast_helper.dart';

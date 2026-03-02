@@ -1,5 +1,4 @@
-import 'package:extropos/models/payment_method_model.dart';
-import 'package:extropos/models/payment_split_model.dart';
+import 'package:extropos/models/payment_models.dart';
 
 class ParsedPaymentResult {
   final PaymentMethod paymentMethod;

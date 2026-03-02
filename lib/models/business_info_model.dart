@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:extropos/models/business_mode.dart';
+import 'package:extropos/models/enum_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

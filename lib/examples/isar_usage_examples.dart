@@ -1,6 +1,5 @@
-import 'package:extropos/models/isar/product_model.dart';
-import 'package:extropos/models/isar/transaction_model.dart';
 import 'package:extropos/services/isar_database_service.dart';
+import 'package:isar_models/isar_models.dart';
 
 /// Example: Insert Product from Backend JSON into Isar
 ///

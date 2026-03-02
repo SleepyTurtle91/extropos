@@ -4,6 +4,8 @@ import 'package:extropos/services/database_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 
+part 'kitchen_docket_settings_screen_ui.dart';
+
 class KitchenDocketSettingsScreen extends StatefulWidget {
   const KitchenDocketSettingsScreen({super.key});
 
@@ -81,111 +83,44 @@ class _KitchenDocketSettingsScreenState
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Kitchen Docket Settings'),
-          backgroundColor: const Color(0xFF2563EB),
-          foregroundColor: Colors.white,
-        ),
-        body: const Center(child: CircularProgressIndicator()),
+  Widget build(BuildContext context) => throw UnimplementedError(
+        'See kitchen_docket_settings_screen_ui.dart',
+      );
+
+  String _buildPreviewText() {
+    final now = DateTime.now();
+    final header = _kitchenHeaderController.text.isEmpty
+        ? 'KITCHEN ORDER'
+        : _kitchenHeaderController.text;
+    final footer = _kitchenFooterController.text.isEmpty
+        ? 'THANK YOU'
+        : _kitchenFooterController.text;
+
+    final buffer = StringBuffer();
+    buffer.writeln(header);
+    buffer.writeln('─' * 30);
+    if (_settings.kitchenShowDateTime) {
+      buffer.writeln(
+        'Time: ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
       );
     }
+    if (_settings.kitchenShowOrderNumber) {
+      buffer.writeln('Order #: 001');
+    }
+    if (_settings.kitchenShowTable) {
+      buffer.writeln('Table: 1');
+    }
+    buffer.writeln('─' * 30);
+    buffer.writeln('Margherita Pizza x1');
+    if (_settings.kitchenShowModifiers) {
+      buffer.writeln('  - Extra cheese');
+      buffer.writeln('  - No onions');
+    }
+    buffer.writeln('Fresh Juice x2');
+    buffer.writeln('─' * 30);
+    buffer.writeln(footer);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kitchen Docket Settings'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveSettings,
-            tooltip: 'Save Settings',
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Header Section
-          const Card(
-            color: Color(0xFFFFF3CD),
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.restaurant_menu, color: Color(0xFF856404)),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Configure how kitchen dockets are printed for your kitchen staff',
-                      style: TextStyle(color: Color(0xFF856404)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Template Style Section
-          _buildSectionHeader('🍳 Template Style'),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 16),
-            child: Text(
-              'Choose the layout format for kitchen dockets',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ),
-          _buildKitchenTemplateCard(),
-
-          const SizedBox(height: 24),
-
-          // Header Text
-          _buildSectionHeader('Header Text'),
-          _buildTextFieldCard(
-            _kitchenHeaderController,
-            'Kitchen Header Text',
-            'e.g., KITCHEN ORDER, NEW ORDER',
-            Icons.restaurant_menu,
-            1,
-          ),
-
-          const SizedBox(height: 24),
-
-          // Footer Text
-          _buildSectionHeader('Footer Text'),
-          _buildTextFieldCard(
-            _kitchenFooterController,
-            'Kitchen Footer Text',
-            'e.g., Rush orders, Thank you (optional)',
-            Icons.note,
-            2,
-          ),
-
-          const SizedBox(height: 24),
-
-          // Font Size
-          _buildSectionHeader('Font Size'),
-          _buildKitchenFontSizeCard(),
-
-          const SizedBox(height: 24),
-
-          // Display Options
-          _buildSectionHeader('Display Options'),
-          _buildDisplayOptionsCard(),
-
-          const SizedBox(height: 24),
-
-          // Save Button
-          _buildActionButtons(),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
+    return buffer.toString();
   }
 
   Widget _buildSectionHeader(String title) {
@@ -318,8 +253,8 @@ class _KitchenDocketSettingsScreenState
                   Text(
                     _settings.kitchenTemplateStyle ==
                             KitchenTemplateStyle.standard
-                        ? '• Full order details\n• Item modifiers shown\n• Traditional kitchen docket layout'
-                        : '• Large table number focus\n• Merchant-organized sections\n• Compact item listing',
+                        ? '• Full order details\\n• Item modifiers shown\\n• Traditional kitchen docket layout'
+                        : '• Large table number focus\\n• Merchant-organized sections\\n• Compact item listing',
                     style: TextStyle(fontSize: 11, color: Colors.grey[700]),
                   ),
                 ],
@@ -476,41 +411,5 @@ class _KitchenDocketSettingsScreenState
         ),
       ),
     );
-  }
-
-  String _buildPreviewText() {
-    final now = DateTime.now();
-    final header = _kitchenHeaderController.text.isEmpty
-        ? 'KITCHEN ORDER'
-        : _kitchenHeaderController.text;
-    final footer = _kitchenFooterController.text.isEmpty
-        ? 'THANK YOU'
-        : _kitchenFooterController.text;
-
-    final buffer = StringBuffer();
-    buffer.writeln(header);
-    buffer.writeln('─' * 30);
-    if (_settings.kitchenShowDateTime) {
-      buffer.writeln(
-        'Time: ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-      );
-    }
-    if (_settings.kitchenShowOrderNumber) {
-      buffer.writeln('Order #: 001');
-    }
-    if (_settings.kitchenShowTable) {
-      buffer.writeln('Table: 1');
-    }
-    buffer.writeln('─' * 30);
-    buffer.writeln('Margherita Pizza x1');
-    if (_settings.kitchenShowModifiers) {
-      buffer.writeln('  - Extra cheese');
-      buffer.writeln('  - No onions');
-    }
-    buffer.writeln('Fresh Juice x2');
-    buffer.writeln('─' * 30);
-    buffer.writeln(footer);
-
-    return buffer.toString();
   }
 }

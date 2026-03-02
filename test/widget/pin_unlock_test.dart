@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:extropos/features/pos/screens/unified_pos/unified_pos_screen.dart';
 import 'package:extropos/screens/lock_screen.dart';
-import 'package:extropos/screens/unified_pos_screen.dart';
 import 'package:extropos/services/config_service.dart';
 import 'package:extropos/services/pin_store.dart';
 import 'package:flutter/material.dart';

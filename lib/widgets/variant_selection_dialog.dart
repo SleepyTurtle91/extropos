@@ -1,5 +1,5 @@
 import 'package:extropos/models/product.dart';
-import 'package:extropos/models/product_variant.dart';
+import 'package:extropos/models/product_models.dart';
 import 'package:flutter/material.dart';
 
 class VariantSelectionDialog extends StatefulWidget {

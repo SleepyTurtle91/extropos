@@ -5,6 +5,42 @@ All notable changes to ExtroPOS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7] - 2026-03-03
+
+### Fixed
+
+- **Payment Processing: No active payment methods**
+  - Root cause: `payment_methods` schema mismatch (`is_active` field used while app expects `status` + `is_default`)
+  - Updated table definition to use `status` and `is_default` columns
+  - Added default payment method seeding during DB creation:
+    - Cash (default, active)
+    - Credit Card (active)
+    - Debit Card (active)
+    - E-Wallet (active)
+
+- **Printer Management screen not working**
+  - Re-implemented missing screen UI sections for the split part-file architecture:
+    - Header/actions area
+    - Left printer list panel
+    - Right details/actions panel
+  - Removed duplicate in-class UI methods from main screen file to avoid part conflicts
+  - Fixed popup menu action handling and paper size rendering in printer details
+
+- **Release build blocker (Training Mode imports)**
+  - Fixed stale imports in `training_mode_service.dart` after model renames
+  - Updated imports to:
+    - `business_info_model.dart`
+    - `enum_models.dart`
+  - Resolved compile errors related to missing `BusinessInfo`/`BusinessMode` symbols
+
+### Verification
+
+- POS release APK builds successfully
+- APK installed successfully on connected Android device via ADB
+- Payment and printer-management related changed files pass editor diagnostics
+
+---
+
 ## [1.1.6] - 2026-03-02
 
 ### Fixed

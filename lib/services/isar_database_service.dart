@@ -1,7 +1,5 @@
-import 'package:extropos/models/isar/inventory_model.dart';
-import 'package:extropos/models/isar/product_model.dart';
-import 'package:extropos/models/isar/transaction_model.dart';
 import 'package:isar/isar.dart';
+import 'package:isar_models/isar_models.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Isar Database Service

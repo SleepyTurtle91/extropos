@@ -18,6 +18,181 @@
 - **Platform**: Windows desktop primary, Android tablets secondary
 
 
+## Code Submission & Refactoring Standards
+
+
+**CRITICAL RULE**: When receiving long or monolithic code (>500 lines), ALWAYS automatically refactor it to follow the three-layer modular architecture BEFORE implementation.
+
+### When to Refactor Submitted Code
+
+**Refactor IMMEDIATELY if**:
+
+- Code file exceeds 500 lines
+- Code mixes business logic with UI rendering
+- Code contains multiple unrelated concerns in one class
+- Code has deeply nested widgets (5+ levels)
+- Code directly accesses services/database in widgets
+- Code performs calculations in widget build() methods
+
+### Refactoring Process for Monolithic Code
+
+**Step 1: Analyze the Code**
+
+```dart
+// ❌ WRONG: User submits 800-line monolithic screen
+class ProductManagementScreen extends StatefulWidget { ... }
+class _ProductManagementScreenState extends State<ProductManagementScreen> {
+  // 800 lines mixing:
+  // - Product fetching and database queries
+  // - Complex calculations (pricing, tax, discounts)
+  // - Entire UI tree (product list, filters, search, pagination)
+  // - CSV export/import logic
+  // - Receipt generation
+}
+```
+
+**Step 2: Identify Layers**
+
+- **Layer A (Logic)**: Product calculations, filtering, CSV handling, receipt generation
+- **Layer B (Widgets)**: Product list card, search bar, filter selector, pagination controls
+- **Layer C (Screen)**: Main orchestration and assembly
+
+**Step 3: Extract and Split**
+
+```
+❌ BEFORE (1 file, 800 lines)
+lib/screens/product_management_screen.dart
+
+✅ AFTER (Split into 6 focused files)
+lib/services/product_filter_service.dart (120 lines)
+lib/services/product_calculation_service.dart (100 lines)
+lib/services/csv_export_service.dart (90 lines)
+lib/widgets/product_list_card.dart (85 lines)
+lib/widgets/product_search_bar.dart (60 lines)
+lib/widgets/product_filter_section.dart (75 lines)
+lib/screens/product_management_screen.dart (200 lines)
+```
+
+**Step 4: Communicate the Refactoring**
+
+When refactoring user-submitted code, clearly explain:
+
+1. **What was split** - Show which parts became services, widgets, screens
+2. **Why it was split** - Reference the 500-line rule and separation of concerns
+3. **How to reassemble** - Show how the screen orchestrates all pieces
+4. **Testing approach** - Explain unit tests for services, widget tests for components
+
+### Template Response for Monolithic Code
+
+```
+I notice this code submission is [X lines]. According to our architecture rules, 
+I'm refactoring it into the three-layer modular pattern:
+
+**Layer A (Logic)**: I've extracted [list services]
+- Create these files in lib/services/
+
+**Layer B (Widgets)**: I've extracted [list widgets]
+- Create these files in lib/widgets/
+
+**Layer C (Screen)**: The main screen now orchestrates the above
+- This file stays in lib/screens/
+
+This follows our 500-line maximum rule and ensures each file has a single responsibility.
+
+[Show file structure and provide code for each file]
+```
+
+### Common Refactoring Patterns for User Submissions
+
+| ❌ **Submitted Code Has** | ✅ **Should Be Extracted To** |
+| --- | --- |
+| Database queries in initState() | Layer A service with dependency injection |
+| Complex calculations in build() | Layer A static methods called from Layer C |
+| Multiple related widgets in one file | Separate Layer B widget files |
+| Event handlers mixed with UI | Layer C handler methods in a mixin |
+| Helper methods beyond 500 lines | Separate service or mixin classes |
+| Nested widget trees 6+ levels | Extract inner widgets to separate files |
+| UI constants hardcoded throughout | Create separate constants file (lib/constants/) |
+| Business logic in setState() | Move to Layer A services |
+| Multiple screen concerns in one class | Split screen file into logical parts |
+| Direct service access in widgets | Pass via constructor parameters only |
+
+### File Size Enforcement for Submitted Code
+
+**Before accepting any code submission**:
+
+- [ ] Count lines in each file (use `wc -l` or editor line count)
+- [ ] Any file >500 lines must be refactored
+- [ ] Verify layer separation (services don't import Flutter)
+- [ ] Verify widgets don't import services directly
+- [ ] Confirm screens import both services and widgets
+
+### Example: Refactoring a User-Submitted 650-Line Widget
+
+**User Submits**:
+
+```dart
+// User's checkout_screen.dart (650 lines)
+class CheckoutScreen extends StatefulWidget { ... }
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  // 650 lines of:
+  // - Tax/discount calculations
+  // - Cart item display
+  // - Payment UI
+  // - Receipt generation
+  // - Printer communication
+}
+```
+
+**Agent Response - Refactored Into**:
+
+```bash
+lib/services/checkout_calculation_service.dart (120 lines)
+  - calculateTax()
+  - calculateDiscount()
+  - calculateTotal()
+  - validatePayment()
+
+lib/services/receipt_generation_service.dart (100 lines)
+  - generateReceipt()
+  - formatReceiptData()
+  - prepareForPrinting()
+
+lib/widgets/cart_items_section.dart (80 lines)
+  - CartItemsList widget
+  - CartItemCard widget
+
+lib/widgets/payment_section.dart (95 lines)
+  - PaymentMethodSelector
+  - PaymentAmountInput
+  - ChangeDisplay
+
+lib/widgets/receipt_preview.dart (75 lines)
+  - ReceiptPreview widget
+
+lib/screens/checkout_screen.dart (180 lines)
+  - Main orchestration
+  - State management
+  - Navigation
+  - Calls to services and widgets
+```
+
+### Quality Gates Before Submission
+
+**All code submissions must pass**:
+
+- ✅ No file exceeds 500 lines
+- ✅ Layer A (services) have zero Flutter imports
+- ✅ Layer B (widgets) accept all data via constructor parameters
+- ✅ Layer C (screens) only orchestrate and assemble
+- ✅ Unit tests exist for all Layer A code
+- ✅ Widget tests exist for Layer B components
+- ✅ No business logic in widget build() methods
+- ✅ No direct service access from widgets (dependency injection only)
+- ✅ Clear file naming (snake_case matching primary class)
+- ✅ Documentation comments on public methods
+
+
 ## Critical Architecture Patterns
 
 
@@ -289,6 +464,978 @@ Navigator.push(context, MaterialPageRoute(builder: (_) => RetailPOSScreenModern(
 Navigator.pushNamed(context, '/pos');
 
 ```
+
+
+## Refactor Rules: Three-Layer Architecture
+
+
+The FlutterPOS codebase follows a strict architectural pattern separating concerns into three distinct layers:
+
+
+### Layer A: The Logic (The "Brain")
+
+
+**Purpose**: Contains pure business logic, calculations, and state management without any UI dependencies.
+
+**Characteristics**:
+
+- Pure Dart classes and functions (no Flutter imports)
+- No widget dependencies, no BuildContext
+- Single responsibility: calculations, validations, transformations
+- Reusable across all contexts (unit testable)
+- Services, models, helpers, and utility functions
+
+**Location**: `lib/services/`, `lib/models/`, `lib/helpers/`, `lib/utils/`
+
+**Examples**:
+
+- `CartCalculationService`: Computes subtotal, tax, service charge (never touches UI)
+- `PaymentProcessingLogic`: Validates payment amounts, calculates change
+- `BusinessInfo`: Singleton configuration store with calculation helpers
+- `DatabaseHelper`: Direct database operations without UI concerns
+
+**Implementation Pattern**:
+
+```dart
+// ✅ CORRECT: Pure logic with no UI dependencies
+class CartCalculationService {
+  static double calculateSubtotal(List<CartItem> items) {
+    return items.fold(0.0, (sum, item) => sum + (item.quantity * item.price));
+  }
+  
+  static double calculateTax(double subtotal, bool taxEnabled, double taxRate) {
+    return taxEnabled ? subtotal * taxRate : 0.0;
+  }
+  
+  static double calculateTotal(List<CartItem> items, BusinessInfo info) {
+    final subtotal = calculateSubtotal(items);
+    final tax = calculateTax(subtotal, info.isTaxEnabled, info.taxRate);
+    return subtotal + tax;
+  }
+}
+```
+
+**DO's**:
+
+- ✅ Import only dart:* and model packages
+- ✅ Use pure functions when possible
+- ✅ Create testable, isolated methods
+- ✅ Document calculation logic with comments
+- ✅ Throw clear exceptions for validation errors
+
+**DON'Ts**:
+
+- ❌ Import Flutter packages (flutter/material.dart, flutter/widgets.dart)
+- ❌ Accept BuildContext as parameters
+- ❌ Use StatefulWidget or StatelessWidget
+- ❌ Mix UI rendering with business logic
+- ❌ Use print() for logging (use structured logging if needed)
+
+
+### Layer B: The Specialized Widget (The "Components")
+
+
+**Purpose**: Self-contained, reusable UI components that consume logic layer services and display data.
+
+**Characteristics**:
+
+- Stateless or stateful widgets focused on presentation
+- Accept data and callbacks as constructor parameters
+- No business logic inside widgets (delegate to Layer A)
+- Testable through widget tests
+- Highly reusable across screens
+- Single widget responsibility
+
+**Location**: `lib/widgets/`, `lib/widgets/custom/`
+
+**Examples**:
+
+- `PriceDisplayWidget`: Shows total with formatting, reads from passed values
+- `CartItemCard`: Card widget for individual cart items with +/- buttons
+- `PaymentMethodSelector`: Payment method selection with radio buttons
+- `TableStatusIndicator`: Visual table status display (available/occupied/reserved)
+
+**Implementation Pattern**:
+
+```dart
+// ✅ CORRECT: Specialized widget with no embedded business logic
+class CartItemCard extends StatelessWidget {
+  final CartItem item;
+  final Function(int) onQuantityChanged;
+  final Function() onRemove;
+  final BusinessInfo businessInfo;
+  
+  const CartItemCard({
+    required this.item,
+    required this.onQuantityChanged,
+    required this.onRemove,
+    required this.businessInfo,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    // Display only, all logic passed in
+    final itemTotal = item.quantity * item.price;
+    
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          children: [
+            Text(item.product.name),
+            Row(
+              children: [
+                IconButton(icon: Icon(Icons.remove), onPressed: () => onQuantityChanged(item.quantity - 1)),
+                Text('${item.quantity}'),
+                IconButton(icon: Icon(Icons.add), onPressed: () => onQuantityChanged(item.quantity + 1)),
+                Spacer(),
+                Text('${businessInfo.currencySymbol}${itemTotal.toStringAsFixed(2)}'),
+                IconButton(icon: Icon(Icons.delete), onPressed: onRemove),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+**DO's**:
+
+- ✅ Accept all data via constructor parameters
+- ✅ Use callbacks for user interactions
+- ✅ Focus on rendering and presentation
+- ✅ Keep widget trees shallow (<10 lines of build())
+- ✅ Extract complex builds into smaller widgets
+- ✅ Write widget tests for UI behavior
+
+**DON'Ts**:
+
+- ❌ Perform calculations inside build()
+- ❌ Call services directly (should be passed in)
+- ❌ Use StatefulWidget without good reason
+- ❌ Put business logic in setState()
+- ❌ Access BusinessInfo.instance directly (pass via constructor)
+- ❌ Create side effects in build()
+
+
+### Layer C: The Screen (The "Assembler")
+
+
+**Purpose**: Orchestrates the application: imports services (Layer A), assembles widgets (Layer B), and manages user flows.
+
+**Characteristics**:
+
+- Controls state composition and data flow
+- Imports both logic services and specialized widgets
+- Routes user input to appropriate handlers
+- Manages screen-level state (navigation, dialogs, loading)
+- Single responsibility: coordination, not implementation
+
+**Location**: `lib/screens/`
+
+**Examples**:
+
+- `RetailPOSScreenModern`: Assembles product grid, cart, payment flow
+- `CafePOSScreen`: Orchestrates cafe-specific widgets
+- `RestaurantTableScreen`: Manages table selection and order flow
+
+**Implementation Pattern**:
+
+```dart
+// ✅ CORRECT: Screen orchestrates logic and components
+class CartScreenModern extends StatefulWidget {
+  const CartScreenModern({Key? key}) : super(key: key);
+
+  @override
+  State<CartScreenModern> createState() => _CartScreenModernState();
+}
+
+class _CartScreenModernState extends State<CartScreenModern> {
+  late List<CartItem> cartItems = [];
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
+  }
+  
+  void _loadCart() {
+    // Call Layer A service
+    cartItems = CartService.instance.getCurrentCart();
+    setState(() {});
+  }
+  
+  void _handleQuantityChange(CartItem item, int newQuantity) {
+    if (newQuantity <= 0) {
+      _removeItem(item);
+      return;
+    }
+    // Delegate to Layer A
+    CartService.instance.updateQuantity(item.product.id, newQuantity);
+    _loadCart();
+  }
+  
+  void _removeItem(CartItem item) {
+    CartService.instance.removeItem(item.product.id);
+    _loadCart();
+  }
+  
+  void _checkout() async {
+    // Perform Layer A calculations
+    final total = CartCalculationService.calculateTotal(
+      cartItems,
+      BusinessInfo.instance,
+    );
+    
+    // Navigate to payment, passing only what's needed (Layer B)
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          items: cartItems,
+          total: total,
+          onPaymentComplete: _handlePaymentComplete,
+        ),
+      ),
+    );
+  }
+  
+  void _handlePaymentComplete() {
+    CartService.instance.clearCart();
+    _loadCart();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Transaction complete')),
+    );
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    // Layer C: Assemble Layer B components
+    return Scaffold(
+      appBar: AppBar(title: Text('Cart')),
+      body: cartItems.isEmpty
+          ? Center(child: Text('Cart is empty'))
+          : ListView.builder(
+              itemCount: cartItems.length,
+              itemBuilder: (context, index) {
+                // Pass to Layer B widget with callbacks to this Layer C
+                return CartItemCard(
+                  item: cartItems[index],
+                  onQuantityChanged: (qty) => _handleQuantityChange(cartItems[index], qty),
+                  onRemove: () => _removeItem(cartItems[index]),
+                  businessInfo: BusinessInfo.instance,
+                );
+              },
+            ),
+      bottomNavigationBar: BottomAppBar(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Layer B: Price display widget
+              PriceDisplayWidget(
+                items: cartItems,
+                businessInfo: BusinessInfo.instance,
+              ),
+              ElevatedButton(
+                onPressed: cartItems.isEmpty ? null : _checkout,
+                child: Text('Proceed to Payment'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+**DO's**:
+
+- ✅ Import services and depend on Layer A
+- ✅ Import widgets and assemble them (Layer B)
+- ✅ Handle navigation and routing
+- ✅ Manage screen-level state (loading, errors)
+- ✅ Pass data down to widgets via constructor parameters
+- ✅ Respond to widget callbacks and update accordingly
+- ✅ Test screen flows with integration tests
+
+**DON'Ts**:
+
+- ❌ Perform calculations directly (use Layer A)
+- ❌ Create custom UI elements (use Layer B widgets)
+- ❌ Mix business logic with orchestration
+- ❌ Make calculations conditional in build()
+- ❌ Bypass services and access databases directly
+- ❌ Create unmaintainable nested widget trees
+
+
+### Refactoring Checklist
+
+
+When refactoring code to follow three-layer architecture:
+
+**Layer A (Logic) Extraction**:
+
+- [ ] Identify all calculations, validations, and transformations
+- [ ] Extract into pure Dart classes/functions with no Flutter imports
+- [ ] Write unit tests for all logic functions
+- [ ] Create service singleton if manages stateful data
+- [ ] Document calculation formulas and edge cases
+- [ ] Ensure all BusinessInfo access is centralized
+
+**Layer B (Widget) Extraction**:
+
+- [ ] Identify reusable UI patterns
+- [ ] Extract into self-contained, state-less-where-possible widgets
+- [ ] All data must come via constructor parameters
+- [ ] All actions must go via callbacks
+- [ ] Write widget tests for rendering and interactions
+- [ ] No StatefulWidget unless absolutely necessary
+- [ ] No service injection or BuildContext dependency climbing
+
+**Layer C (Screen) Refactoring**:
+
+- [ ] Remove all business logic (move to Layer A)
+- [ ] Remove custom UI elements (replace with Layer B widgets)
+- [ ] Screen solely orchestrates: imports services, assembles widgets
+- [ ] All data flows clearly: services → setState → widgets
+- [ ] All callbacks clearly wired: widgets → handler methods → services
+- [ ] Navigation centralized in screen
+- [ ] State management simple (lists, bools, enums only)
+
+**Benefits of Three-Layer Separation**:
+
+- **Testability**: Layer A can be 100% unit tested
+- **Reusability**: Layer B widgets work in any Layer C
+- **Maintainability**: Changes in one layer don't cascade
+- **Readability**: Clear responsibility and data flow
+- **Scalability**: Easy to add new features without architecture decay
+
+
+### Adding New Code: Three-Layer Pattern Guide
+
+
+**When implementing any new feature, ALWAYS follow this workflow**:
+
+
+#### Step 1: Identify What You're Building
+
+Ask yourself:
+- Is this a **calculation, validation, or data operation**? → Layer A (Logic)
+- Is this a **reusable visual component**? → Layer B (Widget)
+- Is this a **screen or orchestration**? → Layer C (Screen)
+
+Most new features require **all three layers** working together.
+
+
+#### Step 2: Start with Layer A (The Logic)
+
+**ALWAYS implement business logic first**, before any UI.
+
+**Process**:
+
+1. Create a pure Dart service/helper in `lib/services/`, `lib/helpers/`, or `lib/models/`
+2. Import ONLY `dart:*` packages and model files
+3. NO Flutter imports
+4. Write calculation/validation methods as static functions or service methods
+5. Add comprehensive comments explaining formulas and edge cases
+6. Write unit tests for every method in `test/`
+
+**Example - New Feature: Loyalty Points Calculation**:
+
+```dart
+// lib/services/loyalty_points_service.dart
+// ✅ CORRECT: Pure logic layer with no UI dependencies
+
+class LoyaltyPointsService {
+  /// Calculate points earned based on transaction amount
+  /// Points rate: 1 point per RM spent
+  static int calculatePointsEarned(double amount) {
+    return (amount).toInt(); // 1 RM = 1 point
+  }
+  
+  /// Calculate discount from redeeming points
+  /// Redemption rate: 100 points = RM 1
+  static double calculatePointsDiscount(int points) {
+    return points / 100;
+  }
+  
+  /// Validate if customer has enough points
+  static bool hasEnoughPoints(int customerPoints, int requiredPoints) {
+    return customerPoints >= requiredPoints;
+  }
+}
+```
+
+**Test file** (`test/services/loyalty_points_service_test.dart`):
+
+```dart
+void main() {
+  group('LoyaltyPointsService', () {
+    test('calculatePointsEarned should return 100 for RM 100', () {
+      final points = LoyaltyPointsService.calculatePointsEarned(100.0);
+      expect(points, equals(100));
+    });
+    
+    test('calculatePointsDiscount should return RM 1 for 100 points', () {
+      final discount = LoyaltyPointsService.calculatePointsDiscount(100);
+      expect(discount, equals(1.0));
+    });
+  });
+}
+```
+
+**Checklist for Layer A**:
+
+- [ ] No Flutter imports
+- [ ] All methods are testable (pure functions preferred)
+- [ ] Clear method names and documentation
+- [ ] Edge cases handled (null, empty, negative values)
+- [ ] Unit tests written and passing
+- [ ] Service registered as singleton if needed (use `late static final instance`)
+
+
+#### Step 3: Build Layer B (The Widgets)
+
+**After logic is complete**, create reusable UI components.
+
+**Process**:
+
+1. Create widget in `lib/widgets/` or `lib/widgets/custom/`
+2. Accept ALL data via constructor parameters
+3. Accept ALL actions via callbacks
+4. Focus purely on rendering
+5. No service imports (data comes via parameters)
+6. Write widget tests
+
+**Example - New Widget: Loyalty Points Display**:
+
+```dart
+// lib/widgets/loyalty_points_card.dart
+// ✅ CORRECT: Pure presentation with no business logic
+
+class LoyaltyPointsCard extends StatelessWidget {
+  final int currentPoints;
+  final int pointsEarned;
+  final Function(int) onRedeemPressed;
+  final bool canRedeem;
+  
+  const LoyaltyPointsCard({
+    required this.currentPoints,
+    required this.pointsEarned,
+    required this.onRedeemPressed,
+    required this.canRedeem,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text('Current Points: $currentPoints',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            SizedBox(height: 8),
+            Text('Earned this transaction: +$pointsEarned',
+              style: TextStyle(color: Colors.green),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: canRedeem ? () => onRedeemPressed(currentPoints) : null,
+              child: Text('Redeem Points'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+**Checklist for Layer B**:
+
+- [ ] All data comes via constructor parameters
+- [ ] All actions are callbacks (Function parameters)
+- [ ] No service imports
+- [ ] No calculations in build()
+- [ ] Widget is reusable (not tied to one screen)
+- [ ] Widget tests written
+- [ ] Clear parameter names and documentation
+
+
+#### Step 4: Assemble in Layer C (The Screen)
+
+**Finally**, wire everything together in a screen.
+
+**Process**:
+
+1. Create/update screen in `lib/screens/`
+2. Import Layer A services
+3. Import Layer B widgets
+4. Manage screen-level state (lists, loading flags)
+5. Call services for data
+6. Pass data and callbacks to widgets
+7. Write integration tests
+
+**Example - Integrating into Checkout Screen**:
+
+```dart
+// lib/screens/checkout_screen.dart
+// ✅ CORRECT: Layer C orchestrates Layer A and Layer B
+
+class CheckoutScreenModern extends StatefulWidget {
+  const CheckoutScreenModern({Key? key}) : super(key: key);
+
+  @override
+  State<CheckoutScreenModern> createState() => _CheckoutScreenModernState();
+}
+
+class _CheckoutScreenModernState extends State<CheckoutScreenModern> {
+  late int customerLoyaltyPoints = 0;
+  late int pointsEarned = 0;
+  bool isRedeeming = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadLoyaltyData();
+  }
+  
+  void _loadLoyaltyData() {
+    // Load from database or service (Layer A)
+    customerLoyaltyPoints = 500; // Example: fetch from DB
+    
+    // Calculate earned points using Layer A service
+    final cartTotal = _getCartTotal(); // Get from cart
+    pointsEarned = LoyaltyPointsService.calculatePointsEarned(cartTotal);
+    
+    setState(() {});
+  }
+  
+  void _handleRedeemPoints(int points) {
+    // Use Layer A for validation and calculation
+    if (!LoyaltyPointsService.hasEnoughPoints(customerLoyaltyPoints, points)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Insufficient points')),
+      );
+      return;
+    }
+    
+    final discount = LoyaltyPointsService.calculatePointsDiscount(points);
+    
+    // Apply discount to cart
+    _applyLoyaltyDiscount(discount);
+    
+    setState(() { isRedeeming = true; });
+  }
+  
+  void _applyLoyaltyDiscount(double discount) {
+    // Layer A: Calculate new total
+    final currentTotal = _getCartTotal();
+    final newTotal = currentTotal - discount;
+    
+    // Update cart with discount
+    _updateCartWithDiscount(discount);
+  }
+  
+  double _getCartTotal() => 150.0; // Simplified
+  
+  void _updateCartWithDiscount(double discount) {
+    // Update cart state
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Checkout')),
+      body: ListView(
+        children: [
+          // Layer B: Reusable loyalty points widget
+          LoyaltyPointsCard(
+            currentPoints: customerLoyaltyPoints,
+            pointsEarned: pointsEarned,
+            onRedeemPressed: _handleRedeemPoints,
+            canRedeem: pointsEarned > 0,
+          ),
+          // ... other widgets
+        ],
+      ),
+    );
+  }
+}
+```
+
+**Checklist for Layer C**:
+
+- [ ] All business logic delegated to Layer A services
+- [ ] All UI elements are Layer B widgets
+- [ ] Screen imports services and widgets only
+- [ ] State is simple (lists, flags, enums)
+- [ ] Navigation and routing handled here
+- [ ] Callbacks properly wire to handler methods
+- [ ] Integration tests written
+
+
+#### Complete Feature Development Workflow
+
+Here's the order to follow when building ANY new feature:
+
+1. **Define the feature**: What calculation/data operation is needed?
+2. **Layer A - Logic**: Write pure Dart services with unit tests
+3. **Layer B - Widgets**: Create reusable components with widget tests
+4. **Layer C - Screens**: Wire components together with integration tests
+5. **Integration**: Add to appropriate screens
+6. **E2E Testing**: Test complete user flow
+
+**Example Timeline for Loyalty Points Feature**:
+
+- ✅ Create `LoyaltyPointsService` with unit tests (30 min)
+- ✅ Create `LoyaltyPointsCard` widget with widget tests (20 min)
+- ✅ Integrate into `CheckoutScreenModern` (15 min)
+- ✅ Test loyalty flow end-to-end (15 min)
+
+**Total: 80 minutes of focused, testable work**
+
+
+#### Common Mistakes to Avoid When Adding New Code
+
+| ❌ **WRONG** | ✅ **CORRECT** |
+| --- | --- |
+| Put calculation logic directly in widget build() | Create Layer A service, call from Layer C |
+| Pass `DatabaseHelper` to widgets | Fetch data in screen, pass only values to widgets |
+| Create `initState()` in widgets | Use callbacks and constructor parameters |
+| Access `BusinessInfo.instance` in widgets | Pass via constructor parameter |
+| Mix multiple features in one widget | Create single-responsibility widgets |
+| Skip unit tests for Layer A | Write tests for ALL Layer A code first |
+| Hardcode values in calculations | Use `BusinessInfo` or parameters |
+| Create god objects in screens | Distribute responsibility across layers |
+
+
+### Dart File Size Guidelines: The 500-Line Rule
+
+
+**MANDATORY**: All Dart files (`.dart`) MUST NOT exceed **500 lines of code**. This is a hard requirement for code maintainability.
+
+**Why 500 Lines?**
+
+- Easier code reviews and understanding
+- Reduced cognitive complexity
+- Faster navigation and edits
+- Better IDE performance
+- Clear separation of concerns
+- Simpler git diffs and conflict resolution
+
+**When to Split a File**:
+
+**IMMEDIATELY split when**:
+
+- File exceeds 500 lines
+- Widget tree becomes complex (nested beyond 5 levels)
+- Multiple unrelated concerns exist in one file
+- File has more than 3-5 public methods/classes
+- Screen file handles both state management and complex UI rendering
+
+
+#### File Separation Strategy
+
+
+**For Layer A (Logic) - Services**:
+
+```
+❌ WRONG: Single massive service file
+lib/services/cart_service.dart (800 lines)
+  - Add to cart
+  - Remove from cart
+  - Calculate totals
+  - Apply discounts
+  - Process payments
+  - Generate receipts
+  - Handle refunds
+
+✅ CORRECT: Separated by responsibility
+lib/services/cart_management_service.dart (150 lines)
+  - Add to cart
+  - Remove from cart
+  - Update quantities
+
+lib/services/cart_calculation_service.dart (180 lines)
+  - Calculate subtotal
+  - Calculate tax
+  - Calculate service charge
+  - Calculate totals
+
+lib/services/cart_discount_service.dart (120 lines)
+  - Apply loyalty discount
+  - Apply promotional discount
+  - Calculate discount amount
+
+lib/services/payment_processing_service.dart (200 lines)
+  - Process payment
+  - Handle refunds
+  - Generate receipts
+```
+
+**For Layer B (Widgets) - Custom Components**:
+
+```
+❌ WRONG: Monolithic widget file
+lib/widgets/checkout_widget.dart (750 lines)
+  - Build entire checkout UI
+  - Cart items display
+  - Payment methods
+  - Discount selection
+  - Receipt preview
+  - Receipt printing
+
+✅ CORRECT: Separated by component
+lib/widgets/cart_items_section.dart (120 lines)
+  - Display cart items list
+
+lib/widgets/cart_item_card.dart (95 lines)
+  - Individual item with +/- buttons
+
+lib/widgets/payment_methods_section.dart (110 lines)
+  - Payment method selection
+
+lib/widgets/discount_selector.dart (100 lines)
+  - Apply discount selection
+
+lib/widgets/order_summary_card.dart (85 lines)
+  - Display totals, tax, service charge
+
+lib/widgets/receipt_preview_section.dart (140 lines)
+  - Show receipt preview
+```
+
+**For Layer C (Screens) - Screen Logic**:
+
+```
+❌ WRONG: All screen logic in one file
+lib/screens/checkout_screen.dart (920 lines)
+  - Build complete UI
+  - Cart management
+  - Payment processing
+  - Receipt handling
+  - Settings integration
+  - Error handling
+
+✅ CORRECT: Separated by responsibility
+lib/screens/checkout_screen.dart (250 lines)
+  - Main screen orchestration
+  - State management
+  - Widget assembly
+
+lib/screens/checkout_screen_logic.dart (180 lines)
+  - Business logic methods
+  - Service calls
+  - Complex calculations
+
+lib/screens/checkout_dialogs.dart (150 lines)
+  - Discount dialogs
+  - Payment dialogs
+  - Confirmation dialogs
+
+lib/screens/checkout_handlers.dart (120 lines)
+  - Event handlers
+  - Navigation callbacks
+  - State update methods
+```
+
+
+#### File Splitting Best Practices
+
+
+**1. Screens - Split by Responsibility**:
+
+```dart
+// lib/screens/checkout_screen.dart (Main orchestration)
+class CheckoutScreen extends StatefulWidget { ... }
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  @override
+  Widget build(BuildContext context) {
+    // Assemble components
+  }
+}
+
+// lib/screens/checkout_screen_logic.dart (Business logic)
+mixin CheckoutScreenLogic {
+  void _processPayment() { ... }
+  void _applyDiscount() { ... }
+}
+
+// lib/screens/checkout_screens_dialogs.dart (Dialog widgets)
+class PaymentMethodDialog extends StatelessWidget { ... }
+class DiscountDialog extends StatelessWidget { ... }
+
+// lib/screens/checkout_screen_handlers.dart (Event handlers)
+mixin CheckoutScreenHandlers {
+  void _handlePaymentComplete() { ... }
+  void _handleCartUpdate() { ... }
+}
+```
+
+**2. Services - Split by Feature**:
+
+```dart
+// lib/services/cart_management_service.dart
+class CartManagementService {
+  void addItem(Product product) { ... }
+  void removeItem(String productId) { ... }
+}
+
+// lib/services/cart_calculation_service.dart
+class CartCalculationService {
+  static double calculateTotal(List<CartItem> items) { ... }
+  static double calculateTax(double subtotal) { ... }
+}
+
+// lib/services/cart_discount_service.dart
+class CartDiscountService {
+  double applyDiscount(List<CartItem> items) { ... }
+}
+```
+
+**3. Widgets - Split by Component**:
+
+```dart
+// lib/widgets/cart_item_card.dart
+class CartItemCard extends StatelessWidget {
+  // Single item display with controls
+}
+
+// lib/widgets/cart_total_section.dart
+class CartTotalSection extends StatelessWidget {
+  // Total price, tax, service charge
+}
+
+// lib/widgets/payment_method_selector.dart
+class PaymentMethodSelector extends StatelessWidget {
+  // Payment method selection UI
+}
+```
+
+
+#### How to Refactor Large Files (500+ Lines)
+
+
+**Step 1: Identify Breaking Points**
+
+```dart
+// Read your file and mark logical sections
+class MyLargeScreen extends StatefulWidget { ... } // Lines 1-50
+
+class _MyLargeScreenState extends State<MyLargeScreen> {
+  // *** BREAK 1: State initialization ***
+  @override
+  void initState() { ... } // Lines 51-100
+  
+  // *** BREAK 2: Data loading ***
+  void _loadData() { ... } // Lines 101-200
+  
+  // *** BREAK 3: State updates ***
+  void _handleUserAction() { ... } // Lines 201-300
+  
+  // *** BREAK 4: Complex widget tree ***
+  @override
+  Widget build(BuildContext context) { ... } // Lines 301-500
+  
+  // *** BREAK 5: Helper widgets ***
+  Widget _buildCartSection() { ... } // Lines 501-700
+  
+  Widget _buildPaymentSection() { ... } // Lines 701-900
+}
+```
+
+**Step 2: Extract to Separate Files**
+
+Create files for each logical section:
+
+```dart
+// lib/screens/my_screen.dart (Main screen - 150 lines)
+class MyLargeScreen extends StatefulWidget { ... }
+
+// lib/screens/my_screen_logic.dart (Business logic - 200 lines)
+mixin MyScreenLogic {
+  void _loadData() { ... }
+  void _handleUserAction() { ... }
+}
+
+// lib/widgets/my_screen_cart_section.dart (Cart UI - 150 lines)
+class MyScreenCartSection extends StatelessWidget { ... }
+
+// lib/widgets/my_screen_payment_section.dart (Payment UI - 180 lines)
+class MyScreenPaymentSection extends StatelessWidget { ... }
+```
+
+**Step 3: Wire Components Together**
+
+```dart
+// lib/screens/my_screen.dart
+class _MyLargeScreenState extends State<MyLargeScreen> 
+    with MyScreenLogic {
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          MyScreenCartSection(
+            items: cartItems,
+            onUpdate: _handleCartUpdate,
+          ),
+          MyScreenPaymentSection(
+            total: cartTotal,
+            onPayment: _handlePayment,
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+
+#### File Organization Checklist
+
+
+**Before Committing Any Dart File**:
+
+- [ ] File is under 500 lines
+- [ ] File has single primary responsibility
+- [ ] Related code is grouped logically
+- [ ] No duplicated code between files
+- [ ] Public methods documented with comments
+- [ ] Private methods have clear names (`_methodName`)
+- [ ] Imports are organized (dart, package, relative)
+- [ ] No unused imports
+- [ ] File name matches primary class name (snake_case)
+
+**When Creating New Features**:
+
+- [ ] Plan file structure before coding
+- [ ] Separate Layer A, B, C into different files
+- [ ] Estimate line count for each component
+- [ ] Create multiple small files rather than one large file
+- [ ] Document file purposes in comments
+
+
+#### Common File Size Anti-Patterns
+
+
+| ❌ **ANTI-PATTERN** | ❌ **SYMPTOM** | ✅ **SOLUTION** |
+| --- | --- | --- |
+| **God File** | 1000+ lines, multiple classes | Split by layer (services, widgets, screens) |
+| **Kitchen Sink Widget** | Widget handles UI + logic + database | Separate into Layer B widget + Layer A service |
+| **Tangled Screen** | Screen with 10+ helper methods | Extract to mixins or separate logic files |
+| **Monolithic Service** | Service does everything (cart, payment, tax) | Create separate services by domain |
+| **Nested Widgets** | 8+ levels of nested widgets | Extract to separate widget files |
+| **Mixed Concerns** | UI drawing + calculations in one method | Move logic to Layer A, keep widget pure |
 
 
 ## POS App Perfection Strategies

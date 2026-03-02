@@ -1,0 +1,14 @@
+name: isar_models
+description: "Local Isar models package for ExtroPOS"
+version: 0.0.1
+publish_to: "none"
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  isar: ^3.1.0+1
+
+dev_dependencies:
+  build_runner: ^2.4.13
+  isar_generator: ^3.1.0

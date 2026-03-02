@@ -1,3 +1,6 @@
+import 'package:extropos/models/business_info_model.dart';
+import 'package:extropos/models/enum_models.dart';
+import 'package:extropos/services/mock_database_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,10 +40,36 @@ class TrainingModeService with ChangeNotifier {
     _isTrainingMode = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_prefsKey, enabled);
-    if (!enabled) {
+    
+    if (enabled) {
+      // Load appropriate training database based on business mode
+      await _loadTrainingDatabase();
+    } else {
       clearTrainingData();
     }
+    
     notifyListeners();
+  }
+
+  /// Load training database based on current business mode
+  Future<void> _loadTrainingDatabase() async {
+    try {
+      final businessMode = BusinessInfo.instance.selectedBusinessMode;
+      
+      if (businessMode == BusinessMode.restaurant) {
+        print('📚 Loading Restaurant Training Database...');
+        await MockDatabaseService.instance.restoreRestaurantMockData();
+      } else {
+        // Default to retail for both retail and cafe modes
+        print('📚 Loading Retail Training Database...');
+        await MockDatabaseService.instance.restoreRetailMockData();
+      }
+      
+      print('✅ Training database loaded successfully');
+    } catch (e) {
+      print('❌ Error loading training database: $e');
+      // Don't rethrow - allow training mode to continue even if DB load fails
+    }
   }
 
   void addTrainingTransaction(Map<String, dynamic> tx) {
