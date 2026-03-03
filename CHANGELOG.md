@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.7] - 2026-03-03
 
+### Added
+
+- **GitHub release artifact (APK)**
+  - Added release APK: `releases/ExtroPOS-v1.1.7+35-20260303.apk`
+  - File size: 105,137,070 bytes (~100.3 MB)
+  - SHA-256: `BC38F716B9F30D5C80944653B3F417FAF713790B87327109BB874D6A3AE8BB90`
+
 ### Fixed
 
 - **Payment Processing: No active payment methods** 
