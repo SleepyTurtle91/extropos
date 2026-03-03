@@ -381,6 +381,22 @@ extension DatabaseHelperUpgradePart3 on DatabaseHelper {
           VALUES (1, 0, 0, 0, $now)
         ''');
 
+        // Fix payment_methods status values (status=1 was incorrectly used for active, should be 0)
+        // This fixes the bug where PaymentMethodStatus.active=0 but seeding used status=1
+        print('  🔧 Fixing payment_methods status values...');
+        await db.execute('''
+          UPDATE payment_methods SET status = 0 WHERE status = 1
+        ''');
+        // Ensure default payment methods exist with correct status
+        await db.execute('''
+          INSERT OR IGNORE INTO payment_methods (id, name, status, is_default, created_at, updated_at)
+          VALUES 
+            ('1', 'Cash', 0, 1, $now, $now),
+            ('2', 'Credit Card', 0, 0, $now, $now),
+            ('3', 'Debit Card', 0, 0, $now, $now),
+            ('4', 'E-Wallet', 0, 0, $now, $now)
+        ''');
+
         print('✅ Phase 1 migration (v31) completed successfully!');
         print('   📝 MyInvois: 3 tables');
         print('   💳 E-Wallet: 2 tables');
@@ -389,6 +405,7 @@ extension DatabaseHelperUpgradePart3 on DatabaseHelper {
         print('   📦 Inventory: 5 tables');
         print('   🔄 Sync: 2 tables');
         print('   📊 Total: 19 new tables + 16 indexes');
+        print('   🔧 Fixed payment_methods status values');
         
       } catch (e) {
         print('❌ Phase 1 migration failed: $e');

@@ -9,10 +9,10 @@ extension DatabaseHelperTables on DatabaseHelper {
   Future<void> _seedDefaultPaymentMethods(Database db) async {
     final now = DateTime.now().toIso8601String();
     const defaultPaymentMethods = [
-      ('1', 'Cash', 1, 1), // (id, name, status=active, isDefault=true)
-      ('2', 'Credit Card', 1, 0),
-      ('3', 'Debit Card', 1, 0),
-      ('4', 'E-Wallet', 1, 0),
+      ('1', 'Cash', 0, 1), // (id, name, status=0(active), isDefault=true)
+      ('2', 'Credit Card', 0, 0), // status=0(active)
+      ('3', 'Debit Card', 0, 0), // status=0(active)
+      ('4', 'E-Wallet', 0, 0), // status=0(active)
     ];
 
     for (final method in defaultPaymentMethods) {

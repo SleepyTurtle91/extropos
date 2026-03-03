@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Payment Processing: No active payment methods**
-  - Root cause: `payment_methods` schema mismatch (`is_active` field used while app expects `status` + `is_default`)
-  - Updated table definition to use `status` and `is_default` columns
-  - Added default payment method seeding during DB creation:
+- **Payment Processing: No active payment methods** 
+  - Root cause: Incorrect `status` enum values in payment_methods seeding
+  - Bug: PaymentMethodStatus.active = 0, but seeding was using status = 1 (inactive)
+  - Fixed: Updated seeding to use status = 0 for active payment methods
+  - Added migration to fix existing databases with wrong status values
+  - Default payment methods now correctly marked as active:
     - Cash (default, active)
     - Credit Card (active)
     - Debit Card (active)
