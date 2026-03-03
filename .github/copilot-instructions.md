@@ -5,7 +5,7 @@
 ## Quick Start
 
 
-- **Version**: 1.0.27+ (January 2026)
+- **Version**: 1.0.28+ (March 2026)
 
 - **Architecture**: Multi-flavor Flutter app (POS/KDS/Backend/KeyGen)
 
@@ -1868,6 +1868,381 @@ Follow-up paragraph after list.
 - Pre-go-live tests: HTTPS reachability, collection CRUD, file upload/download, webhooks, auth flows, backup/restore drill
 
 
+## 13. Version Bumping & Changelog Management Workflow
+
+
+**Objective**: Maintain consistent version numbers across the app and keep a comprehensive changelog documenting all changes for each release.
+
+### Version Numbering Scheme
+
+**Format**: `MAJOR.MINOR.PATCH` (e.g., 1.0.27, 1.1.0, 2.0.0)
+
+- **MAJOR**: Breaking changes, major feature overhauls, or significant architecture changes
+- **MINOR**: New features, non-breaking enhancements, new POS modes, new business logic
+- **PATCH**: Bug fixes, performance improvements, UI refinements, security patches
+
+**Examples**:
+
+- v1.0.27 → v1.0.28: Bug fix or minor UI improvement
+- v1.0.27 → v1.1.0: New feature (e.g., loyalty points system, table reservation)
+- v1.0.27 → v2.0.0: Major refactor or breaking API change
+
+### Changelog File Structure
+
+**File**: `CHANGELOG.md` (root directory)
+
+**Format**: Follow standard Changelog Markdown (https://keepachangelog.com/)
+
+```markdown
+
+# Changelog
+
+All notable changes to FlutterPOS will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+
+## [Unreleased]
+
+(Features/fixes being worked on but not yet released)
+
+
+## [1.0.28] - 2026-03-03
+
+### Added
+
+- New settlement report with detailed cash reconciliation
+- Loyalty points redemption in checkout flow
+- Export reports to CSV format
+
+### Fixed
+
+- Fixed cart total calculation for items with service charge
+- Resolved printer connection timeout issues
+- Fixed table status not updating in real-time
+
+### Changed
+
+- Improved receipt formatting for 58mm thermal printers
+- Enhanced responsive grid layout for tablet view
+- Optimized database query performance for large product catalogs
+
+### Deprecated
+
+- Old payment reconciliation screen (use new settlement report instead)
+
+
+```
+
+**Categories to Include** (in order):
+
+1. **Added**: New features, new POS modes, new services, new settings
+2. **Changed**: Changes to existing functionality, UI improvements, performance enhancements
+3. **Deprecated**: Features that will be removed in future versions
+4. **Removed**: Features removed in this release
+5. **Fixed**: Bug fixes, corrected calculations, resolved issues
+6. **Security**: Security patches, vulnerability fixes
+
+### Step-by-Step Version Bump Workflow
+
+**Step 1: Identify the Version Change Type**
+
+Before making any changes, determine if this is a MAJOR, MINOR, or PATCH version bump based on the changes you've made.
+
+**Step 2: Update pubspec.yaml**
+
+```yaml
+# pubspec.yaml
+version: 1.0.28+28  # Format: semantic_version+build_number
+# Increment build number with each release
+```
+
+**Pattern**:
+
+- PATCH: Increment last number only (1.0.27+27 → 1.0.28+28)
+- MINOR: Reset patch, increment minor (1.0.27+27 → 1.1.0+28)
+- MAJOR: Reset minor and patch, increment major (1.0.27+27 → 2.0.0+28)
+
+**Step 3: Update Version in Code Files**
+
+If you have version constants in your code, update them:
+
+```dart
+// lib/constants/app_constants.dart
+class AppConstants {
+  static const String appVersion = '1.0.28';
+  static const String appBuildNumber = '28';
+  static const String releaseName = 'v1.0.28';
+}
+```
+
+Also update in platform-specific files:
+
+```gradle
+// android/app/build.gradle
+versionCode 28
+versionName "1.0.28"
+```
+
+**Step 4: Update CHANGELOG.md**
+
+1. Copy the "Unreleased" section and create a new versioned section
+2. Format: `## [VERSION] - YYYY-MM-DD`
+3. Document ALL changes in categories (Added, Changed, Fixed, etc.)
+4. Keep entries user-facing and clear
+
+**Example Entry**:
+
+```markdown
+
+## [1.0.28] - 2026-03-03
+
+### Added
+
+- New loyalty points system with points earning and redemption
+- CSV export functionality for sales reports
+- Table merge feature for restaurant mode
+
+### Changed
+
+- Improved cart item display with better spacing
+- Enhanced error messages for network issues
+- Optimized product search performance
+
+### Fixed
+
+- Fixed tax calculation not applying to discounted items
+- Resolved printer offline detection delay
+- Fixed crash when opening reports with no data
+
+### Security
+
+- Updated dependencies for security vulnerabilities
+- Enhanced password validation for user accounts
+
+```
+
+**Step 5: Commit Changes**
+
+```bash
+
+# Stage version and changelog updates
+git add pubspec.yaml CHANGELOG.md lib/constants/app_constants.dart android/app/build.gradle
+
+# Commit with clear message
+git commit -m "Bump version to 1.0.28 and update changelog"
+
+```
+
+**Step 6: Create Git Tag**
+
+```bash
+
+# Create annotated tag with release notes
+git tag -a v1.0.28 -m "Release v1.0.28: Loyalty points system, CSV export, table merge feature"
+
+# Push tag to remote
+git push origin v1.0.28
+
+# Or push all tags
+git push origin --tags
+
+```
+
+**Step 7: Build Release APK**
+
+```powershell
+
+# Build POS flavor release APK
+.\build_flavors.ps1 pos release
+
+# Copy to desktop with version tag
+$apkPath = "build/app/outputs/flutter-apk/app-release.apk"
+$dateTag = (Get-Date -Format yyyyMMdd)
+$destination = "$env:USERPROFILE\Desktop\FlutterPOS-v1.0.28-$dateTag.apk"
+Copy-Item $apkPath $destination
+
+# Verify build
+Write-Host "APK built: $destination"
+
+```
+
+### Version Bump Checklist
+
+**Before Releasing Any Version**:
+
+- [ ] All features/fixes are completed and tested
+- [ ] Increment version in `pubspec.yaml`
+- [ ] Update version constants in code (if applicable)
+- [ ] Update `CHANGELOG.md` with clear, user-facing descriptions
+- [ ] Verify CHANGELOG.md format follows Keep a Changelog standard
+- [ ] Add date in ISO format (YYYY-MM-DD) to CHANGELOG entry
+- [ ] Commit: `git commit -m "Bump version to X.Y.Z and update changelog"`
+- [ ] Tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z: [brief description]"`
+- [ ] Push: `git push origin main && git push origin --tags`
+- [ ] Verify tag appears in GitHub releases
+- [ ] Build APK/bundle: `.\build_flavors.ps1 pos release`
+- [ ] Test APK on target devices
+- [ ] Copy APK with version tag to desktop for distribution
+- [ ] Update any deployment documentation with new version
+
+### Generated Release Notes Example
+
+When you create a GitHub release from a tag:
+
+```
+## FlutterPOS v1.0.28
+
+Release Date: March 3, 2026
+
+**Major Features**:
+- Loyalty points system with flexible redemption rates
+- CSV export for comprehensive sales reports
+- Table merging for large group orders (restaurant mode)
+
+**Improvements**:
+- 40% faster product search with indexed queries
+- Better visual feedback for printing operations
+- Clearer error messages for network and hardware issues
+
+**Fixes**:
+- Tax calculation now correctly applies to split payments
+- Printer connection timeout reduced from 30s to 5s
+- Fixed crash when generating reports with empty data
+
+**Security**:
+- Updated flutter_secure_storage to latest version
+- Improved API key rotation in Appwrite sync
+
+**Build Info**:
+- Build Number: 28
+- Target: Android 12+, Windows 10+
+- Size: ~45MB APK
+
+[Download v1.0.28 APK]
+[View Full Changelog](https://github.com/yourusername/FlutterPOS/blob/main/CHANGELOG.md)
+
+```
+
+### Automated Version Bump Script (PowerShell)
+
+For efficiency, use this script to automate version bumping:
+
+```powershell
+
+# version_bump.ps1
+param(
+    [Parameter(Mandatory=$true)]
+    [ValidateSet('major', 'minor', 'patch')]
+    [string]$BumpType,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$Description
+)
+
+# Get current version from pubspec.yaml
+$pubspecContent = Get-Content pubspec.yaml
+$currentVersion = $pubspecContent | Select-String -Pattern 'version:\s+(.+)' | ForEach-Object { $_.Matches[0].Groups[1].Value }
+
+# Parse version
+$versionParts = $currentVersion.Split('+')[0].Split('.')
+[int]$major = $versionParts[0]
+[int]$minor = $versionParts[1]
+[int]$patch = $versionParts[2]
+[int]$buildNum = [int]$currentVersion.Split('+')[1]
+
+# Increment based on bump type
+switch ($BumpType) {
+    'major' { $major++; $minor = 0; $patch = 0 }
+    'minor' { $minor++; $patch = 0 }
+    'patch' { $patch++ }
+}
+
+$newVersion = "$major.$minor.$patch"
+$newBuildNum = $buildNum + 1
+$newVersionFull = "$newVersion+$newBuildNum"
+
+Write-Host "Bumping version: $currentVersion → $newVersionFull"
+
+# Update pubspec.yaml
+(Get-Content pubspec.yaml) -replace "version:\s+.+", "version: $newVersionFull" | Set-Content pubspec.yaml
+
+# Update CHANGELOG.md
+$date = (Get-Date -Format 'yyyy-MM-dd')
+$changelogEntry = @"
+## [$newVersion] - $date
+
+### Added
+
+- (Add new features)
+
+### Changed
+
+- (Add improvements)
+
+### Fixed
+
+- (Add bug fixes)
+
+`n
+"@
+
+$content = Get-Content CHANGELOG.md -Raw
+$newContent = $content -replace '(## \[Unreleased\])', "## [Unreleased]`n`n[Changes for unreleased version]`n$changelogEntry"
+Set-Content CHANGELOG.md $newContent
+
+# Commit
+git add pubspec.yaml CHANGELOG.md
+git commit -m "Bump version to $newVersion and update changelog`n`n$Description"
+
+# Tag
+git tag -a "v$newVersion" -m "Release v$newVersion: $Description"
+
+Write-Host "✅ Version bumped to $newVersion ($newVersionFull)"
+Write-Host "📝 Updated CHANGELOG.md"
+Write-Host "🏷️ Created git tag: v$newVersion"
+Write-Host "`nNext steps:"
+Write-Host "1. Review changes: git log -1"
+Write-Host "2. Push commits: git push origin main"
+Write-Host "3. Push tags: git push origin v$newVersion"
+Write-Host "4. Build: .\build_flavors.ps1 pos release"
+
+```
+
+**Usage**:
+
+```powershell
+
+# Bump patch version
+.\version_bump.ps1 -BumpType patch -Description "Fixed cart calculation bug"
+
+# Bump minor version
+.\version_bump.ps1 -BumpType minor -Description "Added loyalty points system"
+
+# Bump major version
+.\version_bump.ps1 -BumpType major -Description "Major architecture refactor with breaking changes"
+
+```
+
+### Version History Maintenance
+
+**Keep CHANGELOG.md Organized**:
+
+- Never edit released versions (v1.0.27 and below are final)
+- Always add unreleased changes to "Unreleased" section
+- When releasing, move "Unreleased" to new version with date
+- Keep 5-10 most recent versions visible in CHANGELOG
+- Archive older versions in separate file if document becomes too large
+
+**Git Tag Conventions**:
+
+- Always use: `v` prefix + semantic version (v1.0.28, NOT 1.0.28)
+- Use annotated tags, not lightweight tags: `git tag -a` not `git tag`
+- Include release description in tag message
+- Never delete released tags (they're part of history)
+
+
 ## Resources
 
 
@@ -1878,4 +2253,4 @@ Follow-up paragraph after list.
 - **[Database Guide](copilot-database.md)**: SQLite to Isar migration, sync patterns
 
 ---
-*Last updated: January 22, 2026 (v1.0.27)*
+*Last updated: March 3, 2026 (v1.0.28)*
