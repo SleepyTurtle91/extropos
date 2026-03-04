@@ -5,6 +5,22 @@ All notable changes to ExtroPOS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.1.8] - 2026-03-05
+
+### Fixed
+
+- **Receipt address formatting with smart line breaking**
+  - Issue: Address text was cutting words in the middle (e.g., "Kota Kinabalu" became "Kota Kin" + "abalu")
+  - Solution: Implemented intelligent address wrapping with priority break points:
+    1. **Break after commas first** - Keeps address segments intact ("Kota Kinabalu," stays together)
+    2. **Then break at word boundaries** - Only breaks at spaces between words
+    3. **Fallback to character limit** - Finally handles extremely long words
+  - Applied to both merchant and customer receipt types
+  - Works seamlessly with both 58mm and 80mm thermal printers
+  - Example: "Kota Kinabalu, Sabah, Malaysia" now breaks intelligently across lines instead of cutting words
+
 ## [1.1.7] - 2026-03-03
 
 ### Added
