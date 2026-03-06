@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.8+36
+version: 1.1.9+37
 
 environment:
   sdk: ^3.9.0
@@ -37,18 +37,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # Database
-  sqflite: ^2.3.0
+  sqflite: ^2.4.2
   # Appwrite client for web/backend flavor
   appwrite: ^20.3.2
-  sqflite_common_ffi: ^2.3.0
+  sqflite_common_ffi: ^2.4.0+2
   path_provider: ^2.0.15
   path: ^1.8.3
   sqlite3_flutter_libs: ^0.5.41
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
-  isar_models:
-    path: packages/isar_models
-  
   
   # Utilities
   uuid: ^4.1.0
@@ -102,8 +97,8 @@ dependencies:
   firebase_database: ^12.1.1
   # Barcode scanning
   mobile_scanner: ^7.1.4
-  sqflite_common_ffi_web: ^1.1.0
-  sqlite3: ^3.1.1
+  sqflite_common_ffi_web: ^1.1.1
+  sqlite3: ^3.1.6
   universal_io: ^2.3.1
   
   # Google Play Billing & Device Info
@@ -115,9 +110,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # Code generation for Isar models
   build_runner: ^2.4.13
-  isar_generator: ^3.1.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

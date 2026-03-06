@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.9] - 2026-03-06
+
+### Fixed
+
+- Resolved compilation errors in retail_pos_screen_modern.dart (missing methods and variables)
+- Fixed Windows file permission issues preventing APK builds by running as administrator
+- Updated Product constructor calls with required 'id' parameters in data operations
+- Disabled unused Isar helper file to prevent import errors
+
 ## [1.1.8] - 2026-03-05
 
 ### Fixed
