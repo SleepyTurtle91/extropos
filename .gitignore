@@ -44,6 +44,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# APK files (release artifacts)
+/*.apk
+/releases/*.apk
+
 # Environment files with secrets
 .env.appwrite.local
 .env.local
