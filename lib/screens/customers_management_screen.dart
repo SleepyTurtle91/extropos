@@ -1,6 +1,5 @@
 import 'package:extropos/models/customer_model.dart';
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/theme/design_system.dart';
 import 'package:extropos/theme/spacing.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';

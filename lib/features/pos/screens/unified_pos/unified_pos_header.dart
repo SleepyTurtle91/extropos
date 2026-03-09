@@ -6,14 +6,37 @@ extension UnifiedPOSHeader on _UnifiedPOSScreenState {
       height: 80,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade50],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => _updateState(() => isSidebarCollapsed = !isSidebarCollapsed),
-            icon: const Icon(Icons.menu),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.shade200, width: 1),
+            ),
+            child: IconButton(
+              onPressed: () => _updateState(() => isSidebarCollapsed = !isSidebarCollapsed),
+              icon: Icon(
+                Icons.menu,
+                color: Colors.blue.shade700,
+                size: 20,
+              ),
+              tooltip: 'Toggle sidebar',
+            ),
           ),
           const SizedBox(width: 16),
           if (activeMode == POSMode.restaurant && selectedTableId != null)
@@ -21,16 +44,43 @@ extension UnifiedPOSHeader on _UnifiedPOSScreenState {
               padding: const EdgeInsets.only(right: 16),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: Colors.green.shade50, border: Border.all(color: Colors.green), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.green.shade50, Colors.green.shade100],
+                  ),
+                  border: Border.all(color: Colors.green.shade300, width: 1),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
-                    Icon(Icons.table_restaurant, color: Colors.green, size: 18),
+                    Icon(Icons.table_restaurant, color: Colors.green.shade700, size: 18),
                     const SizedBox(width: 8),
-                    Text(selectedTableId ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                    Text(
+                      selectedTableId ?? '',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green.shade800,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(width: 4),
                     InkWell(
                       onTap: () => _updateState(() => selectedTableId = null),
-                      child: Icon(Icons.close, color: Colors.green.shade400, size: 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade200,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.close, color: Colors.green.shade800, size: 12),
+                      ),
                     ),
                   ],
                 ),
@@ -41,14 +91,25 @@ extension UnifiedPOSHeader on _UnifiedPOSScreenState {
               constraints: const BoxConstraints(maxWidth: 400),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade300, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: TextField(
                   onChanged: (v) => _updateState(() => searchQuery = v),
-                  decoration: const InputDecoration(
-                    icon: Icon(Icons.search, color: Colors.grey, size: 20),
+                  decoration: InputDecoration(
+                    icon: Icon(Icons.search, color: Colors.grey.shade500, size: 20),
                     hintText: 'Search products...',
+                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                     border: InputBorder.none,
-                    hintStyle: TextStyle(fontSize: 14),
                   ),
                 ),
               ),

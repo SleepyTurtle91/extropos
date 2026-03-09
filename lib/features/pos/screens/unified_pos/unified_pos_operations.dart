@@ -64,10 +64,14 @@ extension UnifiedPOSOperations on _UnifiedPOSScreenState {
       final index = cart.indexWhere((item) => item.product.id == product.id);
       if (index != -1) {
         cart[index].quantity++;
+        ToastHelper.showToast(context, '${product.name} quantity updated');
       } else {
         cart.add(CartItem(product: product));
+        ToastHelper.showToast(context, '${product.name} added to cart');
       }
     });
+    // Add haptic feedback if available on mobile
+    // HapticFeedback.lightImpact();
   }
 
   void updateQuantity(String productId, int delta) {
@@ -132,5 +136,76 @@ extension UnifiedPOSOperations on _UnifiedPOSScreenState {
       _updateState(() => cart.clear());
       ToastHelper.showToast(context, 'Payment completed');
     }
+  }
+
+  Widget _buildCartFAB() {
+    return Positioned(
+      bottom: 24,
+      right: 24,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade500, Colors.blue.shade600],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.shade200.withOpacity(0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: () {
+            // Scroll to cart or show cart modal
+            if (activeTab != 'POS') {
+              _updateState(() => activeTab = 'POS');
+            }
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Icon(
+                Icons.shopping_cart,
+                color: Colors.white,
+                size: 28,
+              ),
+              if (cart.isNotEmpty)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade500,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${cart.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

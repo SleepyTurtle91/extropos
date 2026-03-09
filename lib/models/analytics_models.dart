@@ -262,3 +262,73 @@ class DailySales {
     'order_count': orderCount,
   };
 }
+
+/// Staff performance data for individual employees
+class StaffPerformance {
+  final String name;
+  final double totalSales;
+  final int transactionCount;
+  final double averageOrderValue;
+
+  StaffPerformance({
+    required this.name,
+    required this.totalSales,
+    required this.transactionCount,
+    required this.averageOrderValue,
+  });
+
+  factory StaffPerformance.fromMap(Map<String, dynamic> map) {
+    return StaffPerformance(
+      name: map['staff_name'] as String? ?? 'Unknown',
+      totalSales: (map['total_sales'] as num?)?.toDouble() ?? 0.0,
+      transactionCount: map['transaction_count'] as int? ?? 0,
+      averageOrderValue: (map['average_order_value'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'staff_name': name,
+    'total_sales': totalSales,
+    'transaction_count': transactionCount,
+    'average_order_value': averageOrderValue,
+  };
+}
+
+/// Product analytics with ABC analysis
+class ProductAnalytics {
+  final String name;
+  final double revenue;
+  final int quantitySold;
+  final String abcClass;
+  final double profitMargin;
+  final int rank;
+
+  ProductAnalytics({
+    required this.name,
+    required this.revenue,
+    required this.quantitySold,
+    required this.abcClass,
+    required this.profitMargin,
+    required this.rank,
+  });
+
+  factory ProductAnalytics.fromMap(Map<String, dynamic> map) {
+    return ProductAnalytics(
+      name: map['product_name'] as String? ?? 'Unknown',
+      revenue: (map['revenue'] as num?)?.toDouble() ?? 0.0,
+      quantitySold: map['quantity_sold'] as int? ?? 0,
+      abcClass: map['abc_class'] as String? ?? 'C',
+      profitMargin: (map['profit_margin'] as num?)?.toDouble() ?? 0.0,
+      rank: map['rank'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'product_name': name,
+    'revenue': revenue,
+    'quantity_sold': quantitySold,
+    'abc_class': abcClass,
+    'profit_margin': profitMargin,
+    'rank': rank,
+  };
+}

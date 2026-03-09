@@ -4,6 +4,7 @@ import 'package:extropos/features/pos/screens/payment/payment_screen.dart';
 import 'package:extropos/models/cart_item.dart' as pos_cart;
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart' as pos_product;
+import 'package:extropos/screens/reports_screen.dart';
 import 'package:extropos/screens/settings_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:extropos/services/config_service.dart';
@@ -16,7 +17,7 @@ part 'unified_pos_operations.dart';
 part 'unified_pos_sidebar.dart';
 part 'unified_pos_header.dart';
 part 'unified_pos_cart.dart';
-// part 'unified_pos_tables.dart'; // TODO: Implement table selection view
+part 'unified_pos_tables.dart';
 part 'unified_pos_products.dart';
 
 /// Main POS screen demonstrating a unified interface for all business modes.
@@ -60,25 +61,47 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Row(
-        children: [
-          _buildSidebar(),
-          Expanded(
-            child: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [const Color(0xFFF8FAFC), Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Row(
               children: [
-                _buildHeader(),
+                _buildSidebar(),
                 Expanded(
-                  child: Row(
+                  child: Column(
                     children: [
-                      if (activeTab == 'POS') _buildCartSection(),
-                      Expanded(child: _buildMainView()),
+                      _buildHeader(),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50.withOpacity(0.5),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(24),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              if (activeTab == 'POS') _buildCartSection(),
+                              Expanded(child: _buildMainView()),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            if (cart.isNotEmpty) _buildCartFAB(),
+          ],
+        ),
       ),
     );
   }

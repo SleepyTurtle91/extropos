@@ -14,8 +14,19 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
       duration: const Duration(milliseconds: 300),
       width: isSidebarCollapsed ? 80 : 260,
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(right: BorderSide(color: Colors.grey.shade200)),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade50],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border(right: BorderSide(color: Colors.grey.shade200, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(2, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -27,6 +38,7 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
                 _sidebarSectionLabel('MAIN MENU'),
+                const SizedBox(height: 8),
                 _sidebarItem(Icons.grid_view_rounded, 'Dashboard'),
                 _sidebarItem(Icons.shopping_bag_outlined, 'POS', isActive: activeTab == 'POS'),
                 if (_shouldShowMenuItem('tables'))
@@ -40,6 +52,7 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
                 // Only show mode selection if setup is NOT complete (mode not locked)
                 if (!isModeLocked) ...[
                   _sidebarSectionLabel('SYSTEM MODE'),
+                  const SizedBox(height: 8),
                   _modeButton(POSMode.retail, Icons.storefront, 'Retail'),
                   _modeButton(POSMode.cafe, Icons.coffee, 'Cafe'),
                   _modeButton(POSMode.restaurant, Icons.restaurant, 'Dining'),
@@ -273,12 +286,10 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
         ToastHelper.showToast(context, 'Dashboard not yet implemented');
         break;
       case 'Reports':
-        // TODO: Implement reports dashboard screen
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const ReportsDashboardScreen()),
-        // );
-        ToastHelper.showToast(context, 'Reports not yet implemented');
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ReportsScreen()),
+        );
         break;
       case 'Transactions':
         // TODO: Implement sales history screen
@@ -339,26 +350,85 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
   }
 
   Widget _sidebarItem(IconData icon, String label, {bool isActive = false, bool highlight = false}) {
-    return InkWell(
-      onTap: () => _handleSidebarAction(label),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: highlight ? const Color(0xFFFFF1F2) : (isActive ? Theme.of(context).primaryColor : Colors.transparent),
-          borderRadius: BorderRadius.circular(12),
-          border: highlight ? Border.all(color: const Color(0xFFF43F5E)) : null,
-        ),
-        child: Row(
-          mainAxisAlignment: isSidebarCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-          children: [
-            Icon(icon, color: highlight ? const Color(0xFFF43F5E) : (isActive ? Colors.white : Colors.grey.shade600), size: 20),
-            if (!isSidebarCollapsed) ...[
-              const SizedBox(width: 12),
-              Text(label, style: TextStyle(color: highlight ? const Color(0xFFF43F5E) : (isActive ? Colors.white : Colors.grey.shade700), fontWeight: FontWeight.w500, fontSize: 14)),
-            ]
-          ],
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      child: InkWell(
+        onTap: () => _handleSidebarAction(label),
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            gradient: isActive
+                ? LinearGradient(
+                    colors: [Colors.blue.shade500, Colors.blue.shade600],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  )
+                : highlight
+                    ? LinearGradient(
+                        colors: [Colors.red.shade50, Colors.red.shade100],
+                      )
+                    : null,
+            borderRadius: BorderRadius.circular(16),
+            border: highlight
+                ? Border.all(color: Colors.red.shade300, width: 1)
+                : isActive
+                    ? null
+                    : Border.all(color: Colors.grey.shade200, width: 1),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: Colors.blue.shade200.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: isSidebarCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? Colors.white.withOpacity(0.2)
+                      : highlight
+                          ? Colors.red.shade100
+                          : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: isActive
+                      ? Colors.white
+                      : highlight
+                          ? Colors.red.shade600
+                          : Colors.grey.shade600,
+                  size: 18,
+                ),
+              ),
+              if (!isSidebarCollapsed) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isActive
+                          ? Colors.white
+                          : highlight
+                              ? Colors.red.shade700
+                              : Colors.grey.shade800,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ]
+            ],
+          ),
         ),
       ),
     );

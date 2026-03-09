@@ -4,7 +4,6 @@ import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/theme/design_system.dart';
 import 'package:extropos/theme/spacing.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';

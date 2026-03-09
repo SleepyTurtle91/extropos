@@ -770,6 +770,114 @@ extension DatabaseServiceReportsAdvanced on DatabaseService {
       pointsByTier: {},
     );
   }
+
+  Future<List<StaffPerformance>> getStaffPerformance({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final db = await DatabaseHelper.instance.database;
+
+    final query = '''
+      SELECT
+        u.name as staff_name,
+        COUNT(DISTINCT o.id) as transaction_count,
+        SUM(o.total) as total_sales,
+        AVG(o.total) as average_order_value
+      FROM orders o
+      LEFT JOIN users u ON o.created_by = u.id
+      WHERE o.created_at >= ? AND o.created_at <= ?
+        AND o.status = 'completed'
+        AND u.name IS NOT NULL
+      GROUP BY u.id, u.name
+      ORDER BY total_sales DESC
+    ''';
+
+    final results = await db.rawQuery(query, [
+      startDate.toIso8601String(),
+      endDate.toIso8601String(),
+    ]);
+
+    return results.map((row) => StaffPerformance(
+      name: row['staff_name'] as String,
+      totalSales: (row['total_sales'] as double?) ?? 0.0,
+      transactionCount: (row['transaction_count'] as int?) ?? 0,
+      averageOrderValue: (row['average_order_value'] as double?) ?? 0.0,
+    )).toList();
+  }
+
+  Future<List<ProductAnalytics>> getProductAnalytics({
+    required DateTime startDate,
+    required DateTime endDate,
+    String? categoryId,
+  }) async {
+    final db = await DatabaseHelper.instance.database;
+
+    String whereClause = 'o.created_at >= ? AND o.created_at <= ? AND o.status = \'completed\'';
+    List<dynamic> whereArgs = [startDate.toIso8601String(), endDate.toIso8601String()];
+
+    if (categoryId != null) {
+      whereClause += ' AND i.category_id = ?';
+      whereArgs.add(categoryId);
+    }
+
+    final query = '''
+      SELECT
+        i.name as product_name,
+        SUM(oi.subtotal) as revenue,
+        SUM(oi.quantity) as quantity_sold,
+        AVG(oi.item_price) as average_price,
+        (SUM(oi.subtotal) / SUM(oi.quantity)) as avg_unit_price,
+        ROW_NUMBER() OVER (ORDER BY SUM(oi.subtotal) DESC) as rank
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      JOIN items i ON oi.item_id = i.id
+      WHERE $whereClause
+      GROUP BY i.id, i.name
+      ORDER BY revenue DESC
+      LIMIT 50
+    ''';
+
+    final results = await db.rawQuery(query, whereArgs);
+
+    // Calculate ABC analysis
+    double totalRevenue = results.fold(0.0, (sum, row) => sum + ((row['revenue'] as double?) ?? 0.0));
+
+    final products = <ProductAnalytics>[];
+    double cumulativeRevenue = 0.0;
+
+    for (final row in results) {
+      final revenue = (row['revenue'] as double?) ?? 0.0;
+      final quantitySold = (row['quantity_sold'] as int?) ?? 0;
+      final rank = (row['rank'] as int?) ?? 0;
+
+      cumulativeRevenue += revenue;
+      final cumulativePercentage = (cumulativeRevenue / totalRevenue) * 100;
+
+      String abcClass;
+      if (cumulativePercentage <= 80) {
+        abcClass = 'A';
+      } else if (cumulativePercentage <= 95) {
+        abcClass = 'B';
+      } else {
+        abcClass = 'C';
+      }
+
+      // Calculate profit margin (simplified - assuming 30% COGS)
+      final cogs = revenue * 0.3;
+      final profitMargin = ((revenue - cogs) / revenue) * 100;
+
+      products.add(ProductAnalytics(
+        name: row['product_name'] as String,
+        revenue: revenue,
+        quantitySold: quantitySold,
+        abcClass: abcClass,
+        profitMargin: profitMargin.clamp(0, 100),
+        rank: rank,
+      ));
+    }
+
+    return products;
+  }
 }
 
 String _calculateStockStatus(int currentStock, int minStock, int maxStock) {

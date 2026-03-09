@@ -1,6 +1,5 @@
 import 'package:extropos/models/table_model.dart';
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/theme/design_system.dart';
 import 'package:extropos/theme/spacing.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:extropos/widgets/responsive_row.dart';

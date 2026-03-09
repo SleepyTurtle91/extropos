@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-03-10
+
+### Added
+
+- **Advanced Reports Dashboard with Business Intelligence**
+  - **Advanced Filtering System**: Category and staff member filtering for all reports
+  - **Comparative Analytics**: Period-over-period comparisons with percentage change indicators
+  - **Staff Performance Metrics**: Individual cashier analytics with sales totals, transaction counts, and average order values
+  - **Product Analytics with ABC Analysis**: Automatic product classification (A/B/C) based on revenue contribution using Pareto principle
+  - **Export Functionality**: CSV and PDF export capabilities for comprehensive data analysis
+  - **Enhanced KPI Dashboard**: Visual trend indicators and responsive grid layout
+  - **Real-time Data Updates**: Instant filtering and comparison updates
+
+- **Database Service Enhancements**
+  - Added `getStaffPerformance()` method for staff analytics
+  - Added `getProductAnalytics()` method with ABC analysis calculations
+  - Enhanced `getSalesSummary()`, `getTopProducts()`, and `getDailySales()` with filtering parameters
+  - Implemented profit margin calculations with configurable COGS assumptions
+
+- **New Analytics Models**
+  - `StaffPerformance` model for individual staff metrics
+  - `ProductAnalytics` model with ABC classification and profit margin data
+  - Enhanced data structures for comparative analytics
+
+### Technical Improvements
+
+- **Three-Layer Architecture Compliance**: All new features follow strict separation of concerns (Services → Widgets → Screens)
+- **Responsive Design**: Adaptive layouts for tablet and desktop viewing
+- **File Size Compliance**: All Dart files maintained under 500-line limit
+- **Export Capabilities**: Professional CSV and PDF generation with device storage
+- **Type Safety**: Full null-safety implementation across all new features
+
 ## [1.1.9] - 2026-03-06
 
 ### Fixed
