@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Export Capabilities**: Professional CSV and PDF generation with device storage
 - **Type Safety**: Full null-safety implementation across all new features
 
+### APK Release
+
+- **GitHub release artifact (APK)**
+  - Uploaded release asset: `ExtroPOS-v1.2.0-20260310.apk` (GitHub Release `v1.2.0`)
+  - File size: 89,763,973 bytes (~85.61 MB)
+  - Build: 1.2.0+38
+  - Target: Android release build with posApp flavor
+
 ## [1.1.9] - 2026-03-06
 
 ### Fixed
