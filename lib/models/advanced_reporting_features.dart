@@ -120,6 +120,8 @@ enum ScheduleFrequency { hourly, daily, weekly, monthly, quarterly, yearly }
 
 enum ExportFormat { csv, pdf, excel, json }
 
+enum ReportFormat { thermal58mm, thermal80mm, pdf, csv }
+
 enum ReportType {
   salesSummary,
   productSales,

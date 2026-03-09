@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 
 /// Enhanced cart service for robust cart operations with validation and real-time calculations
 class CartService extends ChangeNotifier {
+  static final CartService instance = CartService._();
+
+  CartService._();
+
   final List<CartItem> _items = [];
 
   /// Get all cart items (immutable copy)

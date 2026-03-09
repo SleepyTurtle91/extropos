@@ -47,17 +47,7 @@ extension LockScreenRightPanel on _LockScreenState {
                 ),
                 if (kDebugMode) ...[
                   const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DebugToolsScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text('Open debug tools'),
-                  ),
+                  // Debug tools removed
                 ],
               ],
             ),

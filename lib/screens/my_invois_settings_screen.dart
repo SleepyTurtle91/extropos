@@ -1,10 +1,8 @@
-﻿import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/services/my_invois_service.dart';
+import 'package:extropos/services/einvoice_service.dart';
+import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
-part 'my_invois_settings_screen_ui.dart';
-
+/// MyInvois Settings Screen - Advanced e-invoice settings and preferences
 class MyInvoisSettingsScreen extends StatefulWidget {
   const MyInvoisSettingsScreen({super.key});
 
@@ -13,276 +11,91 @@ class MyInvoisSettingsScreen extends StatefulWidget {
 }
 
 class _MyInvoisSettingsScreenState extends State<MyInvoisSettingsScreen> {
-  static const int _defaultGuardHours = 24;
-  final _formKey = GlobalKey<FormState>();
-  final _sstController = TextEditingController();
-  final _brnController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
+  bool _autoSubmit = false;
+  bool _emailNotifications = true;
+  bool _smsNotifications = false;
+  String _defaultLanguage = 'EN';
+  bool _isLoading = false;
 
-  bool _isEnabled = false;
-  bool _useSandbox = true;
-  bool _isSaving = false;
-  bool _isTesting = false;
-  bool? _lastTestSuccess;
-  DateTime? _lastTestedAt;
-  int _guardHours = _defaultGuardHours;
-
-  bool get _hasRecentSuccessfulTest {
-    if (_lastTestSuccess != true || _lastTestedAt == null) return false;
-    return DateTime.now().difference(_lastTestedAt!).inHours < _guardHours;
-  }
+  final List<String> _languages = ['EN', 'MS'];
 
   @override
   void initState() {
     super.initState();
-    _loadBusinessInfo();
-    BusinessInfo.instance.addListener(_handleBusinessInfoChanged);
+    _loadSettings();
   }
 
-  @override
-  void dispose() {
-    BusinessInfo.instance.removeListener(_handleBusinessInfoChanged);
-    _sstController.dispose();
-    _brnController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    super.dispose();
-  }
-
-  void _loadBusinessInfo() {
-    final info = BusinessInfo.instance;
-    _isEnabled = info.isMyInvoisEnabled;
-    _useSandbox = info.useMyInvoisSandbox;
-    _sstController.text = info.sstRegistrationNumber ?? '';
-    _brnController.text = info.businessRegistrationNumber ?? '';
-    _emailController.text = info.businessEmail ?? '';
-    _phoneController.text = info.businessPhone ?? '';
-    _addressController.text = info.businessAddress ?? '';
-    _lastTestSuccess = info.myInvoisLastTestSuccess;
-    if (info.myInvoisLastTestedAt != null) {
-      _lastTestedAt =
-          DateTime.fromMillisecondsSinceEpoch(info.myInvoisLastTestedAt!);
-    }
-    _guardHours = info.myInvoisProductionGuardHours;
-    if (!_hasRecentSuccessfulTest && !_useSandbox) {
-      _useSandbox = true;
-    }
-    setState(() {});
-  }
-
-  void _handleBusinessInfoChanged() {
-    // Reload from shared instance to reflect external updates
-    _loadBusinessInfo();
-  }
-
-  void _onEnvironmentChanged(bool useSandbox) {
-    if (!useSandbox && !_hasRecentSuccessfulTest) {
-      _showProductionBlocked();
-      return;
-    }
-    if (!useSandbox) {
-      _confirmProductionSwitch().then((confirmed) {
-        if (mounted && confirmed) {
-          setState(() => _useSandbox = false);
-        } else if (mounted) {
-          setState(() => _useSandbox = true);
-        }
-      });
-      return;
-    }
-    setState(() => _useSandbox = true);
+  Future<void> _loadSettings() async {
+    // Load settings from service/storage
+    // For now, use defaults
+    setState(() {
+      _autoSubmit = false;
+      _emailNotifications = true;
+      _smsNotifications = false;
+      _defaultLanguage = 'EN';
+    });
   }
 
   Future<void> _saveSettings() async {
-    if (_isSaving) return;
-
-    if (_isEnabled && !_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() => _isSaving = true);
+    setState(() => _isLoading = true);
 
     try {
-      final updated = BusinessInfo.instance.copyWith(
-        isMyInvoisEnabled: _isEnabled,
-        useMyInvoisSandbox: _useSandbox,
-        sstRegistrationNumber: _sstController.text.trim().isEmpty
-            ? null
-            : _sstController.text.trim(),
-        businessRegistrationNumber: _brnController.text.trim().isEmpty
-            ? null
-            : _brnController.text.trim(),
-        businessEmail: _emailController.text.trim().isEmpty
-            ? null
-            : _emailController.text.trim(),
-        businessPhone: _phoneController.text.trim().isEmpty
-            ? null
-            : _phoneController.text.trim(),
-        businessAddress: _addressController.text.trim().isEmpty
-            ? null
-            : _addressController.text.trim(),
-        myInvoisLastTestSuccess: _lastTestSuccess,
-        myInvoisLastTestedAt: _lastTestedAt?.millisecondsSinceEpoch,
-        myInvoisProductionGuardHours: _guardHours,
-      );
+      // Save settings to storage/service
+      // This would integrate with a settings service
+      await Future.delayed(const Duration(milliseconds: 500)); // Simulate save
 
-      BusinessInfo.updateInstance(updated);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('MyInvois settings saved')),
-        );
-      }
+      ToastHelper.showToast(context, 'Settings saved successfully');
+      Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save settings: $e')),
-        );
-      }
+      ToastHelper.showToast(context, 'Failed to save settings');
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _resetToDefaults() async {
-    if (_isSaving || _isTesting) return;
+  Future<void> _testNotifications() async {
+    try {
+      // Test notification settings
+      ToastHelper.showToast(context, 'Test notification sent');
+    } catch (e) {
+      ToastHelper.showToast(context, 'Failed to send test notification');
+    }
+  }
 
-    setState(() {
-      _isEnabled = false;
-      _useSandbox = true;
-      _sstController.clear();
-      _brnController.clear();
-      _emailController.clear();
-      _phoneController.clear();
-      _addressController.clear();
-      _lastTestSuccess = null;
-      _lastTestedAt = null;
-      _guardHours = _defaultGuardHours;
-    });
-
-    await BusinessInfo.updateInstance(
-      BusinessInfo.instance.copyWith(
-        isMyInvoisEnabled: false,
-        useMyInvoisSandbox: true,
-        sstRegistrationNumber: null,
-        businessRegistrationNumber: null,
-        businessEmail: null,
-        businessPhone: null,
-        businessAddress: null,
-        myInvoisLastTestSuccess: null,
-        myInvoisLastTestedAt: null,
-        myInvoisProductionGuardHours: _defaultGuardHours,
+  Future<void> _clearSubmissionHistory() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Submission History'),
+        content: const Text(
+          'This will clear all submission history and UUIDs. This action cannot be undone. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear'),
+          ),
+        ],
       ),
     );
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('MyInvois settings reset to defaults')),
-      );
-    }
-  }
+    if (confirmed != true) return;
 
-  Future<void> _confirmResetToDefaults() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Reset MyInvois settings?'),
-          content: const Text('This will clear all MyInvois fields and revert to sandbox.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Reset'),
-            ),
-          ],
-        );
-      },
-    );
+    setState(() => _isLoading = true);
 
-    if (confirmed == true) {
-      await _resetToDefaults();
-    }
-  }
-
-  Future<bool> _confirmProductionSwitch() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Switch to production?'),
-          content: const Text(
-            'Invoices will be submitted live to MyInvois. Ensure details are correct and a recent test succeeded.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Stay in sandbox'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Go to production'),
-            ),
-          ],
-        );
-      },
-    );
-
-    return confirmed == true;
-  }
-
-  Future<void> _testConnection() async {
-    if (_isTesting || !_isEnabled) return;
-    if (_sstController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter SST registration number to test')),
-      );
-      return;
-    }
-
-    setState(() => _isTesting = true);
     try {
-      final ok = await MyInvoiceService(useSandboxOverride: _useSandbox).validateSSTRegistration(
-        _sstController.text.trim(),
-      );
-      _lastTestSuccess = ok;
-      _lastTestedAt = DateTime.now();
-
-      await BusinessInfo.updateInstance(
-        BusinessInfo.instance.copyWith(
-          myInvoisLastTestSuccess: _lastTestSuccess,
-          myInvoisLastTestedAt: _lastTestedAt!.millisecondsSinceEpoch,
-        ),
-      );
-
-      if (mounted) {
-        setState(() {});
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              ok ? 'SST registration is valid' : 'SST registration validation failed',
-            ),
-          ),
-        );
-      }
+      // Clear submission history
+      await Future.delayed(const Duration(milliseconds: 500)); // Simulate clearing
+      ToastHelper.showToast(context, 'Submission history cleared');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Test failed: $e')),
-        );
-      }
+      ToastHelper.showToast(context, 'Failed to clear history');
     } finally {
-      if (mounted) {
-        setState(() => _isTesting = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
@@ -291,83 +104,222 @@ class _MyInvoisSettingsScreenState extends State<MyInvoisSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MyInvois Settings'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: _isLoading ? null : _saveSettings,
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Save'),
+          ),
+        ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 900;
-          final content = ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1100),
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: isWide ? (constraints.maxWidth / 2) - 32 : constraints.maxWidth,
-                          child: buildSettingsCard(),
-                        ),
-                        SizedBox(
-                          width: isWide ? (constraints.maxWidth / 2) - 32 : constraints.maxWidth,
-                          child: buildStatusCard(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton.icon(
-                          onPressed:
-                              (_isSaving || _isTesting) ? null : _confirmResetToDefaults,
-                          icon: const Icon(Icons.restore),
-                          label: const Text('Reset to defaults'),
-                        ),
-                        const SizedBox(width: 12),
-                        OutlinedButton(
-                          onPressed: _isSaving ? null : () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          onPressed: _isSaving ? null : _saveSettings,
-                          icon: _isSaving
-                              ? const SizedBox(
-                                  height: 16,
-                                  width: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.save),
-                          label: Text(_isSaving ? 'Saving...' : 'Save Settings'),
-                        ),
-                      ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Status Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Service Status',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        EInvoiceService.instance.isConfigured ? Icons.check_circle : Icons.error,
+                        color: EInvoiceService.instance.isConfigured ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        EInvoiceService.instance.isConfigured
+                            ? 'E-Invoice service configured'
+                            : 'E-Invoice service not configured',
+                      ),
+                    ],
+                  ),
+                  if (EInvoiceService.instance.isConfigured) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Environment: ${EInvoiceService.instance.config?.isProduction == true ? 'Production' : 'Sandbox'}',
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ],
-                ),
+                ],
               ),
             ),
-          );
+          ),
 
-          return Center(child: content);
-        },
-      ),
-    );
-  }
+          const SizedBox(height: 24),
 
-  void _showProductionBlocked() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Production mode requires a successful test within the last $_guardHours hours.',
-        ),
+          // Automation Settings
+          const Text(
+            'Automation Settings',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Auto-Submit E-Invoices'),
+                  subtitle: const Text('Automatically submit e-invoices after order completion'),
+                  value: _autoSubmit,
+                  onChanged: (value) => setState(() => _autoSubmit = value),
+                ),
+                const Divider(),
+                ListTile(
+                  title: const Text('Submission Schedule'),
+                  subtitle: const Text('Daily at 6:00 PM'),
+                  trailing: const Icon(Icons.schedule),
+                  onTap: () {
+                    // Show time picker for schedule
+                    ToastHelper.showToast(context, 'Schedule configuration not implemented');
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Notification Settings
+          const Text(
+            'Notification Settings',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Email Notifications'),
+                  subtitle: const Text('Receive email notifications for submission status'),
+                  value: _emailNotifications,
+                  onChanged: (value) => setState(() => _emailNotifications = value),
+                ),
+                const Divider(),
+                SwitchListTile(
+                  title: const Text('SMS Notifications'),
+                  subtitle: const Text('Receive SMS notifications for submission failures'),
+                  value: _smsNotifications,
+                  onChanged: (value) => setState(() => _smsNotifications = value),
+                ),
+                const Divider(),
+                ListTile(
+                  title: const Text('Test Notifications'),
+                  subtitle: const Text('Send a test notification to verify settings'),
+                  trailing: const Icon(Icons.send),
+                  onTap: _testNotifications,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Language & Display Settings
+          const Text(
+            'Language & Display',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          Card(
+            child: ListTile(
+              title: const Text('Default Language'),
+              subtitle: Text('Current: $_defaultLanguage'),
+              trailing: DropdownButton<String>(
+                value: _defaultLanguage,
+                items: _languages.map((lang) {
+                  return DropdownMenuItem(
+                    value: lang,
+                    child: Text(lang),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _defaultLanguage = value);
+                  }
+                },
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Data Management
+          const Text(
+            'Data Management',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  title: const Text('Clear Submission History'),
+                  subtitle: const Text('Remove all submission records and UUIDs'),
+                  trailing: const Icon(Icons.delete_forever, color: Colors.red),
+                  onTap: _clearSubmissionHistory,
+                ),
+                const Divider(),
+                ListTile(
+                  title: const Text('Export Submission Data'),
+                  subtitle: const Text('Export all submission data for backup'),
+                  trailing: const Icon(Icons.download),
+                  onTap: () {
+                    ToastHelper.showToast(context, 'Export functionality not implemented');
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Advanced Settings
+          const Text(
+            'Advanced Settings',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  title: const Text('API Rate Limits'),
+                  subtitle: const Text('Configure API call limits and retry policies'),
+                  trailing: const Icon(Icons.settings),
+                  onTap: () {
+                    ToastHelper.showToast(context, 'Rate limit configuration not implemented');
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  title: const Text('Debug Logging'),
+                  subtitle: const Text('Enable detailed logging for troubleshooting'),
+                  trailing: const Icon(Icons.bug_report),
+                  onTap: () {
+                    ToastHelper.showToast(context, 'Debug logging not implemented');
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

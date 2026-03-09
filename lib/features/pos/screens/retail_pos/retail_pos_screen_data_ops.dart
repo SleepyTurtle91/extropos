@@ -7,17 +7,18 @@ extension RetailPOSDataOps on _RetailPOSScreenState {
 
     await ShiftService().initialize(user.id);
 
-    if (!ShiftService().hasActiveShift && mounted) {
-      final started = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => StartShiftDialog(userId: user.id),
-      );
+    // TODO: Implement shift management dialog
+    // if (!ShiftService().hasActiveShift && mounted) {
+    //   final started = await showDialog<bool>(
+    //     context: context,
+    //     barrierDismissible: false,
+    //     builder: (context) => StartShiftDialog(userId: user.id),
+    //   );
 
-      if (started != true && mounted) {
-        ToastHelper.showToast(context, 'You must start a shift to process orders');
-      }
-    }
+    //   if (started != true && mounted) {
+    //     ToastHelper.showToast(context, 'You must start a shift to process orders');
+    //   }
+    // }
   }
 
   Future<void> _loadFromDatabase() async {
@@ -47,6 +48,7 @@ extension RetailPOSDataOps on _RetailPOSScreenState {
             it.price,
             catName,
             it.icon,
+            id: it.id,
             imagePath: it.imageUrl,
             printerOverride: it.printerOverride,
           );
@@ -85,6 +87,7 @@ extension RetailPOSDataOps on _RetailPOSScreenState {
         15.00,
         'Food',
         Icons.local_pizza,
+        id: 'pizza',
         variants: [
           ProductVariant(id: 'pizza_small', name: 'Small (8")', priceModifier: -5.00),
           ProductVariant(id: 'pizza_medium', name: 'Medium (12")', priceModifier: 0.00),
@@ -96,6 +99,7 @@ extension RetailPOSDataOps on _RetailPOSScreenState {
         12.00,
         'Food',
         Icons.lunch_dining,
+        id: 'burger',
         variants: [
           ProductVariant(id: 'burger_single', name: 'Single Patty', priceModifier: 0.00),
           ProductVariant(id: 'burger_double', name: 'Double Patty', priceModifier: 5.00),
@@ -106,17 +110,18 @@ extension RetailPOSDataOps on _RetailPOSScreenState {
         5.00,
         'Drinks',
         Icons.local_cafe,
+        id: 'coffee',
         variants: [
           ProductVariant(id: 'coffee_small', name: 'Small', priceModifier: -1.00),
           ProductVariant(id: 'coffee_medium', name: 'Medium', priceModifier: 0.00),
           ProductVariant(id: 'coffee_large', name: 'Large', priceModifier: 1.00),
         ],
       ),
-      Product('Pasta', 18.00, 'Food', Icons.restaurant),
-      Product('Salad', 10.00, 'Food', Icons.grass),
-      Product('Soda', 3.00, 'Drinks', Icons.local_drink),
-      Product('Ice Cream', 6.00, 'Desserts', Icons.icecream),
-      Product('Cake', 8.00, 'Desserts', Icons.cake),
+      Product('Pasta', 18.00, 'Food', Icons.restaurant, id: 'pasta'),
+      Product('Salad', 10.00, 'Food', Icons.grass, id: 'salad'),
+      Product('Soda', 3.00, 'Drinks', Icons.local_drink, id: 'soda'),
+      Product('Ice Cream', 6.00, 'Desserts', Icons.icecream, id: 'ice_cream'),
+      Product('Cake', 8.00, 'Desserts', Icons.cake, id: 'cake'),
     ];
   }
 

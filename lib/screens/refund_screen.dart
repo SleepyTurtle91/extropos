@@ -1,11 +1,11 @@
-import 'package:extropos/models/business_info_model.dart';
+import 'package:extropos/features/auth/services/user_session_service.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
-import 'package:extropos/widgets/refund_dialog.dart';
-import 'package:extropos/widgets/void_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// Refund/Return Screen - Process customer refunds and returns
 class RefundScreen extends StatefulWidget {
   const RefundScreen({super.key});
 
@@ -14,102 +14,129 @@ class RefundScreen extends StatefulWidget {
 }
 
 class _RefundScreenState extends State<RefundScreen> {
-  final _searchController = TextEditingController();
-  final _phoneController = TextEditingController();
-  DateTimeRange? _dateRange;
-  List<Map<String, dynamic>> _searchResults = [];
-  bool _isSearching = false;
+  final TextEditingController _transactionIdController = TextEditingController();
+  final TextEditingController _refundAmountController = TextEditingController();
+  final TextEditingController _reasonController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    // Default to last 7 days
-    _dateRange = DateTimeRange(
-      start: DateTime.now().subtract(const Duration(days: 7)),
-      end: DateTime.now(),
-    );
-  }
+  Map<String, dynamic>? _selectedTransaction;
+
+  bool _isLoading = false;
+  bool _isProcessingRefund = false;
+  PaymentMethod? _selectedRefundMethod;
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _phoneController.dispose();
+    _transactionIdController.dispose();
+    _refundAmountController.dispose();
+    _reasonController.dispose();
     super.dispose();
   }
 
-  Future<void> _searchOrders() async {
-    setState(() {
-      _isSearching = true;
-      _searchResults = [];
-    });
+  Future<void> _searchTransaction() async {
+    final transactionId = _transactionIdController.text.trim();
+    if (transactionId.isEmpty) {
+      ToastHelper.showToast(context, 'Please enter a transaction ID');
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
-      List<Map<String, dynamic>> results = [];
+      // Search for order by order number
+      final transaction = await DatabaseService.instance.getOrderByOrderNumber(transactionId);
 
-      if (_searchController.text.trim().isNotEmpty) {
-        // Search by order number
-        final order = await DatabaseService.instance.getOrderByNumber(
-          _searchController.text.trim(),
-        );
-        if (order != null) {
-          results.add(order);
-        }
-      } else if (_phoneController.text.trim().isNotEmpty) {
-        // Search by customer phone
-        results = await DatabaseService.instance.getOrdersByCustomerPhone(
-          _phoneController.text.trim(),
-          _dateRange!,
-        );
-      } else if (_dateRange != null) {
-        // Search by date range
-        results = await DatabaseService.instance.getOrdersInDateRange(
-          _dateRange!.start,
-          _dateRange!.end,
-        );
-      }
-
-      setState(() {
-        _searchResults = results;
-        _isSearching = false;
-      });
-
-      if (results.isEmpty && mounted) {
-        ToastHelper.showToast(context, 'No orders found');
+      if (transaction != null) {
+        _selectedTransaction = transaction;
+        _refundAmountController.text = transaction['total'].toStringAsFixed(2);
+      } else {
+        ToastHelper.showToast(context, 'Transaction not found');
+        _selectedTransaction = null;
       }
     } catch (e) {
-      setState(() => _isSearching = false);
+      ToastHelper.showToast(context, 'Error searching transaction');
+      _selectedTransaction = null;
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _processRefund() async {
+    if (_selectedTransaction == null) {
+      ToastHelper.showToast(context, 'No transaction selected');
+      return;
+    }
+
+    final refundAmount = double.tryParse(_refundAmountController.text);
+    if (refundAmount == null || refundAmount <= 0) {
+      ToastHelper.showToast(context, 'Please enter a valid refund amount');
+      return;
+    }
+
+    final originalAmount = _selectedTransaction!['total'] as double;
+    if (refundAmount > originalAmount) {
+      ToastHelper.showToast(context, 'Refund amount cannot exceed original transaction');
+      return;
+    }
+
+    if (_selectedRefundMethod == null) {
+      ToastHelper.showToast(context, 'Please select a refund method');
+      return;
+    }
+
+    final reason = _reasonController.text.trim();
+    if (reason.isEmpty) {
+      ToastHelper.showToast(context, 'Please provide a reason for the refund');
+      return;
+    }
+
+    // Get current user
+    final currentUser = UserSessionService().currentActiveUser;
+    if (currentUser == null) {
+      ToastHelper.showToast(context, 'No user signed in');
+      return;
+    }
+
+    setState(() => _isProcessingRefund = true);
+
+    try {
+      // Process refund in database
+      final success = await DatabaseService.instance.processRefund(
+        orderId: _selectedTransaction!['order_id'] as String,
+        refundAmount: refundAmount,
+        refundMethodId: _selectedRefundMethod!.id,
+        reason: reason,
+        userId: currentUser.id,
+      );
+
+      if (success) {
+        if (mounted) {
+          ToastHelper.showToast(context, 'Refund processed successfully');
+          _clearForm();
+        }
+      } else {
+        if (mounted) {
+          ToastHelper.showToast(context, 'Failed to process refund');
+        }
+      }
+    } catch (e) {
       if (mounted) {
-        ToastHelper.showToast(context, 'Search failed: $e');
+        ToastHelper.showToast(context, 'Error processing refund');
       }
     }
-  }
 
-  Future<void> _selectDateRange() async {
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
-      initialDateRange: _dateRange,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(primary: Color(0xFF2563EB)),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() => _dateRange = picked);
+    if (mounted) {
+      setState(() => _isProcessingRefund = false);
     }
   }
 
-  void _processRefund(Map<String, dynamic> orderData) {
-    showDialog(
-      context: context,
-      builder: (context) => RefundDialog(orderData: orderData),
-    );
+  void _clearForm() {
+    _transactionIdController.clear();
+    _refundAmountController.clear();
+    _reasonController.clear();
+    _selectedTransaction = null;
+    _selectedRefundMethod = null;
   }
 
   @override
@@ -117,227 +144,259 @@ class _RefundScreenState extends State<RefundScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Refunds & Returns'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          // Search Section
-          Card(
-            margin: const EdgeInsets.all(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Search Orders',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Order number search
-                  TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Order/Receipt Number',
-                      prefixIcon: Icon(Icons.receipt),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        _phoneController.clear();
-                      }
-                    },
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Customer phone search
-                  TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'Customer Phone',
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      if (value.isNotEmpty) {
-                        _searchController.clear();
-                      }
-                    },
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Date range selector
-                  OutlinedButton.icon(
-                    onPressed: _selectDateRange,
-                    icon: const Icon(Icons.date_range),
-                    label: Text(
-                      _dateRange != null
-                          ? '${DateFormat('MMM dd').format(_dateRange!.start)} - ${DateFormat('MMM dd, yyyy').format(_dateRange!.end)}'
-                          : 'Select Date Range',
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Search button
-                  ElevatedButton(
-                    onPressed: _isSearching ? null : _searchOrders,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: _isSearching
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : const Text('Search Orders'),
-                  ),
-                ],
-              ),
+        actions: [
+          if (_selectedTransaction != null)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearForm,
+              tooltip: 'Clear',
             ),
-          ),
-
-          // Results Section
-          if (_searchResults.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                '${_searchResults.length} order(s) found',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-
-          Expanded(
-            child: _searchResults.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.search, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Search for orders to process refunds',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _searchResults.length,
-                    itemBuilder: (context, index) {
-                      final order = _searchResults[index];
-                      return _OrderCard(
-                        order: order,
-                        onTap: () => _processRefund(order),
-                      );
-                    },
-                  ),
-          ),
         ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Transaction Search
+            _buildTransactionSearch(),
+
+            const SizedBox(height: 24),
+
+            // Transaction Details
+            if (_selectedTransaction != null) ...[
+              _buildTransactionDetails(),
+              const SizedBox(height: 24),
+              _buildRefundForm(),
+            ] else if (_isLoading) ...[
+              const Center(child: CircularProgressIndicator()),
+            ],
+          ],
+        ),
       ),
     );
   }
-}
 
-class _OrderCard extends StatelessWidget {
-  final Map<String, dynamic> order;
-  final VoidCallback onTap;
+  Widget _buildTransactionSearch() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Find Transaction',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _transactionIdController,
+              decoration: const InputDecoration(
+                labelText: 'Order Number',
+                hintText: 'Enter order number (e.g., RETAIL-001, CAFE-001)',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => _searchTransaction(),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isLoading ? null : _searchTransaction,
+                icon: const Icon(Icons.search),
+                label: const Text('Search Transaction'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  const _OrderCard({required this.order, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final currency = BusinessInfo.instance.currencySymbol;
-    final orderDate = DateTime.parse(order['created_at'] as String);
+  Widget _buildTransactionDetails() {
+    final transaction = _selectedTransaction!;
+    final date = transaction['date'] as DateTime;
+    final total = transaction['total'] as double;
+    final paymentMethod = transaction['payment_method'] as String;
+    final customerName = transaction['customer_name'] as String?;
+    final items = transaction['items'] as List<dynamic>;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: const Color(0xFF2563EB),
-              child: const Icon(Icons.receipt_long, color: Colors.white),
-            ),
-            title: Text(
-              order['order_number'] as String,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              '${DateFormat('MMM dd, yyyy HH:mm').format(orderDate)}\n'
-              '${order['customer_name'] ?? 'Walk-in'} • ${order['payment_method'] ?? 'Cash'}',
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '$currency ${(order['total'] as num).toStringAsFixed(2)}',
+                  'Transaction ${transaction['id']}',
                   style: const TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
                   ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Refundable',
+                    style: TextStyle(
+                      color: Colors.green[800],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormat('MMM dd, yyyy • hh:mm a').format(date),
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
                 Text(
-                  '${order['item_count'] ?? 0} items',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                ),
-              ],
-            ),
-            isThreeLine: true,
-          ),
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onTap,
-                    icon: const Icon(Icons.undo, size: 18),
-                    label: const Text('Item Return'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.orange,
-                      side: const BorderSide(color: Colors.orange),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Process void
-                      showDialog(
-                        context: context,
-                        builder: (context) => VoidDialog(orderData: order),
-                      );
-                    },
-                    icon: const Icon(Icons.delete_forever, size: 18),
-                    label: const Text('Void Sale'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
+                  'RM${total.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            if (customerName != null && customerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Customer: $customerName',
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              'Payment: $paymentMethod',
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Items:',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 8),
+            ...items.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${item['quantity']}x ${item['name']}'),
+                  Text('RM${(item['total'] as double).toStringAsFixed(2)}'),
+                ],
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRefundForm() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Refund Details',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Refund Amount
+            TextField(
+              controller: _refundAmountController,
+              decoration: const InputDecoration(
+                labelText: 'Refund Amount (RM)',
+                border: OutlineInputBorder(),
+                prefixText: 'RM ',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+
+            // Refund Method
+            DropdownButtonFormField<PaymentMethod>(
+              value: _selectedRefundMethod,
+              decoration: const InputDecoration(
+                labelText: 'Refund Method',
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: PaymentMethod(id: 'cash', name: 'Cash'),
+                  child: const Text('Cash'),
+                ),
+                DropdownMenuItem(
+                  value: PaymentMethod(id: 'card', name: 'Original Card'),
+                  child: const Text('Original Card'),
+                ),
+                DropdownMenuItem(
+                  value: PaymentMethod(id: 'store_credit', name: 'Store Credit'),
+                  child: const Text('Store Credit'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() => _selectedRefundMethod = value);
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Reason
+            TextField(
+              controller: _reasonController,
+              decoration: const InputDecoration(
+                labelText: 'Reason for Refund',
+                hintText: 'e.g., Customer request, wrong item, quality issue',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+
+            // Process Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isProcessingRefund ? null : _processRefund,
+                icon: _isProcessingRefund
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.undo),
+                label: Text(_isProcessingRefund ? 'Processing...' : 'Process Refund'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

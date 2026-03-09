@@ -162,10 +162,22 @@ extension CustomersManagementSections on _CustomersManagementScreenState {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Adaptive columns based on screen width
+        int columns;
+        if (constraints.maxWidth < 600) {
+          columns = 1;
+        } else if (constraints.maxWidth < 900) {
+          columns = 2;
+        } else if (constraints.maxWidth < 1200) {
+          columns = 3;
+        } else {
+          columns = 4;
+        }
+
         return GridView.builder(
           padding: const EdgeInsets.all(AppSpacing.m),
-          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: AppTokens.tableCardMinWidth + 40,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
             crossAxisSpacing: AppSpacing.m,
             mainAxisSpacing: AppSpacing.m,
             childAspectRatio: 1.2,

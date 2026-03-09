@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class TestHelper {
   /// Create a test product with default values
   static Product createTestProduct({
+    String id = 'test_product',
     String name = 'Test Product',
     double price = 10.0,
     String category = 'Test Category',
@@ -20,6 +21,7 @@ class TestHelper {
       price,
       category,
       icon,
+      id: id,
       imagePath: imagePath,
       printerOverride: printerOverride,
       variants: variants,

@@ -123,6 +123,31 @@ extension DatabaseServiceSales on DatabaseService {
         });
       });
 
+      try {
+        await OfflineSyncService().queueTransaction({
+          'receipt_number': generatedOrderNumber,
+          'order_type': orderType,
+          'status': status,
+          'subtotal': subtotal,
+          'tax': tax,
+          'service_charge': serviceCharge,
+          'discount': discount,
+          'total': total,
+          'payment_method_id': paymentMethod.id,
+          'amount_paid': amountPaid,
+          'change': change,
+          'table_id': tableId,
+          'user_id': resolvedUserId,
+          'created_at': nowIso,
+          'items': cartItems.map((item) => item.toJson()).toList(),
+        });
+      } catch (queueError) {
+        developer.log(
+          'Failed to queue offline sync transaction: $queueError',
+          name: 'database_service',
+        );
+      }
+
       return generatedOrderNumber;
     } catch (e, stackTrace) {
       developer.log('Database error in saveCompletedSale: $e', error: e, stackTrace: stackTrace);
@@ -257,6 +282,39 @@ extension DatabaseServiceSales on DatabaseService {
         });
       }
     });
+
+    try {
+      await OfflineSyncService().queueTransaction({
+        'receipt_number': generatedOrderNumber,
+        'order_type': orderType,
+        'status': status,
+        'subtotal': subtotal,
+        'tax': tax,
+        'service_charge': serviceCharge,
+        'discount': discount,
+        'total': total,
+        'amount_paid': amountPaid,
+        'change': change,
+        'table_id': tableId,
+        'user_id': resolvedUserId,
+        'created_at': nowIso,
+        'payment_splits': paymentSplits
+            .map(
+              (split) => {
+                'payment_method_id': split.paymentMethod.id,
+                'amount': split.amount,
+                'reference': split.reference,
+              },
+            )
+            .toList(),
+        'items': cartItems.map((item) => item.toJson()).toList(),
+      });
+    } catch (queueError) {
+      developer.log(
+        'Failed to queue offline split transaction: $queueError',
+        name: 'database_service',
+      );
+    }
 
     return generatedOrderNumber;
   }
@@ -499,6 +557,7 @@ extension DatabaseServiceSales on DatabaseService {
         (map['item_price'] as num).toDouble(),
         '',
         Icons.shopping_cart,
+        id: map['item_id'] as String,
       );
 
       List<ModifierItem> modifiers = [];

@@ -1,8 +1,8 @@
 import 'package:extropos/services/pin_store.dart';
+import 'package:extropos/services/sqlite3_bootstrap.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:universal_io/io.dart';
 
 part 'database_helper_upgrade.dart';
@@ -29,27 +29,20 @@ class DatabaseHelper {
   }
 
   Future<Database> get database async {
-    // Return test database if set
-    if (_testDatabase != null) return _testDatabase!;
-
-    if (_database != null) return _database!;
-
-    // Initialize FFI for Web
-    if (kIsWeb) {
-      databaseFactory = databaseFactoryFfiWeb;
+    // Return test database if set and still open.
+    if (_testDatabase != null) {
+      final testDb = await _ensureOpenOrNull(_testDatabase!);
+      if (testDb != null) return testDb;
+      _testDatabase = null;
     }
-    // Initialize FFI for desktop platforms if not already initialized
-    else if (Platform.isWindows || Platform.isLinux) {
-      try {
-        sqfliteFfiInit();
-        databaseFactory = databaseFactoryFfi;
-        print(
-          '✅ DatabaseHelper: SQLite FFI initialized for Desktop (Linux/Windows)',
-        );
-      } catch (e) {
-        print('❌ DatabaseHelper: Failed to initialize SQLite FFI: $e');
-      }
+
+    if (_database != null) {
+      final db = await _ensureOpenOrNull(_database!);
+      if (db != null) return db;
+      _database = null;
     }
+
+    await SQLite3Bootstrap.ensureInitialized();
 
     _database = await _initDB('extropos.db');
     return _database!;
@@ -75,20 +68,35 @@ class DatabaseHelper {
       // Phase 1 features: MyInvois, E-Wallet, Loyalty, PDPA, Inventory
       // v34: Table Management System (restaurant mode)
       version: 35,
+      onConfigure: SQLite3Bootstrap.configureDatabase,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
       onDowngrade: _onDowngrade,
     );
   }
 
-
-
-
-
+  Future<Database?> _ensureOpenOrNull(Database db) async {
+    try {
+      await db.rawQuery('SELECT 1');
+      return db;
+    } on DatabaseException catch (e) {
+      if (e.toString().contains('database_closed')) {
+        return null;
+      }
+      rethrow;
+    }
+  }
 
   Future<void> close() async {
-    final db = await instance.database;
-    db.close();
+    if (_testDatabase != null) {
+      await _testDatabase!.close();
+      _testDatabase = null;
+    }
+
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
   }
 
   // Helper method to reset database (for development/testing)

@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('CartItem finalPrice and totalPrice with per-item discount', () {
-    final p = Product('Test Product', 10.0, 'Cat', Icons.shopping_bag);
+    final p = Product('Test Product', 10.0, 'Cat', Icons.shopping_bag, id: 'test-id');
     final ci = CartItem(p, 2, priceAdjustment: 1.5, discountPerUnit: 2.0);
 
     // final unit price = base 10 + adjustment 1.5 - discount 2.0 = 9.5

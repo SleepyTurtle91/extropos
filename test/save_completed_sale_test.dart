@@ -4,7 +4,7 @@ import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
-import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
 import 'package:extropos/services/database_helper.dart';
 import 'package:extropos/services/database_service.dart';
@@ -55,7 +55,7 @@ void main() {
       await dbService.insertItem(item);
 
       // Prepare cart item with a Product that matches DB item name
-      final product = Product(item.name, item.price, category.name, item.icon);
+      final product = Product(item.name, item.price, category.name, item.icon, id: item.id);
       final cartItem = CartItem(product, 2);
 
       final subtotal = cartItem.totalPrice;

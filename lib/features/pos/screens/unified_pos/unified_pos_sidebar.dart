@@ -2,6 +2,14 @@ part of 'unified_pos_screen.dart';
 
 extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
   Widget _buildSidebar() {
+    final isModeLocked = ConfigService.instance.isSetupDone;
+    final lockedMode = _getLockModeFromConfig();
+
+    // If mode is locked, force the active mode to match the locked mode
+    if (isModeLocked && activeMode != lockedMode) {
+      _updateState(() => activeMode = lockedMode);
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: isSidebarCollapsed ? 80 : 260,
@@ -12,7 +20,7 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
       child: Column(
         children: [
           const SizedBox(height: 24),
-          _buildLogo(),
+          _buildLogo(isModeLocked, lockedMode),
           const SizedBox(height: 32),
           Expanded(
             child: ListView(
@@ -21,18 +29,24 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
                 _sidebarSectionLabel('MAIN MENU'),
                 _sidebarItem(Icons.grid_view_rounded, 'Dashboard'),
                 _sidebarItem(Icons.shopping_bag_outlined, 'POS', isActive: activeTab == 'POS'),
-                if (activeMode == POSMode.restaurant)
+                if (_shouldShowMenuItem('tables'))
                   _sidebarItem(Icons.table_bar_outlined, 'Tables', isActive: activeTab == 'Tables'),
                 _sidebarItem(Icons.bar_chart_rounded, 'Reports', isActive: activeTab == 'Reports'),
                 _sidebarItem(Icons.history, 'Transactions'),
-                if (activeMode != POSMode.retail)
+                if (_shouldShowMenuItem('kitchen'))
                   _sidebarItem(Icons.restaurant_menu, 'Kitchen'),
                 _sidebarItem(Icons.undo, 'Return & Void', highlight: true),
                 const SizedBox(height: 24),
-                _sidebarSectionLabel('SYSTEM MODE'),
-                _modeButton(POSMode.retail, Icons.storefront, 'Retail'),
-                _modeButton(POSMode.cafe, Icons.coffee, 'Cafe'),
-                _modeButton(POSMode.restaurant, Icons.restaurant, 'Dining'),
+                // Only show mode selection if setup is NOT complete (mode not locked)
+                if (!isModeLocked) ...[
+                  _sidebarSectionLabel('SYSTEM MODE'),
+                  _modeButton(POSMode.retail, Icons.storefront, 'Retail'),
+                  _modeButton(POSMode.cafe, Icons.coffee, 'Cafe'),
+                  _modeButton(POSMode.restaurant, Icons.restaurant, 'Dining'),
+                ] else if (!isSidebarCollapsed) ...[
+                  // Show locked mode indicator
+                  _buildLockedModeIndicator(lockedMode),
+                ],
               ],
             ),
           ),
@@ -45,7 +59,147 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
     );
   }
 
-  Widget _buildLogo() {
+  /// Determine if a menu item should be shown based on the current/locked mode
+  bool _shouldShowMenuItem(String itemType) {
+    final lockedMode = _getLockModeFromConfig();
+    final currentMode = activeMode;
+
+    // If mode is locked, restrict to that mode's items only
+    if (ConfigService.instance.isSetupDone) {
+      switch (itemType) {
+        case 'tables':
+          return lockedMode == POSMode.restaurant;
+        case 'kitchen':
+          return lockedMode != POSMode.retail;
+        default:
+          return false;
+      }
+    }
+
+    // If mode is not locked, show based on current activeMode
+    switch (itemType) {
+      case 'tables':
+        return currentMode == POSMode.restaurant;
+      case 'kitchen':
+        return currentMode != POSMode.retail;
+      default:
+        return false;
+    }
+  }
+
+  /// Get the locked POSMode from ConfigService business type
+  POSMode _getLockModeFromConfig() {
+    final businessType = ConfigService.instance.businessType;
+    switch (businessType.toLowerCase()) {
+      case 'retail':
+        return POSMode.retail;
+      case 'cafe':
+        return POSMode.cafe;
+      case 'restaurant':
+        return POSMode.restaurant;
+      default:
+        return POSMode.retail;
+    }
+  }
+
+  /// Show indicator that mode is locked
+  Widget _buildLockedModeIndicator(POSMode mode) {
+    final modeLabel = _getModeLabel(mode);
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        border: Border.all(color: Colors.blue.shade200),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'System Mode',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade600,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                _getModeIcon(mode),
+                size: 16,
+                color: Colors.blue.shade700,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  modeLabel,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.green.shade100,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock, size: 10, color: Colors.green.shade700),
+                const SizedBox(width: 4),
+                Text(
+                  'Locked',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Get human-readable mode label
+  String _getModeLabel(POSMode mode) {
+    switch (mode) {
+      case POSMode.retail:
+        return 'Retail';
+      case POSMode.cafe:
+        return 'Cafe';
+      case POSMode.restaurant:
+        return 'Dining';
+    }
+  }
+
+  /// Get icon for mode
+  IconData _getModeIcon(POSMode mode) {
+    switch (mode) {
+      case POSMode.retail:
+        return Icons.storefront;
+      case POSMode.cafe:
+        return Icons.coffee;
+      case POSMode.restaurant:
+        return Icons.restaurant;
+    }
+  }
+
+  Widget _buildLogo(bool isModeLocked, POSMode lockedMode) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -64,19 +218,29 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
           ),
           if (!isSidebarCollapsed) ...[
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ExtroPOS',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                Text(
-                  'Terminal ${ConfigService.instance.terminalId}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 10),
-                ),
-              ],
-            )
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ExtroPOS',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Terminal ${ConfigService.instance.terminalId}',
+                        style: const TextStyle(color: Colors.grey, fontSize: 10),
+                      ),
+                      if (isModeLocked) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.lock, size: 8, color: Colors.grey.shade400),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ]
         ],
       ),
@@ -101,34 +265,44 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
 
     switch (label) {
       case 'Dashboard':
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SalesDashboardScreen()),
-        );
+        // TODO: Implement sales dashboard screen
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const SalesDashboardScreen()),
+        // );
+        ToastHelper.showToast(context, 'Dashboard not yet implemented');
         break;
       case 'Reports':
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ReportsDashboardScreen()),
-        );
+        // TODO: Implement reports dashboard screen
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const ReportsDashboardScreen()),
+        // );
+        ToastHelper.showToast(context, 'Reports not yet implemented');
         break;
       case 'Transactions':
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
-        );
+        // TODO: Implement sales history screen
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+        // );
+        ToastHelper.showToast(context, 'Transactions not yet implemented');
         break;
       case 'Kitchen':
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const KitchenDisplayScreen()),
-        );
+        // TODO: Implement kitchen display screen
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const KitchenDisplayScreen()),
+        // );
+        ToastHelper.showToast(context, 'Kitchen display not yet implemented');
         break;
       case 'Return & Void':
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RefundServiceScreen()),
-        );
+        // TODO: Implement refund service screen
+        // await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (_) => const RefundServiceScreen()),
+        // );
+        ToastHelper.showToast(context, 'Return & Void not yet implemented');
         break;
       case 'Tables':
         if (activeMode == POSMode.restaurant) {
@@ -223,5 +397,10 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
         ),
       ),
     );
+  }
+
+  void _showTableSelectionDialog() {
+    //TODO: Implement table selection dialog
+    ToastHelper.showToast(context, 'Table selection coming soon');
   }
 }

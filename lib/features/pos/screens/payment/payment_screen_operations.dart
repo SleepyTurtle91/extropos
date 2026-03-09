@@ -77,25 +77,30 @@ extension PaymentScreenOperations on _PaymentScreenState {
                   .contains('e-wallet'))) {
         _updateState(() => _isProcessing = false);
         final orderRef = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
-        final resultMap = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EWalletPaymentScreen(
-              amount: widget.totalAmount,
-              methodName: _selectedPaymentMethod!.name,
-              orderRef: orderRef,
-              merchantId: widget.merchantId,
-            ),
-          ),
-        );
-        if (!mounted) return;
-        if (resultMap is Map && resultMap['success'] == true) {
-          _updateState(() => _isProcessing = true);
-        } else {
-          // User canceled or failed
-          ToastHelper.showToast(context, 'E-Wallet payment canceled');
-          return;
-        }
+        // TODO: Implement e-wallet payment screen
+        // final resultMap = await Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => EWalletPaymentScreen(
+        //       amount: widget.totalAmount,
+        //       methodName: _selectedPaymentMethod!.name,
+        //       orderRef: orderRef,
+        //       merchantId: widget.merchantId,
+        //     ),
+        //   ),
+        // );
+        // if (!mounted) return;
+        // if (resultMap is Map && resultMap['success'] == true) {
+        //   _updateState(() => _isProcessing = true);
+        // } else {
+        //   // User canceled or failed
+        //   ToastHelper.showToast(context, 'E-Wallet payment canceled');
+        //   return;
+        // }
+        
+        // Temporary: Show not implemented message
+        ToastHelper.showToast(context, 'E-Wallet payment not yet implemented');
+        return;
       }
 
       if (isCashPayment) {
@@ -192,7 +197,34 @@ extension PaymentScreenOperations on _PaymentScreenState {
           await DatabaseService.instance.insertCustomer(newCustomer);
         }
 
-        // Payment successful
+        // Payment successful - show receipt preview
+        final showReceipt = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReceiptPreviewScreen(
+              cartItems: widget.cartItems?.map((item) => {
+                'product_id': item.product.id,
+                'name': item.product.name,
+                'price': item.finalPrice,
+                'quantity': item.quantity,
+                'category_id': item.product.category,
+              }).toList() ?? [],
+              subtotal: widget.cartItems?.fold<double>(0.0, (sum, item) => sum + (item.finalPrice * item.quantity)) ?? widget.totalAmount,
+              tax: 0.0, // TODO: Calculate actual tax from business settings
+              serviceCharge: 0.0, // TODO: Calculate actual service charge from business settings
+              total: widget.totalAmount,
+              paymentResult: result,
+              onPrint: () {
+                // Receipt will be printed automatically after preview
+              },
+              onComplete: () {
+                // Transaction completed
+              },
+            ),
+          ),
+        );
+
+        // Return payment result regardless of receipt preview outcome
         Navigator.pop(context, {
           'success': true,
           'paymentMethod': result.paymentSplits.isNotEmpty

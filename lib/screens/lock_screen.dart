@@ -2,7 +2,6 @@
 
 import 'package:extropos/config/app_flavor.dart';
 import 'package:extropos/models/user_model.dart';
-import 'package:extropos/screens/debug_tools_screen.dart';
 import 'package:extropos/screens/first_admin_setup_screen.dart';
 import 'package:extropos/services/config_service.dart';
 import 'package:extropos/services/database_service.dart';

@@ -27,15 +27,15 @@ Future<void> main(List<String> args) async {
 
   final items = <CartItem>[
     CartItem(
-      Product('Latte Grande', 12.50, 'Beverages', Icons.local_cafe),
+      Product('Latte Grande', 12.50, 'Beverages', Icons.local_cafe, id: 'latte_grande'),
       2,
     ),
     CartItem(
-      Product('Blueberry Muffin', 7.00, 'Pastries', Icons.bakery_dining),
+      Product('Blueberry Muffin', 7.00, 'Pastries', Icons.bakery_dining, id: 'blueberry_muffin'),
       1,
     ),
     CartItem(
-      Product('Sandwich Club XXL', 18.40, 'Food', Icons.lunch_dining),
+      Product('Sandwich Club XXL', 18.40, 'Food', Icons.lunch_dining, id: 'sandwich_club_xxl'),
       1,
     ),
   ];

@@ -1,279 +1,310 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:developer' as developer;
-import 'dart:math' as math;
-
-import 'package:extropos/models/business_info_model.dart';
-import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/customer_display_model.dart';
+import 'package:extropos/models/printer_model.dart';
+import 'package:extropos/services/customer_display_service.dart';
+import 'package:extropos/services/database_service.dart';
+import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
-// import 'package:imin_vice_screen/imin_vice_screen.dart';  // DISABLED - Incompatible with Android SDK 36
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:universal_io/io.dart';
 
-part 'vice_customer_display_screen_ui.dart';
-
-enum ViceDisplayMode { cart, payment, change, thankYou, idle }
-
-/// Dedicated screen for the vice (back) display
-/// This widget runs when the app is launched on the secondary screen
-/// and displays customer-facing information like cart items, totals, etc.
+/// Customer Display Screen - Control and test customer-facing displays
 class ViceCustomerDisplayScreen extends StatefulWidget {
   const ViceCustomerDisplayScreen({super.key});
 
   @override
-  State<ViceCustomerDisplayScreen> createState() =>
-      _ViceCustomerDisplayScreenState();
+  State<ViceCustomerDisplayScreen> createState() => _ViceCustomerDisplayScreenState();
 }
 
 class _ViceCustomerDisplayScreenState extends State<ViceCustomerDisplayScreen> {
-  // final IminViceScreen _viceScreenPlugin = IminViceScreen();  // DISABLED - Incompatible with Android SDK 36
-  final List<CartItem> _cartItems = [];
-  final double _subtotal = 0.0;
-  String? _orderNumber;
-  String _currency = 'RM';
-  // String? _promoUrl; // Unused in current layout, kept for future promotional features
-  Timer? _welcomeTimer;
-  // Slideshow state
-  bool _slideshowEnabled = false;
-  List<String> _slideshowImages = [];
-  int _currentSlideshowIndex = 0;
-  Timer? _slideshowTimer;
-
-  // New state for display modes
-  ViceDisplayMode _displayMode = ViceDisplayMode.idle;
-  double _paymentAmount = 0.0;
-  double _changeAmount = 0.0;
-  
-  // QR code data
-  String _qrData = '';
-  
-  // Animation controllers
-  final bool _showCartAnimation = false;
+  List<CustomerDisplay> _displays = [];
+  bool _isLoading = true;
+  bool _isTesting = false;
+  CustomerDisplay? _selectedDisplay;
 
   @override
   void initState() {
     super.initState();
-    // TEMPORARILY DISABLED: YouTube playback (will re-implement after cart updates are stable)
-    // _loadYouTubeSettings();
-    _showWelcome();
-
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    /* ORIGINAL CODE - Listen to cart updates:
-      try {
-        developer.log('Vice: Received stream event: $event');
-        ... (full original listener code) ...
-      } catch (e) {
-        developer.log('Vice: Error handling stream event: $e');
-      }
-    });
-    END ORIGINAL CODE */
-
-    // Rotate welcome message every 5 seconds (when cart is empty)
-    _welcomeTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (mounted && _cartItems.isEmpty) {
-        _showWelcome();
-      }
-    });
-
-    // Load promo URL from SharedPreferences if set; otherwise use BusinessInfo.logo
-    // _loadPromoUrl(); // Commented out - not used in current 70/30 split layout
-    _loadSlideshowSettings();
+    _loadDisplays();
   }
 
-  void _handleStatusUpdate(dynamic arguments) {
+  Future<void> _loadDisplays() async {
+    setState(() => _isLoading = true);
+
     try {
-      developer.log('Vice: Handling status update with args: $arguments');
-      // Handle both direct Map and JSON string
-      final Map<String, dynamic> data = (arguments is String)
-          ? jsonDecode(arguments)
-          : (arguments is Map ? Map<String, dynamic>.from(arguments) : {});
-
-      final String status = data['status']?.toString() ?? 'IDLE';
-      developer.log('Vice: Status update -> $status');
-
-      setState(() {
-        switch (status) {
-          case 'PAYMENT':
-            _displayMode = ViceDisplayMode.payment;
-            _paymentAmount = (data['amount'] as num?)?.toDouble() ?? 0.0;
-            _currency = data['currency']?.toString() ?? _currency;
-            break;
-          case 'CHANGE':
-            _displayMode = ViceDisplayMode.change;
-            _changeAmount = (data['amount'] as num?)?.toDouble() ?? 0.0;
-            _currency = data['currency']?.toString() ?? _currency;
-            break;
-          case 'THANK_YOU':
-            _displayMode = ViceDisplayMode.thankYou;
-            break;
-          case 'IDLE':
-          default:
-            _displayMode = _cartItems.isNotEmpty
-                ? ViceDisplayMode.cart
-                : ViceDisplayMode.idle;
-            break;
-        }
-      });
+      _displays = await DatabaseService.instance.getCustomerDisplays();
     } catch (e) {
-      developer.log('Vice: Error handling status update: $e');
+      ToastHelper.showToast(context, 'Failed to load customer displays');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _loadSlideshowSettings() async {
+  Future<void> _testDisplay(CustomerDisplay display) async {
+    setState(() => _isTesting = true);
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final enabled = prefs.getBool('vice_slideshow_enabled') ?? false;
-      final images = prefs.getStringList('vice_slideshow_images') ?? [];
-
-      setState(() {
-        _slideshowEnabled = enabled;
-        _slideshowImages = images;
-      });
-
-      // Start slideshow if enabled and no cart items
-      if (_slideshowEnabled &&
-          _slideshowImages.isNotEmpty &&
-          _cartItems.isEmpty) {
-        _startSlideshow();
+      final success = await CustomerDisplayService().testDisplay(display);
+      if (success) {
+        ToastHelper.showToast(context, 'Display test successful');
+      } else {
+        ToastHelper.showToast(context, 'Display test failed');
       }
     } catch (e) {
-      // ignore
+      ToastHelper.showToast(context, 'Display test error: ${e.toString()}');
+    } finally {
+      setState(() => _isTesting = false);
     }
   }
 
-  void _startSlideshow() {
-    _slideshowTimer?.cancel();
-    if (_slideshowImages.isNotEmpty) {
-      _slideshowTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        if (mounted && _cartItems.isEmpty && _slideshowEnabled) {
-          setState(() {
-            _currentSlideshowIndex =
-                (_currentSlideshowIndex + 1) % _slideshowImages.length;
-          });
-        }
-      });
-    }
-  }
-
-  void _stopSlideshow() {
-    _slideshowTimer?.cancel();
-    _slideshowTimer = null;
-  }
-
-  @override
-  void dispose() {
-    _welcomeTimer?.cancel();
-    _slideshowTimer?.cancel();
-    super.dispose();
-  }
-  void _showWelcome() {
-    // Welcome display logic - currently not used in center panel
-    // but kept for future reference and welcome animations
-  }
-
-  // Commented out - promotional URL loading not used in current 70/30 split layout
-  // Future<void> _loadPromoUrl() async {
-  //   try {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final url = prefs.getString('vice_promo_image_url');
-  //     if (url != null && url.isNotEmpty) {
-  //       setState(() {
-  //         _promoUrl = url;
-  //       });
-  //     } else if (BusinessInfo.instance.logo != null &&
-  //         BusinessInfo.instance.logo!.isNotEmpty) {
-  //       setState(() => _promoUrl = BusinessInfo.instance.logo);
-  //     }
-  //   } catch (e) {
-  //     // ignore
-  //     if (BusinessInfo.instance.logo != null) {
-  //       setState(() => _promoUrl = BusinessInfo.instance.logo);
-  //     }
-  //   }
-  // }
-
-  @override
-  Widget build(BuildContext context) {
-    // DEBUG: Log render state
-    developer.log(
-      'Vice: build() - cart: ${_cartItems.length} items, mode: $_displayMode',
-    );
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF2C3E50), // Dark navy background matching reference
-      body: Stack(
-        children: [
-          // Background topographic pattern
-          Positioned.fill(
-            child: CustomPaint(painter: TopographicPatternPainter()),
+  Future<void> _showMessage(CustomerDisplay display) async {
+    final controller = TextEditingController(text: 'Welcome to FlutterPOS!');
+    final message = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Display Message'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Message to display',
+            hintText: 'Enter message for customer display',
           ),
-          // Modern 3-column layout
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Row(
-              children: [
-                // Order Summary Section (Left) - 30%
-                Expanded(flex: 3, child: buildModernOrderSummary()),
-                const SizedBox(width: 24),
-                // Featured Item Section (Center) - 40%
-                Expanded(flex: 4, child: buildModernFeaturedProduct()),
-                const SizedBox(width: 24),
-                // Status/Rewards Section (Right) - 30%
-                Expanded(flex: 3, child: buildModernStatusCard()),
-              ],
-            ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('Send'),
           ),
         ],
       ),
     );
-  }
-}
 
-// Topographic Pattern Painter for Background
-class TopographicPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = const Color(0xFF1E2D3F).withOpacity(0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    // Draw organic wavy lines with varied amplitudes
-    for (int i = 0; i < 20; i++) {
-      final path = Path();
-      final baseY = size.height * (i / 20);
-      path.moveTo(0, baseY);
-
-      for (double x = 0; x <= size.width; x += 15) {
-        final phase1 = (x / 100) * 3.14159 * 2;
-        final phase2 = ((x + i * 50) / 150) * 3.14159 * 2;
-        final amplitude = 8 + (i % 3) * 4;
-        final y = baseY + amplitude * (math.sin(phase1) * 0.6 + math.sin(phase2) * 0.4);
-        path.lineTo(x, y);
+    if (message != null && message.isNotEmpty) {
+      try {
+        final success = await CustomerDisplayService().showText(display, message);
+        if (success) {
+          ToastHelper.showToast(context, 'Message sent to display');
+        } else {
+          ToastHelper.showToast(context, 'Failed to send message');
+        }
+      } catch (e) {
+        ToastHelper.showToast(context, 'Error sending message: ${e.toString()}');
       }
-      canvas.drawPath(path, paint);
-    }
-
-    // Draw second layer with phase offset for depth
-    paint.color = const Color(0xFF1E2D3F).withOpacity(0.25);
-    paint.strokeWidth = 1.0;
-    for (int i = 0; i < 15; i++) {
-      final path = Path();
-      final baseX = size.width * (i / 15);
-      path.moveTo(baseX, 0);
-
-      for (double y = 0; y <= size.height; y += 15) {
-        final phase1 = (y / 80) * 3.14159 * 2 + 1.5;
-        final phase2 = ((y + i * 40) / 120) * 3.14159 * 2;
-        final amplitude = 6 + (i % 2) * 3;
-        final x = baseX + amplitude * (math.sin(phase1) * 0.5 + math.sin(phase2) * 0.5);
-        path.lineTo(x, y);
-      }
-      canvas.drawPath(path, paint);
     }
   }
 
+  Future<void> _clearDisplay(CustomerDisplay display) async {
+    try {
+      final success = await CustomerDisplayService().clear(display);
+      if (success) {
+        ToastHelper.showToast(context, 'Display cleared');
+      } else {
+        ToastHelper.showToast(context, 'Failed to clear display');
+      }
+    } catch (e) {
+      ToastHelper.showToast(context, 'Error clearing display: ${e.toString()}');
+    }
+  }
+
+  Future<void> _discoverDisplays() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final displays = await CustomerDisplayService().discoverDisplays();
+
+      // Save discovered displays
+      for (final display in displays) {
+        await DatabaseService.instance.saveCustomerDisplay(display);
+      }
+
+      await _loadDisplays(); // Refresh the list
+      ToastHelper.showToast(context, 'Discovered ${displays.length} display(s)');
+    } catch (e) {
+      ToastHelper.showToast(context, 'Failed to discover displays: ${e.toString()}');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Color _getStatusColor(CustomerDisplayStatus status) {
+    switch (status) {
+      case CustomerDisplayStatus.online:
+        return Colors.green;
+      case CustomerDisplayStatus.offline:
+        return Colors.grey;
+      case CustomerDisplayStatus.error:
+        return Colors.red;
+    }
+  }
+
+  String _getStatusText(CustomerDisplayStatus status) {
+    switch (status) {
+      case CustomerDisplayStatus.online:
+        return 'Online';
+      case CustomerDisplayStatus.offline:
+        return 'Offline';
+      case CustomerDisplayStatus.error:
+        return 'Error';
+    }
+  }
+
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Customer Display'),
+        actions: [
+          IconButton(
+            onPressed: _isLoading ? null : _discoverDisplays,
+            icon: const Icon(Icons.search),
+            tooltip: 'Discover Displays',
+          ),
+          IconButton(
+            onPressed: _isLoading ? null : _loadDisplays,
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _displays.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.tv_off, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No customer displays found',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _discoverDisplays,
+                        icon: const Icon(Icons.search),
+                        label: const Text('Discover Displays'),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _displays.length,
+                  itemBuilder: (context, index) {
+                    final display = _displays[index];
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ExpansionTile(
+                        title: Text(display.name),
+                        subtitle: Text(
+                          '${display.connectionType.name.toUpperCase()} - ${_getStatusText(display.status)}',
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: _getStatusColor(display.status),
+                          child: Icon(
+                            display.connectionType == PrinterConnectionType.bluetooth
+                                ? Icons.bluetooth
+                                : display.connectionType == PrinterConnectionType.usb
+                                    ? Icons.usb
+                                    : Icons.wifi,
+                            color: Colors.white,
+                          ),
+                        ),
+                        trailing: display.isDefault
+                            ? const Chip(
+                                label: Text('Default'),
+                                backgroundColor: Colors.blue,
+                                labelStyle: TextStyle(color: Colors.white),
+                              )
+                            : null,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Connection details
+                                Text('Connection: ${display.connectionType.name}'),
+                                if (display.ipAddress != null)
+                                  Text('IP Address: ${display.ipAddress}'),
+                                if (display.port != null)
+                                  Text('Port: ${display.port}'),
+                                if (display.bluetoothAddress != null)
+                                  Text('Bluetooth: ${display.bluetoothAddress}'),
+                                if (display.usbDeviceId != null)
+                                  Text('USB ID: ${display.usbDeviceId}'),
+                                if (display.modelName != null)
+                                  Text('Model: ${display.modelName}'),
+
+                                const SizedBox(height: 16),
+
+                                // Action buttons
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: _isTesting ? null : () => _testDisplay(display),
+                                        icon: _isTesting
+                                            ? const SizedBox(
+                                                height: 16,
+                                                width: 16,
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              )
+                                            : const Icon(Icons.play_arrow),
+                                        label: const Text('Test'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => _showMessage(display),
+                                        icon: const Icon(Icons.message),
+                                        label: const Text('Message'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => _clearDisplay(display),
+                                        icon: const Icon(Icons.clear),
+                                        label: const Text('Clear'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Set as default button
+                                if (!display.isDefault)
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        try {
+                                          await DatabaseService.instance.setDefaultCustomerDisplay(display.id);
+                                          await _loadDisplays();
+                                          ToastHelper.showToast(context, '${display.name} set as default');
+                                        } catch (e) {
+                                          ToastHelper.showToast(context, 'Failed to set default display');
+                                        }
+                                      },
+                                      icon: const Icon(Icons.star),
+                                      label: const Text('Set as Default'),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
 }

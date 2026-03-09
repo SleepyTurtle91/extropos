@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:extropos/helpers/toast_helper.dart';
+import 'package:extropos/models/advanced_reporting_features.dart';
 import 'package:extropos/models/business_info.dart';
-import 'package:extropos/models/reports_models.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/formatting_service.dart';
 import 'package:extropos/services/printer_service.dart';

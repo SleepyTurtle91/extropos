@@ -1,36 +1,18 @@
-import 'package:extropos/screens/advanced_reports_screen.dart';
-import 'package:extropos/screens/analytics_dashboard_screen.dart';
 import 'package:extropos/screens/business_info_screen.dart';
 import 'package:extropos/screens/categories_management_screen.dart';
-import 'package:extropos/screens/changelog_screen.dart';
-import 'package:extropos/screens/customer_displays_management_screen.dart';
 import 'package:extropos/screens/customers_management_screen.dart';
-import 'package:extropos/screens/database_test_screen.dart';
-import 'package:extropos/screens/debug_tools_screen.dart';
-import 'package:extropos/screens/dual_display_settings_screen.dart';
-import 'package:extropos/screens/employee_performance_screen.dart';
-import 'package:extropos/screens/ewallet_settings_screen.dart';
-import 'package:extropos/screens/generate_test_data_screen.dart';
 import 'package:extropos/screens/items_management_screen.dart';
-import 'package:extropos/screens/kitchen_display_screen.dart';
 import 'package:extropos/screens/modifier_groups_management_screen.dart';
-import 'package:extropos/screens/my_invois_settings_screen.dart';
-import 'package:extropos/screens/order_queue_screen.dart';
-import 'package:extropos/screens/p2p_management_screen.dart';
 import 'package:extropos/screens/payment_methods_management_screen.dart';
 import 'package:extropos/screens/printers_management_screen.dart';
-import 'package:extropos/screens/receipt_settings_screen.dart';
 import 'package:extropos/screens/refund_screen.dart';
 import 'package:extropos/screens/roles_management_screen.dart';
 import 'package:extropos/screens/sales_history_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
-import 'package:extropos/screens/theme_settings_screen.dart';
-import 'package:extropos/screens/thermal_printer_integration_screen.dart';
 import 'package:extropos/screens/users_management_screen.dart';
 import 'package:extropos/services/app_settings.dart';
 import 'package:extropos/services/training_mode_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -98,50 +80,54 @@ class SettingsCategoriesBuilder {
               ),
             ),
           ),
-          SettingsItem(
-            title: 'Printer Integration',
-            icon: Icons.receipt_long,
-            description: 'Thermal printer + PDF print tools',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ThermalPrinterIntegrationScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'Dual Display Settings',
-            icon: Icons.monitor,
-            description: 'Configure customer display for IMIN hardware',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DualDisplaySettingsScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'Customer Displays',
-            icon: Icons.desktop_windows,
-            description: 'Manage customer facing displays',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CustomerDisplaysManagementScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'P2P Network Setup',
-            icon: Icons.device_hub,
-            description: 'Configure server/client P2P connections',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const P2PManagementScreen(),
-              ),
-            ),
-          ),
+          // TODO: Implement printer integration screen
+          // SettingsItem(
+          //   title: 'Printer Integration',
+          //   icon: Icons.receipt_long,
+          //   description: 'Thermal printer + PDF print tools',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const ThermalPrinterIntegrationScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement dual display settings screen
+          // SettingsItem(
+          //   title: 'Dual Display Settings',
+          //   icon: Icons.monitor,
+          //   description: 'Configure customer display for IMIN hardware',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const DualDisplaySettingsScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement customer displays management screen
+          // SettingsItem(
+          //   title: 'Customer Displays',
+          //   icon: Icons.desktop_windows,
+          //   description: 'Manage customer facing displays',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const CustomerDisplaysManagementScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement P2P management screen
+          // SettingsItem(
+          //   title: 'P2P Network Setup',
+          //   icon: Icons.device_hub,
+          //   description: 'Configure server/client P2P connections',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const P2PManagementScreen(),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       SettingsCategory(
@@ -224,15 +210,16 @@ class SettingsCategoriesBuilder {
               ),
             ),
           ),
-          SettingsItem(
-            title: 'Refunds & Returns',
-            icon: Icons.undo,
-            description: 'Process customer refunds and returns',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const RefundScreen()),
-            ),
-          ),
+          // TODO: Implement refund processing screen
+          // SettingsItem(
+          //   title: 'Refunds & Returns',
+          //   icon: Icons.undo,
+          //   description: 'Process customer refunds and returns',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => const RefundScreen()),
+          //   ),
+          // ),
         ],
       ),
       SettingsCategory(
@@ -252,47 +239,50 @@ class SettingsCategoriesBuilder {
               ),
             ),
           ),
-          SettingsItem(
-            title: 'Kitchen Display System',
-            icon: Icons.restaurant,
-            description: 'Monitor and manage kitchen orders',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const KitchenDisplayScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'Cafe Order Queue Display',
-            icon: Icons.monitor,
-            description: 'Customer-facing order status display',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const OrderQueueScreen()),
-            ),
-          ),
+          // TODO: Implement kitchen display system
+          // SettingsItem(
+          //   title: 'Kitchen Display System',
+          //   icon: Icons.restaurant,
+          //   description: 'Monitor and manage kitchen orders',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const KitchenDisplayScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement order queue display
+          // SettingsItem(
+          //   title: 'Cafe Order Queue Display',
+          //   icon: Icons.monitor,
+          //   description: 'Customer-facing order status display',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => const OrderQueueScreen()),
+          //   ),
+          // ),
         ],
       ),
-      SettingsCategory(
-        id: 'appearance',
-        title: 'Appearance',
-        icon: Icons.palette,
-        color: const Color(0xFF8B5CF6),
-        items: [
-          SettingsItem(
-            title: 'Theme & Color Scheme',
-            icon: Icons.palette,
-            description: 'Customize app colors and appearance',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ThemeSettingsScreen(),
-              ),
-            ),
-          ),
-        ],
-      ),
+      // TODO: Implement appearance settings
+      // SettingsCategory(
+      //   id: 'appearance',
+      //   title: 'Appearance',
+      //   icon: Icons.palette,
+      //   color: const Color(0xFF8B5CF6),
+      //   items: [
+      //     SettingsItem(
+      //       title: 'Theme & Color Scheme',
+      //       icon: Icons.palette,
+      //       description: 'Customize app colors and appearance',
+      //       onTap: () => Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //           builder: (context) => const ThemeSettingsScreen(),
+      //         ),
+      //       ),
+      //     ),
+      //   ],
+      // ),
       SettingsCategory(
         id: 'general',
         title: 'General',
@@ -345,17 +335,18 @@ class SettingsCategoriesBuilder {
               ),
             ),
           ),
-          SettingsItem(
-            title: 'E-Wallet Settings',
-            icon: Icons.qr_code_2,
-            description: 'Enable and configure QR payments',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EWalletSettingsScreen(),
-              ),
-            ),
-          ),
+          // TODO: Implement e-wallet settings
+          // SettingsItem(
+          //   title: 'E-Wallet Settings',
+          //   icon: Icons.qr_code_2,
+          //   description: 'Enable and configure QR payments',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const EWalletSettingsScreen(),
+          //     ),
+          //   ),
+          // ),
           SettingsItem(
             title: 'Sales History',
             icon: Icons.history,
@@ -368,33 +359,47 @@ class SettingsCategoriesBuilder {
             ),
           ),
           SettingsItem(
-            title: 'Receipt Settings',
-            icon: Icons.receipt_long,
-            description: 'Customize receipt layout and footer',
+            title: 'Refunds & Returns',
+            icon: Icons.undo,
+            description: 'Process customer refunds and returns',
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const ReceiptSettingsScreen(),
+                builder: (context) => const RefundScreen(),
               ),
             ),
           ),
-          SettingsItem(
-            title: 'e-Invoice (Malaysia)',
-            icon: Icons.description,
-            description: 'MyInvois integration for Malaysian tax compliance',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MyInvoisSettingsScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'MyInvois Queue',
-            icon: Icons.sync_problem,
-            description: 'Manage failed e-invoice submissions and retry',
-            onTap: () => Navigator.pushNamed(context, '/myinvois-queue'),
-          ),
+          // TODO: Implement receipt settings screen
+          // SettingsItem(
+          //   title: 'Receipt Settings',
+          //   icon: Icons.receipt_long,
+          //   description: 'Customize receipt layout and footer',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const ReceiptSettingsScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement MyInvois integration
+          // SettingsItem(
+          //   title: 'e-Invoice (Malaysia)',
+          //   icon: Icons.description,
+          //   description: 'MyInvois integration for Malaysian tax compliance',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const MyInvoisSettingsScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement MyInvois queue management
+          // SettingsItem(
+          //   title: 'MyInvois Queue',
+          //   icon: Icons.sync_problem,
+          //   description: 'Manage failed e-invoice submissions and retry',
+          //   onTap: () => Navigator.pushNamed(context, '/myinvois-queue'),
+          // ),
           SettingsItem(
             title: 'Reset POS',
             icon: Icons.refresh,
@@ -420,64 +425,69 @@ class SettingsCategoriesBuilder {
             description: 'Return to first-run setup (clears store name)',
             onTap: onResetSetup,
           ),
-          SettingsItem(
-            title: 'Advanced Reports',
-            icon: Icons.analytics,
-            description:
-                'Sales analytics, product performance, and business insights',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AdvancedReportsScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'Analytics Dashboard',
-            icon: Icons.dashboard,
-            description: 'Interactive charts and real-time sales analytics',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AnalyticsDashboardScreen(),
-              ),
-            ),
-          ),
-          SettingsItem(
-            title: 'Employee Performance',
-            icon: Icons.people_outline,
-            description: 'Track sales, commissions, shifts, and leaderboards',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EmployeePerformanceScreen(),
-              ),
-            ),
-          ),
-          if (kDebugMode)
-            SettingsItem(
-              title: 'Debug Tools',
-              icon: Icons.bug_report,
-              description: 'Developer tools for debugging hardware & plugins',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DebugToolsScreen(),
-                ),
-              ),
-            ),
-          if (kDebugMode)
-            SettingsItem(
-              title: 'Generate Test Data',
-              icon: Icons.data_usage,
-              description: 'Create realistic sales data for testing reports',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GenerateTestDataScreen(),
-                ),
-              ),
-            ),
+          // TODO: Implement advanced reports
+          // SettingsItem(
+          //   title: 'Advanced Reports',
+          //   icon: Icons.analytics,
+          //   description:
+          //       'Sales analytics, product performance, and business insights',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const AdvancedReportsScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement analytics dashboard
+          // SettingsItem(
+          //   title: 'Analytics Dashboard',
+          //   icon: Icons.dashboard,
+          //   description: 'Interactive charts and real-time sales analytics',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const AnalyticsDashboardScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement employee performance tracking
+          // SettingsItem(
+          //   title: 'Employee Performance',
+          //   icon: Icons.people_outline,
+          //   description: 'Track sales, commissions, shifts, and leaderboards',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const EmployeePerformanceScreen(),
+          //     ),
+          //   ),
+          // ),
+          // TODO: Implement debug tools for development
+          // if (kDebugMode)
+          //   SettingsItem(
+          //     title: 'Debug Tools',
+          //     icon: Icons.bug_report,
+          //     description: 'Developer tools for debugging hardware & plugins',
+          //     onTap: () => Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => const DebugToolsScreen(),
+          //       ),
+          //     ),
+          //   ),
+          // TODO: Implement test data generation
+          // if (kDebugMode)
+          //   SettingsItem(
+          //     title: 'Generate Test Data',
+          //     icon: Icons.data_usage,
+          //     description: 'Create realistic sales data for testing reports',
+          //     onTap: () => Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => const GenerateTestDataScreen(),
+          //       ),
+          //     ),
+          //   ),
         ],
       ),
       SettingsCategory(
@@ -520,17 +530,18 @@ class SettingsCategoriesBuilder {
         icon: Icons.code,
         color: const Color(0xFFDB2777),
         items: [
-          SettingsItem(
-            title: 'Database Test',
-            icon: Icons.storage,
-            description: 'Test and verify database functionality',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DatabaseTestScreen(),
-              ),
-            ),
-          ),
+          // TODO: Implement database testing tools
+          // SettingsItem(
+          //   title: 'Database Test',
+          //   icon: Icons.storage,
+          //   description: 'Test and verify database functionality',
+          //   onTap: () => Navigator.push(
+          //     context,
+          //     MaterialPageRoute(
+          //       builder: (context) => const DatabaseTestScreen(),
+          //     ),
+          //   ),
+          // ),
           SettingsItem(
             title: 'Performance Report',
             icon: Icons.speed,
@@ -576,9 +587,18 @@ class SettingsCategoriesBuilder {
             title: 'Changelog',
             icon: Icons.history,
             description: 'View version history and recent changes',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ChangelogScreen()),
+            onTap: () => showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Changelog'),
+                content: const Text('Changelog functionality will be implemented in a future update.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
             ),
           ),
           SettingsItem(

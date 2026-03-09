@@ -15,7 +15,7 @@ mock data generator with a more maintainable JSON format.
 
 ### Format
 
-Each JSON file follows the current database schema (v1.1.6+) and includes:
+Each JSON file follows the current database schema (v35, FlutterPOS v1.1.8+) and includes:
 
 - Business Information
 - Categories
@@ -29,6 +29,8 @@ Each JSON file follows the current database schema (v1.1.6+) and includes:
 - Modifier Items
 - Receipt Settings
 - Discounts
+- Offline Sync Queue (sync_queue)
+- Offline Sync Statistics (sync_stats)
 
 ## Usage
 
@@ -240,4 +242,4 @@ Planned improvements:
 
 ---
 
-**Last Updated**: March 2, 2026 (v1.1.6)
+**Last Updated**: March 6, 2026 (v1.1.8 with Offline-First Support)

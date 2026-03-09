@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:extropos/services/database_helper.dart';
+import 'package:extropos/services/sqlite3_bootstrap.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 
 /// Service for managing test databases with comprehensive sample data
 class TestDatabaseService {
@@ -22,16 +23,14 @@ class TestDatabaseService {
   Future<void> initializeTestDatabase() async {
     if (_testDatabase != null) return;
 
-    // Initialize database factory for tests
-    if (Platform.environment.containsKey('FLUTTER_TEST')) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
+    // Reuse app-wide SQLite3 bootstrap so tests and production share setup.
+    await SQLite3Bootstrap.ensureInitialized();
 
     final dbPath = await _getTestDatabasePath();
     _testDatabase = await openDatabase(
       dbPath,
       version: 26,
+      onConfigure: SQLite3Bootstrap.configureDatabase,
       onCreate: _onCreateTestDatabase,
       onUpgrade: _onUpgradeTestDatabase,
     );

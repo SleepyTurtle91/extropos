@@ -13,7 +13,7 @@ import 'dart:math';
 
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/item_model.dart';
-import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
 import 'package:extropos/services/cart_service.dart';
 import 'package:extropos/services/database_helper.dart';

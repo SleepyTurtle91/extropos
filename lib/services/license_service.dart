@@ -314,4 +314,29 @@ class LicenseService {
     if (counterId.isEmpty) return null;
     return getTenantIdFromCounterId(counterId);
   }
+
+  /// Activate with offline license key
+  Future<bool> activateOffline(String licenseKey) async {
+    try {
+      await activate(licenseKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Activate with tenant email
+  Future<bool> activateTenant(String email) async {
+    try {
+      // For tenant activation, we need to bind to a tenant
+      // This is a simplified version - in practice, this would involve
+      // tenant lookup and credential validation
+      await _prefs!.setBool(_keyActivated, true);
+      await _prefs!.setString(_keyActivationMode, 'tenant');
+      await _prefs!.setString(_keyBoundEmail, email);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

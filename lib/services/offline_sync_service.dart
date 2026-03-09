@@ -1,121 +1,119 @@
 import 'dart:async';
 import 'dart:convert';
 
-/// Enhanced offline sync service with intelligent queuing and conflict resolution
-/// Ensures reliable data sync when network connectivity is restored
+import 'package:extropos/services/offline_sync_models.dart';
+import 'package:extropos/services/offline_sync_storage_service.dart';
+
+/// Offline-first sync queue with persistent SQLite storage.
 class OfflineSyncService {
   static final OfflineSyncService _instance = OfflineSyncService._internal();
 
-  factory OfflineSyncService() {
-    return _instance;
-  }
+  factory OfflineSyncService() => _instance;
 
   OfflineSyncService._internal();
 
-  // Queue management
+  final OfflineSyncStorageService _storage = OfflineSyncStorageService();
   final List<PendingSyncItem> _syncQueue = [];
+
+  bool _isInitialized = false;
   bool _isSyncing = false;
   DateTime? _lastSuccessfulSync;
 
-  // Sync statistics
   int _totalQueued = 0;
   int _totalSynced = 0;
   int _totalFailed = 0;
 
-  /// Check if there are pending items to sync
   bool get hasPendingSync => _syncQueue.isNotEmpty;
-
-  /// Get number of items in queue
   int get queueSize => _syncQueue.length;
 
-  /// Get sync statistics
   SyncStats get stats => SyncStats(
-        totalQueued: _totalQueued,
-        totalSynced: _totalSynced,
-        totalFailed: _totalFailed,
-        lastSuccessfulSync: _lastSuccessfulSync,
-        pendingItems: _syncQueue.length,
-      );
+    totalQueued: _totalQueued,
+    totalSynced: _totalSynced,
+    totalFailed: _totalFailed,
+    lastSuccessfulSync: _lastSuccessfulSync,
+    pendingItems: _syncQueue.length,
+  );
 
-  /// Queue transaction for sync
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+    await _storage.initialize();
+    await _loadQueueFromStorage();
+    await _loadStatsFromStorage();
+    _isInitialized = true;
+  }
+
+  // Reset for tests: clears the singleton state and reloads from storage
+  Future<void> resetForTests() async {
+    _isInitialized = false;
+    _isSyncing = false;
+    _lastSuccessfulSync = null;
+    _totalQueued = 0;
+    _totalSynced = 0;
+    _totalFailed = 0;
+    await initialize();
+  }
+
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+  }
+
   Future<void> queueTransaction(Map<String, dynamic> transactionData) async {
-    try {
-      final item = PendingSyncItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        type: SyncItemType.transaction,
-        data: transactionData,
-        priority: SyncPriority.high,
-        createdAt: DateTime.now(),
-        retryCount: 0,
-      );
-
-      _syncQueue.add(item);
-      _totalQueued++;
-
-      print('📦 Transaction queued for sync: ${item.id}');
-
-      // TODO: Persist to database
-    } catch (e) {
-      print('🔥 Error queueing transaction: $e');
-      rethrow;
-    }
+    await _queueItem(
+      type: SyncItemType.transaction,
+      data: transactionData,
+      priority: SyncPriority.high,
+    );
   }
 
-  /// Queue product for sync
   Future<void> queueProduct(Map<String, dynamic> productData) async {
-    try {
-      final item = PendingSyncItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        type: SyncItemType.product,
-        data: productData,
-        priority: SyncPriority.medium,
-        createdAt: DateTime.now(),
-        retryCount: 0,
-      );
-
-      _syncQueue.add(item);
-      _totalQueued++;
-
-      print('📦 Product queued for sync: ${item.id}');
-
-      // TODO: Persist to database
-    } catch (e) {
-      print('🔥 Error queueing product: $e');
-      rethrow;
-    }
+    await _queueItem(
+      type: SyncItemType.product,
+      data: productData,
+      priority: SyncPriority.medium,
+    );
   }
 
-  /// Queue inventory update for sync
   Future<void> queueInventoryUpdate(Map<String, dynamic> inventoryData) async {
-    try {
-      final item = PendingSyncItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        type: SyncItemType.inventory,
-        data: inventoryData,
-        priority: SyncPriority.high,
-        createdAt: DateTime.now(),
-        retryCount: 0,
-      );
-
-      _syncQueue.add(item);
-      _totalQueued++;
-
-      print('📦 Inventory update queued for sync: ${item.id}');
-
-      // TODO: Persist to database
-    } catch (e) {
-      print('🔥 Error queueing inventory: $e');
-      rethrow;
-    }
+    await _queueItem(
+      type: SyncItemType.inventory,
+      data: inventoryData,
+      priority: SyncPriority.high,
+    );
   }
 
-  /// Smart sync - syncs queued items in priority order when online
+  Future<void> _queueItem({
+    required SyncItemType type,
+    required Map<String, dynamic> data,
+    required SyncPriority priority,
+  }) async {
+    await _ensureInitialized();
+
+    final now = DateTime.now();
+    final item = PendingSyncItem(
+      id: 'sync_${now.microsecondsSinceEpoch}',
+      type: type,
+      data: Map<String, dynamic>.from(data),
+      priority: priority,
+      createdAt: now,
+      retryCount: 0,
+    );
+
+    _syncQueue.add(item);
+    await _persistQueueItem(item);
+
+    _totalQueued++;
+    await _storage.updateStats(queuedDelta: 1);
+  }
+
   Future<SyncResult> smartSync({
     bool syncImages = false,
     int maxRetries = 3,
   }) async {
+    await _ensureInitialized();
+
     if (_isSyncing) {
-      print('⚠️ Sync already in progress');
       return SyncResult(
         success: false,
         itemsSynced: 0,
@@ -127,60 +125,60 @@ class OfflineSyncService {
     _isSyncing = true;
 
     try {
-      print('🔄 Starting smart sync (${_syncQueue.length} items)...');
-
-      // Sort by priority (high → medium → low)
+      await _loadQueueFromStorage();
       _syncQueue.sort((a, b) => b.priority.value.compareTo(a.priority.value));
 
       int synced = 0;
       int failed = 0;
-      final List<PendingSyncItem> failedItems = [];
 
-      for (final item in List.from(_syncQueue)) {
+      for (final item in List<PendingSyncItem>.from(_syncQueue)) {
         try {
-          // Check if item has exceeded max retries
           if (item.retryCount >= maxRetries) {
-            print('❌ Max retries exceeded for ${item.type.name}: ${item.id}');
             _syncQueue.remove(item);
+            await _storage.removeQueueItem(item.id);
             failed++;
             _totalFailed++;
+            await _storage.updateStats(failedDelta: 1);
             continue;
           }
 
-          // Sync the item
           final success = await _syncItem(item, syncImages: syncImages);
-
           if (success) {
             _syncQueue.remove(item);
+            await _storage.removeQueueItem(item.id);
             synced++;
             _totalSynced++;
-            print('✅ Synced ${item.type.name}: ${item.id}');
+            await _storage.updateStats(syncedDelta: 1);
           } else {
             item.retryCount++;
             item.lastRetryAt = DateTime.now();
-            failedItems.add(item);
+            await _storage.updateQueueItemRetry(
+              id: item.id,
+              retryCount: item.retryCount,
+              lastRetryAt: item.lastRetryAt?.millisecondsSinceEpoch,
+            );
             failed++;
-            print('❌ Failed to sync ${item.type.name}: ${item.id} (retry ${item.retryCount}/$maxRetries)');
           }
 
-          // Add small delay between syncs to avoid overwhelming server
           await Future.delayed(const Duration(milliseconds: 100));
-        } catch (e) {
+        } catch (_) {
           item.retryCount++;
           item.lastRetryAt = DateTime.now();
-          failedItems.add(item);
+          await _storage.updateQueueItemRetry(
+            id: item.id,
+            retryCount: item.retryCount,
+            lastRetryAt: item.lastRetryAt?.millisecondsSinceEpoch,
+          );
           failed++;
-          print('🔥 Error syncing ${item.type.name}: $e');
         }
       }
 
       if (synced > 0) {
         _lastSuccessfulSync = DateTime.now();
+        await _storage.updateStats(
+          lastSuccessfulSync: _lastSuccessfulSync!.millisecondsSinceEpoch,
+        );
       }
-
-      _isSyncing = false;
-
-      print('✅ Smart sync completed: $synced synced, $failed failed');
 
       return SyncResult(
         success: failed == 0,
@@ -188,275 +186,200 @@ class OfflineSyncService {
         itemsFailed: failed,
       );
     } catch (e) {
-      _isSyncing = false;
-      print('🔥 Smart sync failed: $e');
-
       return SyncResult(
         success: false,
         itemsSynced: 0,
         itemsFailed: _syncQueue.length,
         error: e.toString(),
       );
+    } finally {
+      _isSyncing = false;
     }
   }
 
-  /// Sync individual item (implement actual API calls here)
-  Future<bool> _syncItem(PendingSyncItem item, {bool syncImages = false}) async {
-    try {
-      // TODO: Implement actual sync to backend/Appwrite
-
-      switch (item.type) {
-        case SyncItemType.transaction:
-          // Sync transaction to backend
-          return await _syncTransaction(item.data);
-
-        case SyncItemType.product:
-          // Sync product to backend
-          return await _syncProduct(item.data, syncImages: syncImages);
-
-        case SyncItemType.inventory:
-          // Sync inventory update to backend
-          return await _syncInventory(item.data);
-
-        case SyncItemType.customer:
-          // Sync customer data to backend
-          return await _syncCustomer(item.data);
-
-        case SyncItemType.settings:
-          // Sync settings to backend
-          return await _syncSettings(item.data);
-      }
-    } catch (e) {
-      print('🔥 Error in _syncItem: $e');
-      return false;
+  Future<bool> _syncItem(
+    PendingSyncItem item, {
+    bool syncImages = false,
+  }) async {
+    switch (item.type) {
+      case SyncItemType.transaction:
+        return _syncTransaction(item.data);
+      case SyncItemType.product:
+        return _syncProduct(item.data, syncImages: syncImages);
+      case SyncItemType.inventory:
+        return _syncInventory(item.data);
+      case SyncItemType.customer:
+        return _syncCustomer(item.data);
+      case SyncItemType.settings:
+        return _syncSettings(item.data);
     }
   }
 
-  /// Sync transaction to backend
   Future<bool> _syncTransaction(Map<String, dynamic> data) async {
     try {
-      // TODO: Implement actual API call to sync transaction
-      // For now, simulate success
       await Future.delayed(const Duration(milliseconds: 200));
       return true;
-    } catch (e) {
-      print('🔥 Transaction sync failed: $e');
+    } catch (_) {
       return false;
     }
   }
 
-  /// Sync product to backend
-  Future<bool> _syncProduct(Map<String, dynamic> data, {bool syncImages = false}) async {
+  Future<bool> _syncProduct(
+    Map<String, dynamic> data, {
+    bool syncImages = false,
+  }) async {
     try {
-      // TODO: Implement actual API call to sync product
-      // Skip image sync if bandwidth is limited
-      if (!syncImages && data.containsKey('image')) {
-        data.remove('image');
+      final payload = Map<String, dynamic>.from(data);
+      if (!syncImages && payload.containsKey('image')) {
+        payload.remove('image');
       }
-
       await Future.delayed(const Duration(milliseconds: 200));
       return true;
-    } catch (e) {
-      print('🔥 Product sync failed: $e');
+    } catch (_) {
       return false;
     }
   }
 
-  /// Sync inventory to backend
   Future<bool> _syncInventory(Map<String, dynamic> data) async {
     try {
-      // TODO: Implement actual API call to sync inventory
       await Future.delayed(const Duration(milliseconds: 200));
       return true;
-    } catch (e) {
-      print('🔥 Inventory sync failed: $e');
+    } catch (_) {
       return false;
     }
   }
 
-  /// Sync customer to backend
   Future<bool> _syncCustomer(Map<String, dynamic> data) async {
     try {
-      // TODO: Implement actual API call to sync customer
       await Future.delayed(const Duration(milliseconds: 200));
       return true;
-    } catch (e) {
-      print('🔥 Customer sync failed: $e');
+    } catch (_) {
       return false;
     }
   }
 
-  /// Sync settings to backend
   Future<bool> _syncSettings(Map<String, dynamic> data) async {
     try {
-      // TODO: Implement actual API call to sync settings
       await Future.delayed(const Duration(milliseconds: 200));
       return true;
-    } catch (e) {
-      print('🔥 Settings sync failed: $e');
+    } catch (_) {
       return false;
     }
   }
 
-  /// Resolve conflict - choose which version to keep
   Future<void> resolveConflict(
     String documentId,
     ConflictResolution strategy, {
     Map<String, dynamic>? localData,
     Map<String, dynamic>? remoteData,
   }) async {
-    try {
-      switch (strategy) {
-        case ConflictResolution.lastWriteWins:
-          // Use the version with the latest timestamp
-          final localTime = localData?['updated_at'] as int? ?? 0;
-          final remoteTime = remoteData?['updated_at'] as int? ?? 0;
-
-          if (localTime > remoteTime) {
-            print('🔄 Conflict: Using local version (last write wins)');
-            // Queue local data for sync
-          } else {
-            print('🔄 Conflict: Using remote version (last write wins)');
-            // Update local database with remote data
-          }
-          break;
-
-        case ConflictResolution.serverWins:
-          print('🔄 Conflict: Server version takes precedence');
-          // Always use remote data
-          break;
-
-        case ConflictResolution.manualReview:
-          print('⚠️ Conflict: Manual review required');
-          // Queue for manual resolution
-          break;
-      }
-    } catch (e) {
-      print('🔥 Error resolving conflict: $e');
-      rethrow;
+    switch (strategy) {
+      case ConflictResolution.lastWriteWins:
+        final localTime = localData?['updated_at'] as int? ?? 0;
+        final remoteTime = remoteData?['updated_at'] as int? ?? 0;
+        if (localTime > remoteTime) {
+          return;
+        }
+        return;
+      case ConflictResolution.serverWins:
+        return;
+      case ConflictResolution.manualReview:
+        return;
     }
   }
 
-  /// Clear sync queue (use with caution)
-  void clearQueue() {
+  Future<void> clearQueue() async {
+    await _ensureInitialized();
     _syncQueue.clear();
-    print('🗑️ Sync queue cleared');
+    await _storage.clearQueue();
+    // Reset stats counters
+    _totalQueued = 0;
+    _totalSynced = 0;
+    _totalFailed = 0;
   }
 
-  /// Get pending items by type
   List<PendingSyncItem> getPendingByType(SyncItemType type) {
     return _syncQueue.where((item) => item.type == type).toList();
   }
 
-  /// Export sync queue for debugging
   String exportQueue() {
     return jsonEncode(_syncQueue.map((item) => item.toJson()).toList());
   }
-}
 
-/// Pending sync item
-class PendingSyncItem {
-  final String id;
-  final SyncItemType type;
-  final Map<String, dynamic> data;
-  final SyncPriority priority;
-  final DateTime createdAt;
-  int retryCount;
-  DateTime? lastRetryAt;
-
-  PendingSyncItem({
-    required this.id,
-    required this.type,
-    required this.data,
-    required this.priority,
-    required this.createdAt,
-    required this.retryCount,
-    this.lastRetryAt,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type.name,
-      'priority': priority.name,
-      'createdAt': createdAt.millisecondsSinceEpoch,
-      'retryCount': retryCount,
-      'lastRetryAt': lastRetryAt?.millisecondsSinceEpoch,
-    };
+  Future<void> _persistQueueItem(PendingSyncItem item) async {
+    await _storage.upsertQueueItem(
+      id: item.id,
+      type: item.type.name,
+      priority: item.priority.value,
+      data: jsonEncode(item.data),
+      retryCount: item.retryCount,
+      lastRetryAt: item.lastRetryAt?.millisecondsSinceEpoch,
+      createdAt: item.createdAt.millisecondsSinceEpoch,
+    );
   }
-}
 
-/// Sync item types
-enum SyncItemType { transaction, product, inventory, customer, settings }
+  Future<void> _loadQueueFromStorage() async {
+    final rows = await _storage.getQueueItems();
+    _syncQueue
+      ..clear()
+      ..addAll(rows.map(_mapQueueRowToItem));
+  }
 
-/// Sync priority
-enum SyncPriority {
-  high(3),
-  medium(2),
-  low(1);
+  PendingSyncItem _mapQueueRowToItem(Map<String, dynamic> row) {
+    final typeName = (row['type'] as String? ?? '').trim();
+    final priorityValue = (row['priority'] as int?) ?? 2;
 
-  final int value;
-  const SyncPriority(this.value);
-}
-
-/// Conflict resolution strategies
-enum ConflictResolution { lastWriteWins, serverWins, manualReview }
-
-/// Sync result
-class SyncResult {
-  final bool success;
-  final int itemsSynced;
-  final int itemsFailed;
-  final String? error;
-
-  SyncResult({
-    required this.success,
-    required this.itemsSynced,
-    required this.itemsFailed,
-    this.error,
-  });
-
-  @override
-  String toString() {
-    if (success) {
-      return '✅ Sync successful: $itemsSynced synced, $itemsFailed failed';
-    } else {
-      return '❌ Sync failed: $error';
+    SyncItemType parsedType = SyncItemType.settings;
+    for (final value in SyncItemType.values) {
+      if (value.name == typeName) {
+        parsedType = value;
+        break;
+      }
     }
+
+    SyncPriority parsedPriority = SyncPriority.medium;
+    for (final value in SyncPriority.values) {
+      if (value.value == priorityValue) {
+        parsedPriority = value;
+        break;
+      }
+    }
+
+    final rawData = row['data'] as String? ?? '{}';
+    Map<String, dynamic> decodedData = <String, dynamic>{};
+    try {
+      final dynamic parsed = jsonDecode(rawData);
+      if (parsed is Map<String, dynamic>) {
+        decodedData = parsed;
+      }
+    } catch (_) {
+      decodedData = <String, dynamic>{};
+    }
+
+    return PendingSyncItem(
+      id: row['id'] as String,
+      type: parsedType,
+      data: decodedData,
+      priority: parsedPriority,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        (row['created_at'] as int?) ?? DateTime.now().millisecondsSinceEpoch,
+      ),
+      retryCount: (row['retry_count'] as int?) ?? 0,
+      lastRetryAt: (row['last_retry_at'] as int?) != null
+          ? DateTime.fromMillisecondsSinceEpoch(row['last_retry_at'] as int)
+          : null,
+    );
   }
-}
 
-/// Sync statistics
-class SyncStats {
-  final int totalQueued;
-  final int totalSynced;
-  final int totalFailed;
-  final DateTime? lastSuccessfulSync;
-  final int pendingItems;
+  Future<void> _loadStatsFromStorage() async {
+    final row = await _storage.getStatsRow();
+    _totalQueued = (row['total_queued'] as int?) ?? 0;
+    _totalSynced = (row['total_synced'] as int?) ?? 0;
+    _totalFailed = (row['total_failed'] as int?) ?? 0;
 
-  SyncStats({
-    required this.totalQueued,
-    required this.totalSynced,
-    required this.totalFailed,
-    this.lastSuccessfulSync,
-    required this.pendingItems,
-  });
-
-  double get successRate {
-    if (totalQueued == 0) return 0.0;
-    return (totalSynced / totalQueued) * 100;
-  }
-
-  @override
-  String toString() {
-    return '''
-Sync Statistics:
-  • Total Queued: $totalQueued
-  • Total Synced: $totalSynced
-  • Total Failed: $totalFailed
-  • Pending: $pendingItems
-  • Success Rate: ${successRate.toStringAsFixed(1)}%
-  • Last Sync: ${lastSuccessfulSync?.toString() ?? 'Never'}
-''';
+    final syncTs = row['last_successful_sync'] as int?;
+    _lastSuccessfulSync = syncTs == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(syncTs);
   }
 }

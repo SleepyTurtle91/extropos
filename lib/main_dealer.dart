@@ -2,10 +2,9 @@ import 'dart:developer' as developer;
 
 import 'package:extropos/config/app_flavor.dart';
 import 'package:extropos/screens/dealer_home_screen.dart';
+import 'package:extropos/services/sqlite3_bootstrap.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:universal_io/io.dart' show Platform;
 
 void main() async {
@@ -14,17 +13,7 @@ void main() async {
   // Set app flavor to Dealer
   AppFlavor.setFlavor(AppFlavorType.dealer);
 
-  // Initialize SQLite FFI for Web
-  if (kIsWeb) {
-    databaseFactory = databaseFactoryFfiWeb;
-    developer.log('🌐 Dealer Portal: Initialized SQLite FFI for Web');
-  }
-  // Initialize SQLite FFI for desktop platforms (Windows/Linux)
-  else if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-    developer.log('🖥️ Dealer Portal: Initialized SQLite FFI for desktop');
-  }
+  await SQLite3Bootstrap.ensureInitialized();
 
   // DEALER PORTAL FLAVOR: WEB ONLY
   // Disable Android and Windows - Dealer Portal only runs on web

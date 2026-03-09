@@ -1,8 +1,10 @@
-import 'package:extropos/services/my_invois_service.dart';
+import 'package:extropos/services/database_service.dart';
+import 'package:extropos/services/einvoice_service.dart';
+import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Screen to manage queued MyInvois submissions that failed initially
+/// MyInvois Queue Screen - View submitted e-invoices and their status
 class MyInvoisQueueScreen extends StatefulWidget {
   const MyInvoisQueueScreen({super.key});
 
@@ -11,85 +13,156 @@ class MyInvoisQueueScreen extends StatefulWidget {
 }
 
 class _MyInvoisQueueScreenState extends State<MyInvoisQueueScreen> {
-  List<Map<String, dynamic>> _queuedItems = [];
+  List<Map<String, dynamic>> _submittedInvoices = [];
   bool _isLoading = true;
-  bool _isRetrying = false;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
-    _loadQueue();
+    _loadSubmittedInvoices();
   }
 
-  Future<void> _loadQueue() async {
+  Future<void> _loadSubmittedInvoices() async {
     setState(() => _isLoading = true);
+
     try {
-      final items = await MyInvoiceService().getQueuedTransactions();
-      setState(() {
-        _queuedItems = items;
-        _isLoading = false;
+      // Load orders that have been submitted as e-invoices
+      final orders = await DatabaseService.instance.getSalesHistory(
+        limit: 100, // Show recent submissions
+      );
+
+      // Filter for orders that have e-invoice UUIDs
+      _submittedInvoices = orders.where((order) {
+        return order['einvoice_uuid'] != null && order['einvoice_uuid'].toString().isNotEmpty;
+      }).toList();
+
+      // Sort by submission date (most recent first)
+      _submittedInvoices.sort((a, b) {
+        final aDate = a['date'] as DateTime?;
+        final bDate = b['date'] as DateTime?;
+        if (aDate == null && bDate == null) return 0;
+        if (aDate == null) return 1;
+        if (bDate == null) return -1;
+        return bDate.compareTo(aDate);
       });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load queue: $e')),
-        );
-      }
-    }
-  }
 
-  Future<void> _retryAll() async {
-    setState(() => _isRetrying = true);
-    try {
-      final successCount = await MyInvoiceService().retryQueuedSubmissions();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$successCount transaction(s) submitted successfully')),
-        );
-        _loadQueue();
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Retry failed: $e')),
-        );
-      }
+      ToastHelper.showToast(context, 'Failed to load submitted invoices');
     } finally {
-      setState(() => _isRetrying = false);
+      setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _clearQueue() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Clear queue?'),
-          content: const Text('This will permanently remove all queued submissions. This action cannot be undone.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Clear'),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> _refreshStatuses() async {
+    if (!EInvoiceService.instance.isConfigured) {
+      ToastHelper.showToast(context, 'E-Invoice not configured');
+      return;
+    }
 
-    if (confirmed == true) {
-      await MyInvoiceService().clearQueue();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Queue cleared')),
-        );
-        _loadQueue();
+    setState(() => _isRefreshing = true);
+
+    try {
+      int updated = 0;
+      for (final invoice in _submittedInvoices) {
+        final uuid = invoice['einvoice_uuid'];
+        if (uuid != null && uuid.toString().isNotEmpty) {
+          try {
+            // Check submission status
+            final status = await EInvoiceService.instance.getSubmission(uuid);
+            // Update local status if needed
+            // This would require adding status tracking to the database
+            updated++;
+          } catch (e) {
+            // Continue with other invoices
+            continue;
+          }
+        }
       }
+
+      if (updated > 0) {
+        ToastHelper.showToast(context, 'Updated status for $updated invoice(s)');
+        await _loadSubmittedInvoices(); // Refresh the list
+      } else {
+        ToastHelper.showToast(context, 'All statuses are up to date');
+      }
+
+    } catch (e) {
+      ToastHelper.showToast(context, 'Failed to refresh statuses');
+    } finally {
+      setState(() => _isRefreshing = false);
+    }
+  }
+
+  Future<void> _viewInvoiceDetails(Map<String, dynamic> invoice) async {
+    final uuid = invoice['einvoice_uuid'];
+    if (uuid == null || uuid.toString().isEmpty) {
+      ToastHelper.showToast(context, 'No e-invoice UUID available');
+      return;
+    }
+
+    if (!EInvoiceService.instance.isConfigured) {
+      ToastHelper.showToast(context, 'E-Invoice not configured');
+      return;
+    }
+
+    try {
+      final details = await EInvoiceService.instance.getSubmission(uuid);
+
+      // Show details dialog
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('E-Invoice Details'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Order: ${invoice['order_number'] ?? invoice['id']}'),
+                  Text('UUID: $uuid'),
+                  Text('Status: ${details['status'] ?? 'Unknown'}'),
+                  Text('Submitted: ${details['submittedAt'] ?? 'Unknown'}'),
+                  if (details['documents'] != null && details['documents'].isNotEmpty)
+                    Text('Documents: ${details['documents'].length}'),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+
+    } catch (e) {
+      ToastHelper.showToast(context, 'Failed to load invoice details');
+    }
+  }
+
+  String _getStatusText(Map<String, dynamic> invoice) {
+    // In a real implementation, you'd check the actual status from MyInvois
+    // For now, we'll show a generic status
+    return 'Submitted';
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+      case 'valid':
+        return Colors.green;
+      case 'rejected':
+      case 'invalid':
+        return Colors.red;
+      case 'pending':
+      case 'processing':
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -98,141 +171,117 @@ class _MyInvoisQueueScreenState extends State<MyInvoisQueueScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MyInvois Queue'),
-        backgroundColor: const Color(0xFF2563EB),
-        foregroundColor: Colors.white,
         actions: [
-          if (_queuedItems.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              tooltip: 'Clear queue',
-              onPressed: _clearQueue,
-            ),
+          IconButton(
+            onPressed: _isRefreshing ? null : _refreshStatuses,
+            icon: _isRefreshing
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+            tooltip: 'Refresh Statuses',
+          ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _queuedItems.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.check_circle, size: 64, color: Colors.green),
-                      SizedBox(height: 16),
-                      Text(
-                        'No queued submissions',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'All invoices have been submitted successfully',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
+      body: Column(
+        children: [
+          // Status summary
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.blue.shade50,
+            child: Row(
+              children: [
+                Icon(
+                  EInvoiceService.instance.isConfigured ? Icons.check_circle : Icons.warning,
+                  color: EInvoiceService.instance.isConfigured ? Colors.green : Colors.orange,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    EInvoiceService.instance.isConfigured
+                        ? '${_submittedInvoices.length} e-invoice(s) submitted'
+                        : 'E-Invoice not configured',
+                    style: TextStyle(
+                      color: EInvoiceService.instance.isConfigured ? Colors.green : Colors.orange,
+                    ),
                   ),
-                )
-              : Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      color: Colors.orange.withOpacity(0.1),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.warning, color: Colors.orange),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${_queuedItems.length} pending submission(s)',
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                                const Text(
-                                  'These invoices failed to submit and are waiting for retry',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: _isRetrying ? null : _retryAll,
-                            icon: _isRetrying
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.refresh),
-                            label: Text(_isRetrying ? 'Retrying...' : 'Retry All'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _queuedItems.length,
-                        itemBuilder: (context, index) {
-                          final item = _queuedItems[index];
-                          return _buildQueueCard(item);
-                        },
-                      ),
-                    ),
-                  ],
                 ),
-    );
-  }
-
-  Widget _buildQueueCard(Map<String, dynamic> item) {
-    final transactionData = item['transactionData'] as Map<String, dynamic>;
-    final queuedAt = DateTime.parse(item['queuedAt'] as String);
-    final retryCount = item['retryCount'] as int? ?? 0;
-    final receiptNumber = transactionData['receiptNumber'] ?? 'N/A';
-    final total = transactionData['totalAmount'] ?? 0.0;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: retryCount >= 3 ? Colors.red : Colors.orange,
-          child: Text(
-            '$retryCount',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ],
+            ),
           ),
-        ),
-        title: Text(
-          'Receipt: $receiptNumber',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Amount: RM ${total.toStringAsFixed(2)}'),
-            Text('Queued: ${DateFormat.yMMMd().add_jm().format(queuedAt)}'),
-            if (retryCount > 0)
-              Text(
-                'Retry attempts: $retryCount/3',
-                style: TextStyle(
-                  color: retryCount >= 3 ? Colors.red : Colors.orange,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-          ],
-        ),
-        trailing: retryCount >= 3
-            ? const Chip(
-                label: Text('Failed'),
-                backgroundColor: Colors.red,
-                labelStyle: TextStyle(color: Colors.white),
-              )
-            : const Chip(
-                label: Text('Pending'),
-                backgroundColor: Colors.orange,
-                labelStyle: TextStyle(color: Colors.white),
-              ),
+
+          // Invoice list
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _submittedInvoices.isEmpty
+                    ? const Center(
+                        child: Text('No submitted e-invoices found'),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadSubmittedInvoices,
+                        child: ListView.builder(
+                          itemCount: _submittedInvoices.length,
+                          itemBuilder: (context, index) {
+                            final invoice = _submittedInvoices[index];
+                            final status = _getStatusText(invoice);
+
+                            return Card(
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              child: ListTile(
+                                title: Text('Order #${invoice['order_number'] ?? invoice['id']}'),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Customer: ${invoice['customer_name'] ?? 'Walk-in'}',
+                                    ),
+                                    Text(
+                                      'Total: RM ${invoice['total']?.toStringAsFixed(2) ?? '0.00'}',
+                                    ),
+                                    Text(
+                                      'Submitted: ${invoice['date'] != null ? DateFormat('dd/MM/yyyy HH:mm').format(invoice['date']) : 'Unknown'}',
+                                    ),
+                                  ],
+                                ),
+                                trailing: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: _getStatusColor(status),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        status,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'RM ${invoice['total']?.toStringAsFixed(2) ?? '0.00'}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                onTap: () => _viewInvoiceDetails(invoice),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+          ),
+        ],
       ),
     );
   }

@@ -10,8 +10,8 @@ void main() {
     final t2 = RestaurantTable(id: 't2', name: 'T2', capacity: 4);
     final target = RestaurantTable(id: 't3', name: 'T3', capacity: 6);
 
-    final pA = Product('A', 10.0, 'Cat', Icons.shop);
-    final pB = Product('B', 5.0, 'Cat', Icons.shop);
+    final pA = Product('A', 10.0, 'Cat', Icons.shop, id: 'product_a');
+    final pB = Product('B', 5.0, 'Cat', Icons.shop, id: 'product_b');
 
     t1.addOrMergeOrder(CartItem(pA, 2));
     t2.addOrMergeOrder(CartItem(pA, 1));
@@ -41,7 +41,7 @@ void main() {
     final t2 = RestaurantTable(id: 't2', name: 'T2', capacity: 4);
     final target = RestaurantTable(id: 't3', name: 'T3', capacity: 6);
 
-    final pA = Product('A', 10.0, 'Cat', Icons.shop);
+    final pA = Product('A', 10.0, 'Cat', Icons.shop, id: 'product_a');
 
     // t1 has A for seat 1, t2 has A for seat 2
     t1.addOrMergeOrder(CartItem(pA, 2, seatNumber: 1));

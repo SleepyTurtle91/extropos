@@ -1,7 +1,10 @@
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/einvoice/einvoice_document.dart';
+import 'package:extropos/models/product.dart';
+import 'package:extropos/models/product_models.dart';
 import 'package:extropos/services/einvoice_service.dart';
+import 'package:flutter/material.dart';
 
 /// Helper class to convert POS transactions to e-Invoice format
 class EInvoiceHelper {
@@ -208,5 +211,61 @@ class EInvoiceHelper {
     // TIN format: C + 10 digits or C + 9 digits + letter
     final regex = RegExp(r'^C\d{10}$|^C\d{9}[A-Z]$');
     return regex.hasMatch(tin);
+  }
+
+  /// Convert order map from database to e-Invoice document
+  static Future<EInvoiceDocument> convertOrderToEInvoice(Map<String, dynamic> order) async {
+    final config = EInvoiceService.instance.config;
+    if (config == null || !config.isConfigured) {
+      throw Exception('e-Invoice not configured');
+    }
+
+    final businessInfo = BusinessInfo.instance;
+    final now = DateTime.now();
+
+    // Extract order data
+    final orderId = order['id'] as String;
+    final orderNumber = order['order_number'] as String? ?? orderId;
+    final subtotal = (order['subtotal'] as num?)?.toDouble() ?? 0.0;
+    final taxAmount = (order['tax'] as num?)?.toDouble() ?? 0.0;
+    final discount = (order['discount'] as num?)?.toDouble() ?? 0.0;
+    final total = (order['total'] as num?)?.toDouble() ?? 0.0;
+    final customerName = order['customer_name'] as String?;
+    final customerPhone = order['customer_phone'] as String?;
+    final customerEmail = order['customer_email'] as String?;
+
+    // Calculate service charge (assuming it's included in total)
+    final serviceChargeAmount = businessInfo.isServiceChargeEnabled 
+        ? subtotal * businessInfo.serviceChargeRate 
+        : 0.0;
+
+    // Get order items
+    final items = order['items'] as List<dynamic>? ?? [];
+    final cartItems = items.map((item) {
+      final product = Product(
+        item['name'] as String,
+        (item['price'] as num?)?.toDouble() ?? 0.0,
+        '',
+        Icons.restaurant, // Default icon
+        id: 'temp-${item['name']}',
+      );
+      return CartItem(
+        product,
+        (item['quantity'] as num?)?.toInt() ?? 1,
+      );
+    }).toList();
+
+    // Use the existing convertToEInvoice method
+    return convertToEInvoice(
+      invoiceNumber: orderNumber,
+      cartItems: cartItems,
+      subtotal: subtotal,
+      taxAmount: taxAmount,
+      serviceChargeAmount: serviceChargeAmount,
+      grandTotal: total,
+      customerName: customerName,
+      customerPhone: customerPhone,
+      customerEmail: customerEmail,
+    );
   }
 }

@@ -95,6 +95,7 @@ extension UnifiedPOSOperations on _UnifiedPOSScreenState {
               item.product.price,
               item.product.category,
               Icons.shopping_cart,
+              id: item.product.id,
             ),
             item.quantity,
           ),

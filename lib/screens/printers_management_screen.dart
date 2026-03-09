@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:extropos/dialogs/printer_form_dialog.dart';
 import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/printer_model.dart';
@@ -10,14 +11,13 @@ import 'package:extropos/services/printer_service_clean.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:collection/collection.dart';
 
-part 'printers_management_screen_discovery.dart';
-part 'printers_management_screen_print.dart';
-part 'printers_management_screen_operations.dart';
-part 'printers_management_screen_widgets.dart';
 part 'printers_management_screen_dialogs.dart';
+part 'printers_management_screen_discovery.dart';
+part 'printers_management_screen_operations.dart';
+part 'printers_management_screen_print.dart';
 part 'printers_management_screen_ui.dart';
+part 'printers_management_screen_widgets.dart';
 
 /// Simple printers management screen.
 ///

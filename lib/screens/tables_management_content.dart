@@ -119,10 +119,22 @@ extension TablesManagementContent on _TablesManagementScreenState {
     return Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
+          // Adaptive columns based on screen width
+          int columns;
+          if (constraints.maxWidth < 600) {
+            columns = 1;
+          } else if (constraints.maxWidth < 900) {
+            columns = 2;
+          } else if (constraints.maxWidth < 1200) {
+            columns = 3;
+          } else {
+            columns = 4;
+          }
+
           return GridView.builder(
             padding: const EdgeInsets.all(AppSpacing.m),
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: AppTokens.tableCardMinWidth + 40,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
               childAspectRatio: 1.2,
               crossAxisSpacing: AppSpacing.m,
               mainAxisSpacing: AppSpacing.m,

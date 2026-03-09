@@ -9,6 +9,7 @@ import 'package:extropos/models/printer_model.dart';
 import 'package:extropos/models/receipt_settings_model.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/printer_service_clean.dart';
+import 'package:extropos/services/sync_queue_helper.dart';
 import 'package:extropos/services/training_mode_service.dart';
 import 'package:intl/intl.dart';
 
@@ -136,6 +137,30 @@ class RefundService {
         );
       }
 
+      // Queue offline sync for this refund operation
+      try {
+        await SyncQueueHelper().queueRefund(
+          orderId: orderId,
+          orderNumber: orderNumber,
+          refundAmount: originalTotal,
+          refundType: 'full_void',
+          refundMethodId: refundMethod.id,
+          affectedItems: originalItems
+              .map((item) => {
+                    'product_id': item.product.id,
+                    'product_name': item.product.name,
+                    'quantity': item.quantity,
+                    'price': item.finalPrice,
+                  })
+              .toList(),
+          reason: reason,
+          userId: userId,
+        );
+      } catch (queueError) {
+        developer.log('Failed to queue offline sync for refund: $queueError');
+        // Don't fail the refund if queue fails
+      }
+
       // Restore stock for all items
       await _restoreStockForItems(originalItems);
 
@@ -259,6 +284,30 @@ class RefundService {
         );
       }
 
+      // Queue offline sync for this return/refund operation
+      try {
+        await SyncQueueHelper().queueRefund(
+          orderId: orderId,
+          orderNumber: orderNumber,
+          refundAmount: refundAmount,
+          refundType: isPartial ? 'partial_return' : 'full_return',
+          refundMethodId: refundMethod.id,
+          affectedItems: refundItems
+              .map((item) => {
+                    'product_id': item.product.id,
+                    'product_name': item.product.name,
+                    'quantity': item.quantity,
+                    'price': item.finalPrice,
+              })
+              .toList(),
+          reason: reason,
+          userId: userId,
+        );
+      } catch (queueError) {
+        developer.log('Failed to queue offline sync for return: $queueError');
+        // Don't fail the refund if queue fails
+      }
+
       // Restore stock for refunded items
       await _restoreStockForItems(refundItems);
 
@@ -328,6 +377,17 @@ class RefundService {
           developer.log(
             'Restored ${cartItem.quantity} to ${matchingItem.name} stock. New stock: $newStock',
           );
+
+          // Queue inventory adjustment for offline sync
+          try {
+            await SyncQueueHelper().queueInventoryAdjustment(
+              productId: matchingItem.id,
+              quantityChange: cartItem.quantity,
+              reason: 'Stock restored from refund/return',
+            );
+          } catch (queueError) {
+            developer.log('Failed to queue inventory adjustment: $queueError');
+          }
         }
       }
     } catch (e) {

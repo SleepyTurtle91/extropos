@@ -1,6 +1,10 @@
 import 'package:extropos/models/business_info_model.dart';
 import 'package:flutter/material.dart';
 
+// Placeholder dialog classes for future business info configuration
+// These classes are not currently used in the application
+
+// ignore: unused_element
 class _BusinessDetailsDialog extends StatelessWidget {
   final BusinessInfo businessInfo;
   final ValueChanged<BusinessInfo> onSave;
@@ -18,6 +22,7 @@ class _BusinessDetailsDialog extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _TaxSettingsDialog extends StatelessWidget {
   final BusinessInfo businessInfo;
   final ValueChanged<BusinessInfo> onSave;
@@ -35,6 +40,7 @@ class _TaxSettingsDialog extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _HappyHourDialog extends StatelessWidget {
   final BusinessInfo businessInfo;
   final ValueChanged<BusinessInfo> onSave;
@@ -52,6 +58,7 @@ class _HappyHourDialog extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _ReceiptSettingsDialog extends StatelessWidget {
   final BusinessInfo businessInfo;
   final ValueChanged<BusinessInfo> onSave;
@@ -69,6 +76,7 @@ class _ReceiptSettingsDialog extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _BusinessHoursScreen extends StatelessWidget {
   final dynamic businessHours;
   final ValueChanged<dynamic> onSave;
@@ -83,3 +91,4 @@ class _BusinessHoursScreen extends StatelessWidget {
     );
   }
 }
+

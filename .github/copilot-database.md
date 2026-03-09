@@ -1,8 +1,6 @@
 # FlutterPOS Database Guide
 
-
-
-## SQLite to Isar Migration Guide
+## SQLite Database System
 
 
 
@@ -105,8 +103,10 @@ await db.delete('products',
 
 ```
 
+---
 
-## Planned Database System (Isar)
+**Last Updated**: March 6, 2026 - SQLite-only version
+
 
 
 

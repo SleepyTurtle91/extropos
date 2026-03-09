@@ -191,12 +191,22 @@ extension ItemsManagementUIBuilders on _ItemsManagementScreenState {
                   )
                 : LayoutBuilder(
                     builder: (context, constraints) {
-                      // Adaptive sizing handled by maxCrossAxisExtent
+                      // Adaptive columns based on screen width (following ProductGridWidget pattern)
+                      int columns;
+                      if (constraints.maxWidth < 600) {
+                        columns = 1;
+                      } else if (constraints.maxWidth < 900) {
+                        columns = 2;
+                      } else if (constraints.maxWidth < 1200) {
+                        columns = 3;
+                      } else {
+                        columns = 4;
+                      }
+
                       return GridView.builder(
                         padding: const EdgeInsets.all(AppSpacing.m),
-                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent:
-                              AppTokens.productTileMinWidth + 80,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
                           mainAxisSpacing: AppSpacing.m,
                           crossAxisSpacing: AppSpacing.m,
                           childAspectRatio: 1.25,

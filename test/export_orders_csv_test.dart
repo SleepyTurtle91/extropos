@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
-import 'package:extropos/models/payment_method_model.dart';
+import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
 import 'package:extropos/services/database_helper.dart';
 import 'package:extropos/services/database_service.dart';

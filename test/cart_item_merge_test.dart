@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('Cart items with different priceAdjustment should not be equal', () {
-    final product = Product('Test Product', 10.0, 'Test', Icons.shop);
+    final product = Product('Test Product', 10.0, 'Test', Icons.shop, id: 'test-id');
     final mods = <ModifierItem>[];
     final a = CartItem(product, 1, modifiers: mods, priceAdjustment: 0.0);
     final b = CartItem(product, 1, modifiers: mods, priceAdjustment: 2.0);
@@ -19,7 +19,7 @@ void main() {
   });
 
   test('Cart items with different discountPerUnit should not be equal', () {
-    final product = Product('Test Product', 10.0, 'Test', Icons.shop);
+    final product = Product('Test Product', 10.0, 'Test', Icons.shop, id: 'test-id-2');
     final mods = <ModifierItem>[];
     final a = CartItem(product, 1, modifiers: mods, priceAdjustment: 0.0, discountPerUnit: 0.0);
     final b = CartItem(product, 1, modifiers: mods, priceAdjustment: 0.0, discountPerUnit: 1.0);
@@ -29,7 +29,7 @@ void main() {
   });
 
   test('Cart items with seat numbers should only merge when seat matches', () {
-    final product = Product('Seat Product', 12.0, 'Test', Icons.shop);
+    final product = Product('Seat Product', 12.0, 'Test', Icons.shop, id: 'seat-product');
     final mods = <ModifierItem>[];
     final a = CartItem(product, 1, modifiers: mods, priceAdjustment: 0.0, discountPerUnit: 0.0, seatNumber: 1);
     final b = CartItem(product, 1, modifiers: mods, priceAdjustment: 0.0, discountPerUnit: 0.0, seatNumber: 2);

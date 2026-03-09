@@ -9,7 +9,7 @@
 
 - **Architecture**: Multi-flavor Flutter app (POS/KDS/Backend/KeyGen)
 
-- **Data**: SQLite (current), Isar (planned migration)
+- **Data**: SQLite (offline-first via sync queue)
 
 - **Build**: `./build_flavors.ps1 [flavor] [debug|release]` (Windows) or `./build_flavors.sh` (Linux)
 
@@ -375,7 +375,7 @@ git push origin v1.0.27-$(Get-Date -Format yyyyMMdd)
 ### Database Operations
 
 **Current**: SQLite via `DatabaseHelper.instance` (singleton)
-**Planned**: Isar migration (models exist in `lib/models/isar/` but not integrated)
+**Current Production**: SQLite via DatabaseHelper + OfflineSyncService for offline-first operations
 
 **Pattern**:
 
@@ -2250,7 +2250,7 @@ Write-Host "4. Build: .\build_flavors.ps1 pos release"
 
 - **[Development Workflows](copilot-workflows.md)**: Build, test, debug, and deployment processes
 
-- **[Database Guide](copilot-database.md)**: SQLite to Isar migration, sync patterns
+- **[Database Guide](copilot-database.md)**: SQLite database schema and operations
 
 ---
 *Last updated: March 3, 2026 (v1.0.28)*

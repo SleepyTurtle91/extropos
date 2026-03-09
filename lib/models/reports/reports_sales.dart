@@ -2,11 +2,10 @@
 ///
 /// Reports Sales
 library;
+import 'package:extropos/models/reports/reports_base.dart';
 import 'package:extropos/models/reports/reports_data.dart' show TablePerformanceData, PaymentMethodData, BusinessSessionData, ProfitLossItem, ABCItem;
 import 'package:extropos/models/reports/reports_finance.dart' show CashReconciliation;
 import 'package:extropos/models/reports/reports_staff.dart' show ShiftSummary;
-
-import 'package:extropos/models/reports/reports_base.dart';
 
 class SalesSummaryReport extends BaseReport {
   final double grossSales;

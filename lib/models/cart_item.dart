@@ -139,6 +139,7 @@ class CartItem {
       (json['productPrice'] as num).toDouble(),
       '', // category not needed for display
       Icons.shopping_cart, // default icon
+      id: json['productId'] as String? ?? 'display_product',
     );
 
     // Convert modifier names back to ModifierItem objects for display

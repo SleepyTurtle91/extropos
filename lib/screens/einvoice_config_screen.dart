@@ -1,13 +1,9 @@
 import 'package:extropos/models/einvoice/einvoice_config.dart';
 import 'package:extropos/services/einvoice_service.dart';
-import 'package:extropos/services/myinvois_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
 
-part 'einvoice_config_ui.dart';
-
-/// e-Invoice Configuration Screen
-/// Allows users to configure MyInvois credentials for Malaysian e-Invoice
+/// E-Invoice Configuration Screen - Configure MyInvois settings
 class EInvoiceConfigScreen extends StatefulWidget {
   const EInvoiceConfigScreen({super.key});
 
@@ -17,52 +13,23 @@ class EInvoiceConfigScreen extends StatefulWidget {
 
 class _EInvoiceConfigScreenState extends State<EInvoiceConfigScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _einvoiceService = EInvoiceService.instance;
-  final _myinvoisService = MyInvoisService.instance;
-
-  late TextEditingController _clientIdController;
-  late TextEditingController _clientSecretController;
-  late TextEditingController _tinController;
-  late TextEditingController _businessNameController;
-  late TextEditingController _businessAddressController;
-  late TextEditingController _businessPhoneController;
-  late TextEditingController _businessEmailController;
+  final _clientIdController = TextEditingController();
+  final _clientSecretController = TextEditingController();
+  final _tinController = TextEditingController();
+  final _businessNameController = TextEditingController();
+  final _businessAddressController = TextEditingController();
+  final _businessPhoneController = TextEditingController();
+  final _businessEmailController = TextEditingController();
 
   bool _isEnabled = false;
   bool _isProduction = false;
   bool _isLoading = false;
   bool _isTesting = false;
-  bool _obscureSecret = true;
-  bool? _testPassed;
-  String? _testStatus;
 
   @override
   void initState() {
     super.initState();
-    _loadConfig();
-  }
-
-  void _loadConfig() {
-    final config = _einvoiceService.config ?? EInvoiceConfig.sandbox();
-
-    _clientIdController = TextEditingController(text: config.clientId);
-    _clientSecretController = TextEditingController(text: config.clientSecret);
-    _tinController = TextEditingController(text: config.tin);
-    _businessNameController = TextEditingController(text: config.businessName);
-    _businessAddressController = TextEditingController(
-      text: config.businessAddress,
-    );
-    _businessPhoneController = TextEditingController(
-      text: config.businessPhone,
-    );
-    _businessEmailController = TextEditingController(
-      text: config.businessEmail,
-    );
-
-    _isEnabled = config.isEnabled;
-    _isProduction = config.isProduction;
-    _testPassed = null;
-    _testStatus = null;
+    _loadCurrentConfig();
   }
 
   @override
@@ -77,39 +44,20 @@ class _EInvoiceConfigScreenState extends State<EInvoiceConfigScreen> {
     super.dispose();
   }
 
-  Future<void> _testConnection() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isTesting = true);
-
-    try {
-      // Save config temporarily for testing
-      final testConfig = _buildConfig();
-      await _einvoiceService.saveConfig(testConfig);
-
-      // Test authentication
-      final success = await _einvoiceService.testConnection();
-
-      if (!mounted) return;
-
-      if (success) {
-        _testPassed = true;
-        _testStatus = 'Connection successful. Token acquired.';
-        ToastHelper.showToast(context, '✓ Connection successful');
-      } else {
-        _testPassed = false;
-        _testStatus = 'Connection failed. Check credentials or environment.';
-        ToastHelper.showToast(context, '✗ Connection failed');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _testPassed = false;
-      _testStatus = 'Connection error: ${e.toString()}';
-      ToastHelper.showToast(context, 'Connection error: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isTesting = false);
-      }
+  Future<void> _loadCurrentConfig() async {
+    final config = EInvoiceService.instance.config;
+    if (config != null) {
+      setState(() {
+        _clientIdController.text = config.clientId;
+        _clientSecretController.text = config.clientSecret;
+        _tinController.text = config.tin;
+        _businessNameController.text = config.businessName;
+        _businessAddressController.text = config.businessAddress;
+        _businessPhoneController.text = config.businessPhone;
+        _businessEmailController.text = config.businessEmail;
+        _isEnabled = config.isEnabled;
+        _isProduction = config.isProduction;
+      });
     }
   }
 
@@ -119,227 +67,249 @@ class _EInvoiceConfigScreenState extends State<EInvoiceConfigScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final config = _buildConfig();
-      await _einvoiceService.saveConfig(config);
+      final config = EInvoiceConfig(
+        clientId: _clientIdController.text.trim(),
+        clientSecret: _clientSecretController.text.trim(),
+        tin: _tinController.text.trim(),
+        businessName: _businessNameController.text.trim(),
+        businessAddress: _businessAddressController.text.trim(),
+        businessPhone: _businessPhoneController.text.trim(),
+        businessEmail: _businessEmailController.text.trim(),
+        isProduction: _isProduction,
+        isEnabled: _isEnabled,
+      );
 
-      if (!mounted) return;
-      ToastHelper.showToast(context, 'e-Invoice configuration saved');
-      Navigator.pop(context);
+      await EInvoiceService.instance.saveConfig(config);
+      ToastHelper.showToast(context, 'Configuration saved successfully');
+      Navigator.of(context).pop();
     } catch (e) {
-      if (!mounted) return;
-      ToastHelper.showToast(context, 'Failed to save: $e');
+      ToastHelper.showToast(context, 'Failed to save configuration: ${e.toString()}');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
-  EInvoiceConfig _buildConfig() {
-    return EInvoiceConfig(
-      clientId: _clientIdController.text.trim(),
-      clientSecret: _clientSecretController.text.trim(),
-      tin: _tinController.text.trim(),
-      businessName: _businessNameController.text.trim(),
-      businessAddress: _businessAddressController.text.trim(),
-      businessPhone: _businessPhoneController.text.trim(),
-      businessEmail: _businessEmailController.text.trim(),
-      identityServiceUrl: _isProduction
-          ? 'https://api.myinvois.hasil.gov.my'
-          : 'https://preprod-api.myinvois.hasil.gov.my',
-      apiServiceUrl: _isProduction
-          ? 'https://api.myinvois.hasil.gov.my'
-          : 'https://preprod-api.myinvois.hasil.gov.my',
-      isProduction: _isProduction,
-      isEnabled: _isEnabled,
-    );
+  Future<void> _testConnection() async {
+    setState(() => _isTesting = true);
+
+    try {
+      final success = await EInvoiceService.instance.testConnection();
+      if (success) {
+        ToastHelper.showToast(context, 'Connection test successful');
+      } else {
+        ToastHelper.showToast(context, 'Connection test failed');
+      }
+    } catch (e) {
+      ToastHelper.showToast(context, 'Connection test error: ${e.toString()}');
+    } finally {
+      setState(() => _isTesting = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('e-Invoice Configuration'),
-        backgroundColor: const Color(0xFF2563EB),
+        title: const Text('E-Invoice Configuration'),
+        actions: [
+          TextButton(
+            onPressed: _isLoading ? null : _saveConfig,
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Save'),
+          ),
+        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 900;
-                final columnWidth = isWide
-                    ? (constraints.maxWidth - 32) / 2
-                    : constraints.maxWidth;
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Enable/Disable toggle
+            SwitchListTile(
+              title: const Text('Enable E-Invoicing'),
+              subtitle: const Text('Enable MyInvois e-invoice submission'),
+              value: _isEnabled,
+              onChanged: (value) => setState(() => _isEnabled = value),
+            ),
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: [
-                        SizedBox(
-                          width: columnWidth,
-                          child: _buildOverviewCard(),
-                        ),
-                        SizedBox(
-                          width: columnWidth,
-                          child: _buildEnvironmentCard(),
-                        ),
-                        SizedBox(
-                          width: columnWidth,
-                          child: _buildCredentialsCard(),
-                        ),
-                        SizedBox(
-                          width: columnWidth,
-                          child: _buildBusinessCard(),
-                        ),
-                        SizedBox(
-                          width: columnWidth,
-                          child: _buildActionsCard(),
-                        ),
-                        SizedBox(
-                          width: columnWidth,
-                          child: _buildHelpCard(),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+            const SizedBox(height: 16),
+
+            // Environment toggle
+            SwitchListTile(
+              title: const Text('Production Mode'),
+              subtitle: const Text('Use production MyInvois API (uncheck for sandbox)'),
+              value: _isProduction,
+              onChanged: (value) => setState(() => _isProduction = value),
+            ),
+
+            const SizedBox(height: 24),
+
+            // API Credentials
+            const Text(
+              'MyInvois API Credentials',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _clientIdController,
+              decoration: const InputDecoration(
+                labelText: 'Client ID',
+                hintText: 'Enter your MyInvois Client ID',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'Client ID is required';
+                }
+                return null;
               },
             ),
-    );
-  }
 
-  /// Show comprehensive system diagnostics dialog
-  Future<void> _showSystemDiagnostics() async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Running diagnostics...'),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _clientSecretController,
+              decoration: const InputDecoration(
+                labelText: 'Client Secret',
+                hintText: 'Enter your MyInvois Client Secret',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'Client Secret is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 24),
+
+            // Business Information
+            const Text(
+              'Business Information',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _tinController,
+              decoration: const InputDecoration(
+                labelText: 'Tax Identification Number (TIN)',
+                hintText: 'Enter your business TIN',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'TIN is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _businessNameController,
+              decoration: const InputDecoration(
+                labelText: 'Business Name',
+                hintText: 'Enter your registered business name',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'Business name is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _businessAddressController,
+              decoration: const InputDecoration(
+                labelText: 'Business Address',
+                hintText: 'Enter your business address',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'Business address is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _businessPhoneController,
+              decoration: const InputDecoration(
+                labelText: 'Business Phone',
+                hintText: 'Enter your business phone number',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.phone,
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'Business phone is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            TextFormField(
+              controller: _businessEmailController,
+              decoration: const InputDecoration(
+                labelText: 'Business Email',
+                hintText: 'Enter your business email',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (_isEnabled && (value == null || value.isEmpty)) {
+                  return 'Business email is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 24),
+
+            // Test Connection Button
+            ElevatedButton.icon(
+              onPressed: (_isTesting || !_isEnabled) ? null : _testConnection,
+              icon: _isTesting
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.network_check),
+              label: const Text('Test Connection'),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Info text
+            const Text(
+              'MyInvois e-invoicing is required for Malaysian businesses. Contact MyInvois for API credentials.',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
     );
-
-    try {
-      final health = await _myinvoisService.getSystemHealth();
-      final info = _myinvoisService.getServiceInfo();
-
-      if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(
-                health['overallStatus'] == 'HEALTHY'
-                    ? Icons.check_circle
-                    : Icons.warning,
-                color: health['overallStatus'] == 'HEALTHY'
-                    ? Colors.green
-                    : Colors.orange,
-              ),
-              const SizedBox(width: 8),
-              const Text('System Diagnostics'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildDiagnosticSection(
-                  'Configuration',
-                  [
-                    _buildDiagnosticRow('Environment', info['environment']),
-                    _buildDiagnosticRow('Enabled', info['enabled'].toString()),
-                    _buildDiagnosticRow('TIN', info['tin']),
-                    _buildDiagnosticRow('Business', info['businessName']),
-                    _buildDiagnosticRow('Client ID', info['clientId']),
-                  ],
-                ),
-                const Divider(),
-                _buildDiagnosticSection(
-                  'API Status',
-                  [
-                    _buildDiagnosticRow('e-Invoice API', health['einvoiceAPI'],
-                        isStatus: true),
-                    _buildDiagnosticRow('Platform API', health['platformAPI'],
-                        isStatus: true),
-                    _buildDiagnosticRow('Overall', health['overallStatus'],
-                        isStatus: true),
-                  ],
-                ),
-                const Divider(),
-                _buildDiagnosticSection(
-                  'Endpoints',
-                  [
-                    _buildDiagnosticRow('Identity', info['identityUrl']),
-                    _buildDiagnosticRow('API', info['apiUrl']),
-                  ],
-                ),
-                if (health['apiVersion'] != 'UNKNOWN') ...[
-                  const Divider(),
-                  _buildDiagnosticSection(
-                    'Version',
-                    [
-                      _buildDiagnosticRow(
-                        'API',
-                        health['apiVersion'].toString(),
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Text(
-                  'Timestamp: ${health['timestamp']}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.error, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Diagnostics Failed'),
-            ],
-          ),
-          content: Text('Error: ${e.toString()}'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
-      );
-    }
   }
 }

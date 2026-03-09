@@ -1,13 +1,9 @@
 import 'package:extropos/features/auth/screens/user/sign_out_dialog_simple.dart';
+import 'package:extropos/features/auth/services/user_session_service.dart';
 import 'package:extropos/features/pos/screens/payment/payment_screen.dart';
 import 'package:extropos/models/cart_item.dart' as pos_cart;
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart' as pos_product;
-import 'package:extropos/screens/kitchen_display_screen.dart';
-import 'package:extropos/screens/refund_service_screen.dart';
-import 'package:extropos/screens/reports_dashboard_screen.dart';
-import 'package:extropos/screens/sales_dashboard_screen.dart';
-import 'package:extropos/screens/sales_history_screen.dart';
 import 'package:extropos/screens/settings_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:extropos/services/config_service.dart';
@@ -20,7 +16,7 @@ part 'unified_pos_operations.dart';
 part 'unified_pos_sidebar.dart';
 part 'unified_pos_header.dart';
 part 'unified_pos_cart.dart';
-part 'unified_pos_tables.dart';
+// part 'unified_pos_tables.dart'; // TODO: Implement table selection view
 part 'unified_pos_products.dart';
 
 /// Main POS screen demonstrating a unified interface for all business modes.

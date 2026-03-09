@@ -1,456 +1,246 @@
 import 'dart:developer';
 
+import 'package:extropos/helpers/einvoice_helper.dart';
 import 'package:extropos/models/einvoice/einvoice_document.dart';
+import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/einvoice_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-/// e-Invoice Submission Screen
-/// Allows manual submission and viewing of e-Invoices
+/// E-Invoice Submission Screen - Submit pending orders as e-invoices
 class EInvoiceSubmissionScreen extends StatefulWidget {
   const EInvoiceSubmissionScreen({super.key});
 
   @override
-  State<EInvoiceSubmissionScreen> createState() =>
-      _EInvoiceSubmissionScreenState();
+  State<EInvoiceSubmissionScreen> createState() => _EInvoiceSubmissionScreenState();
 }
 
 class _EInvoiceSubmissionScreenState extends State<EInvoiceSubmissionScreen> {
-  final _einvoiceService = EInvoiceService.instance;
-  List<Map<String, dynamic>> _recentDocuments = [];
-  bool _isLoading = false;
-  bool _isLoadingDocs = false;
+  List<Map<String, dynamic>> _pendingOrders = [];
+  final Set<String> _selectedOrderIds = {};
+  bool _isLoading = true;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    _loadRecentDocuments();
+    _loadPendingOrders();
   }
 
-  Future<void> _loadRecentDocuments() async {
-    if (!_einvoiceService.isEnabled) return;
-
-    setState(() => _isLoadingDocs = true);
-
-    try {
-      final docs = await _einvoiceService.getRecentDocuments(
-        pageSize: 50,
-        pageNo: 1,
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _recentDocuments = docs;
-      });
-    } catch (e) {
-      log('Error loading recent documents: $e');
-      if (mounted) {
-        ToastHelper.showToast(context, 'Failed to load documents: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingDocs = false);
-      }
-    }
-  }
-
-  Future<void> _testSubmission() async {
+  Future<void> _loadPendingOrders() async {
     setState(() => _isLoading = true);
 
     try {
-      // Create a test invoice document
-      final testDoc = _createTestInvoice();
+      // Load orders that haven't been submitted as e-invoices yet
+      final orders = await DatabaseService.instance.getSalesHistory(
+        limit: 50, // Limit for performance
+      );
 
-      // Submit to MyInvois
-      final result = await _einvoiceService.submitDocuments([testDoc]);
-
-      if (!mounted) return;
-
-      final submissionUid = result['submissionUID'];
-      final acceptedDocs = result['acceptedDocuments'] ?? [];
-      final rejectedDocs = result['rejectedDocuments'] ?? [];
-
-      if (acceptedDocs.isNotEmpty) {
-        ToastHelper.showToast(
-          context,
-          '✓ Test invoice submitted successfully!\n'
-          'Submission: $submissionUid\n'
-          'UUID: ${acceptedDocs[0]['uuid']}',
-        );
-        _loadRecentDocuments(); // Reload list
-      } else if (rejectedDocs.isNotEmpty) {
-        ToastHelper.showToast(
-          context,
-          '✗ Test invoice rejected:\n${rejectedDocs[0]['error']}',
-        );
-      }
+      // Filter for orders that don't have e-invoice UUIDs
+      _pendingOrders = orders.where((order) {
+        // Check if order has been submitted (you might need to add a field to track this)
+        return order['einvoice_uuid'] == null || order['einvoice_uuid'].toString().isEmpty;
+      }).toList();
     } catch (e) {
-      if (!mounted) return;
-      ToastHelper.showToast(context, 'Submission failed: $e');
+      ToastHelper.showToast(context, 'Failed to load pending orders');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 
-  EInvoiceDocument _createTestInvoice() {
-    final config = _einvoiceService.config!;
-    final now = DateTime.now();
+  Future<void> _submitSelectedOrders() async {
+    if (_selectedOrderIds.isEmpty) {
+      ToastHelper.showToast(context, 'Please select orders to submit');
+      return;
+    }
 
-    return EInvoiceDocument(
-      invoiceCodeNumber: 'TEST-${now.millisecondsSinceEpoch}',
-      issueDate: now,
-      issueTime: now,
-      supplier: EInvoiceSupplier(
-        tin: config.tin,
-        name: config.businessName,
-        addressLine1: config.businessAddress,
-        city: 'Kuala Lumpur',
-        state: '14',
-        postalCode: '50000',
-        phone: config.businessPhone,
-        email: config.businessEmail,
-      ),
-      customer: EInvoiceCustomer(
-        name: 'Test Customer',
-        addressLine1: 'Test Address',
-        city: 'Kuala Lumpur',
-        state: '14',
-        postalCode: '50000',
-        idType: 'NRIC',
-        idValue: '123456789012',
-      ),
-      lineItems: [
-        EInvoiceLineItem(
-          lineNumber: 1,
-          itemName: 'Test Product',
-          itemDescription: 'Test Product Description',
-          quantity: 1.0,
-          unitPrice: 100.00,
-          lineExtensionAmount: 100.00,
-          taxTotal: EInvoiceLineTax(
-            taxAmount: 6.00,
-            taxCategoryCode: 'S',
-            taxPercent: 6.0,
-          ),
-        ),
-      ],
-      taxTotal: EInvoiceTaxTotal(
-        totalTaxAmount: 6.00,
-        subtotals: [
-          EInvoiceTaxSubtotal(
-            taxableAmount: 100.00,
-            taxAmount: 6.00,
-            taxCategoryCode: 'S',
-            taxPercent: 6.0,
-          ),
-        ],
-      ),
-      legalMonetaryTotal: EInvoiceLegalMonetaryTotal(
-        lineExtensionAmount: 100.00,
-        taxExclusiveAmount: 100.00,
-        taxInclusiveAmount: 106.00,
-        payableAmount: 106.00,
-      ),
-    );
+    if (!EInvoiceService.instance.isConfigured) {
+      ToastHelper.showToast(context, 'E-Invoice not configured. Please configure first.');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      // Get selected orders
+      final selectedOrders = _pendingOrders
+          .where((order) => _selectedOrderIds.contains(order['id']))
+          .toList();
+
+      // Convert orders to e-invoice documents
+      final documents = <EInvoiceDocument>[];
+      for (final order in selectedOrders) {
+        try {
+          final document = await EInvoiceHelper.convertOrderToEInvoice(order);
+          documents.add(document);
+        } catch (e) {
+          log('Failed to convert order ${order['id']} to e-invoice: $e');
+          continue; // Skip this order
+        }
+      }
+
+      if (documents.isEmpty) {
+        ToastHelper.showToast(context, 'No valid orders to submit');
+        return;
+      }
+
+      // Submit documents
+      final result = await EInvoiceService.instance.submitDocuments(documents);
+
+      // Update orders with submission UUIDs
+      for (int i = 0; i < documents.length && i < result['documents']?.length; i++) {
+        final docResult = result['documents'][i];
+        final orderId = selectedOrders[i]['id'];
+        final uuid = docResult['uuid'];
+
+        if (uuid != null) {
+          await DatabaseService.instance.updateOrderEInvoiceStatus(orderId, uuid);
+        }
+      }
+
+      ToastHelper.showToast(context, 'Successfully submitted ${documents.length} e-invoice(s)');
+
+      // Refresh the list
+      await _loadPendingOrders();
+      _selectedOrderIds.clear();
+
+    } catch (e) {
+      ToastHelper.showToast(context, 'Submission failed: ${e.toString()}');
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
   }
 
-  void _showDocumentDetails(Map<String, dynamic> doc) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Document ${doc['uuid'] ?? 'Unknown'}'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDetailRow('UUID', doc['uuid']),
-              _buildDetailRow('Invoice No', doc['invoiceCodeNumber']),
-              _buildDetailRow('Status', doc['status']),
-              _buildDetailRow('Date', doc['dateTimeIssued']),
-              _buildDetailRow(
-                'Total',
-                'RM ${doc['totalExcludingTax'] ?? '0.00'}',
-              ),
-              _buildDetailRow('Tax', 'RM ${doc['totalTaxAmount'] ?? '0.00'}'),
-              _buildDetailRow(
-                'Grand Total',
-                'RM ${doc['totalIncludingTax'] ?? '0.00'}',
-              ),
-              const SizedBox(height: 8),
-              if (doc['validationUrl'] != null) ...[
-                const Text(
-                  'Validation Link:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SelectableText(
-                  doc['validationUrl'],
-                  style: const TextStyle(fontSize: 12, color: Colors.blue),
-                ),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+  void _toggleOrderSelection(String orderId) {
+    setState(() {
+      if (_selectedOrderIds.contains(orderId)) {
+        _selectedOrderIds.remove(orderId);
+      } else {
+        _selectedOrderIds.add(orderId);
+      }
+    });
   }
 
-  Widget _buildDetailRow(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value?.toString() ?? 'N/A',
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _selectAllOrders() {
+    setState(() {
+      if (_selectedOrderIds.length == _pendingOrders.length) {
+        _selectedOrderIds.clear();
+      } else {
+        _selectedOrderIds.addAll(_pendingOrders.map((order) => order['id'] as String));
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isConfigured = _einvoiceService.isConfigured;
-    final isEnabled = _einvoiceService.isEnabled;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('e-Invoice Submission'),
-        backgroundColor: const Color(0xFF2563EB),
+        title: const Text('E-Invoice Submission'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () async {
-              await Navigator.pushNamed(context, '/einvoice-config');
-              setState(() {}); // Refresh state after config
-            },
+          if (_pendingOrders.isNotEmpty)
+            TextButton(
+              onPressed: _selectAllOrders,
+              child: Text(
+                _selectedOrderIds.length == _pendingOrders.length ? 'Deselect All' : 'Select All',
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Status and info
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.blue.shade50,
+            child: Row(
+              children: [
+                Icon(
+                  EInvoiceService.instance.isConfigured ? Icons.check_circle : Icons.warning,
+                  color: EInvoiceService.instance.isConfigured ? Colors.green : Colors.orange,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    EInvoiceService.instance.isConfigured
+                        ? 'E-Invoice configured and ready'
+                        : 'E-Invoice not configured. Please configure first.',
+                    style: TextStyle(
+                      color: EInvoiceService.instance.isConfigured ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Submit button
+          if (_selectedOrderIds.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: ElevatedButton.icon(
+                onPressed: _isSubmitting ? null : _submitSelectedOrders,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.send),
+                label: Text('Submit ${_selectedOrderIds.length} E-Invoice(s)'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ),
+
+          // Orders list
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _pendingOrders.isEmpty
+                    ? const Center(
+                        child: Text('No pending orders to submit'),
+                      )
+                    : ListView.builder(
+                        itemCount: _pendingOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = _pendingOrders[index];
+                          final orderId = order['id'] as String;
+                          final isSelected = _selectedOrderIds.contains(orderId);
+
+                          return CheckboxListTile(
+                            value: isSelected,
+                            onChanged: (value) => _toggleOrderSelection(orderId),
+                            title: Text('Order #${order['order_number'] ?? orderId}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Customer: ${order['customer_name'] ?? 'Walk-in'}',
+                                ),
+                                Text(
+                                  'Total: RM ${order['total']?.toStringAsFixed(2) ?? '0.00'}',
+                                ),
+                                Text(
+                                  'Date: ${order['date'] != null ? DateFormat('dd/MM/yyyy HH:mm').format(order['date']) : 'Unknown'}',
+                                ),
+                              ],
+                            ),
+                            secondary: Text(
+                              'RM ${order['total']?.toStringAsFixed(2) ?? '0.00'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
-      body: !isConfigured
-          ? _buildNotConfiguredView()
-          : !isEnabled
-          ? _buildDisabledView()
-          : _buildMainView(),
     );
-  }
-
-  Widget _buildNotConfiguredView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.settings_suggest, size: 80, color: Colors.grey.shade400),
-            const SizedBox(height: 24),
-            const Text(
-              'e-Invoice Not Configured',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Please configure your MyInvois credentials to start submitting e-Invoices.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/einvoice-config'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-              ),
-              icon: const Icon(Icons.settings),
-              label: const Text('Configure e-Invoice'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDisabledView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.block, size: 80, color: Colors.orange.shade400),
-            const SizedBox(height: 24),
-            const Text(
-              'e-Invoice Disabled',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'e-Invoice submission is currently disabled. Enable it in settings to start submitting invoices.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/einvoice-config'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-              ),
-              icon: const Icon(Icons.toggle_on),
-              label: const Text('Enable e-Invoice'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainView() {
-    return Column(
-      children: [
-        // Status Card
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.green.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.green.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.verified, color: Colors.green.shade700),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'e-Invoice Active',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green.shade700,
-                      ),
-                    ),
-                    Text(
-                      _einvoiceService.config?.isProduction ?? false
-                          ? 'Production Mode'
-                          : 'Sandbox Mode',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: _isLoading ? null : _testSubmission,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade700,
-                ),
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.send),
-                label: const Text('Test Submit'),
-              ),
-            ],
-          ),
-        ),
-
-        // Recent Documents List
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Recent Documents',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              TextButton.icon(
-                onPressed: _isLoadingDocs ? null : _loadRecentDocuments,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Refresh'),
-              ),
-            ],
-          ),
-        ),
-
-        Expanded(
-          child: _isLoadingDocs
-              ? const Center(child: CircularProgressIndicator())
-              : _recentDocuments.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No documents found',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _recentDocuments.length,
-                  itemBuilder: (context, index) {
-                    final doc = _recentDocuments[index];
-                    return Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getStatusColor(doc['status']),
-                          child: const Icon(Icons.receipt, color: Colors.white),
-                        ),
-                        title: Text(doc['invoiceCodeNumber'] ?? 'Unknown'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('UUID: ${doc['uuid'] ?? 'N/A'}'),
-                            Text('Status: ${doc['status'] ?? 'Unknown'}'),
-                          ],
-                        ),
-                        trailing: Text(
-                          'RM ${doc['totalIncludingTax'] ?? '0.00'}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        onTap: () => _showDocumentDetails(doc),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
-    );
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'valid':
-        return Colors.green;
-      case 'invalid':
-        return Colors.red;
-      case 'cancelled':
-        return Colors.grey;
-      default:
-        return Colors.orange;
-    }
   }
 }

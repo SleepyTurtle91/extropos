@@ -97,6 +97,7 @@ class ProductVariant {
 }
 
 class Product {
+  final String id;
   final String name;
   final double price;
   final String category;
@@ -106,15 +107,18 @@ class Product {
   printerOverride; // Printer ID to override category-based printer selection
   final List<ProductVariant> variants; // Available variants for this product
   final bool hasVariants; // Whether this product has variants
+  final int stockQuantity; // Total stock quantity across all variants
 
   Product(
     this.name,
     this.price,
     this.category,
     this.icon, {
+    required this.id,
     this.imagePath,
     this.printerOverride,
     this.variants = const [],
+    this.stockQuantity = 0,
   }) : hasVariants = variants.isNotEmpty;
 
   // Get the display price (base price if no variants, or "From X" if variants exist)
@@ -149,9 +153,11 @@ class Product {
       price,
       category,
       icon,
+      id: id,
       imagePath: imagePath,
       printerOverride: printerOverride,
       variants: newVariants,
+      stockQuantity: stockQuantity,
     );
   }
 }
