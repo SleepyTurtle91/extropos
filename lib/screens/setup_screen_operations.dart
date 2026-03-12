@@ -1,6 +1,6 @@
 part of 'setup_screen.dart';
 
-extension SetupScreenOperations on _SetupScreenState {
+extension _SetupScreenOperations on _SetupScreenState {
   void _handleNext() {
     if (_isNextDisabled()) return;
     if (_step < _totalSteps) {

@@ -1,6 +1,6 @@
 part of 'customers_management_screen.dart';
 
-extension CustomersManagementSections on _CustomersManagementScreenState {
+extension _CustomersManagementSections on _CustomersManagementScreenState {
   Widget buildStatsSection() {
     return Container(
       padding: const EdgeInsets.all(16),

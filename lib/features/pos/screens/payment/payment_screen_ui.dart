@@ -1,7 +1,7 @@
 part of 'payment_screen.dart';
 
 /// UI builder methods for PaymentScreen
-extension PaymentScreenUI on _PaymentScreenState {
+extension _PaymentScreenUI on _PaymentScreenState {
   /// Build the customer information section
   Widget buildCustomerSection() {
     return Column(

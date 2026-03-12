@@ -1,7 +1,7 @@
 part of '../database_helper.dart';
 
 extension DatabaseHelperUpgradePart2 on DatabaseHelper {
-  Future<void> _applyUpgrades_v7_v30(Database db, int oldVersion) async {
+  Future<void> _applyUpgradesV7V30(Database db, int oldVersion) async {
     if (oldVersion < 23) {
       // v23: Add advanced reporting tables (scheduled reports, forecasting, custom templates)
       try {

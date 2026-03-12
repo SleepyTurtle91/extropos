@@ -270,7 +270,7 @@ skills/
 
 ✅ **Your Tech Stack**
 - Flutter 3.0+, Dart 3.0+
-- SQLite (Isar migration planned)
+- SQLite (sqflite)
 - Android tablets + Windows desktop
 - 100+ existing unit/integration tests
 

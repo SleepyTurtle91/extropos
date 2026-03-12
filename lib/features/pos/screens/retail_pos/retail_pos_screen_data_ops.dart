@@ -1,6 +1,6 @@
 part of 'retail_pos_screen.dart';
 
-extension RetailPOSDataOps on _RetailPOSScreenState {
+extension _RetailPOSDataOps on _RetailPOSScreenState {
   Future<void> _checkShiftStatus() async {
     final user = LockManager.instance.currentUser;
     if (user == null) return;

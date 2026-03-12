@@ -1,6 +1,6 @@
 part of 'tables_management_screen.dart';
 
-extension TablesManagementFAB on _TablesManagementScreenState {
+extension _TablesManagementFAB on _TablesManagementScreenState {
   Widget _buildAddTablesFAB() {
     return FloatingActionButton.extended(
       onPressed: () {

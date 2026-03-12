@@ -1,6 +1,6 @@
+import 'package:extropos/features/auth/models/shift_model.dart';
 import 'package:extropos/features/auth/services/shift_service.dart';
 import 'package:extropos/features/auth/services/user_session_service.dart';
-import 'package:extropos/models/shift_model.dart';
 import 'package:extropos/services/database_helper.dart';
 import 'package:flutter/material.dart';
 

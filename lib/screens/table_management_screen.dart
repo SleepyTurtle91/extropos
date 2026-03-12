@@ -287,7 +287,7 @@ class _TableManagementScreenState extends State<TableManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    throw UnimplementedError('See table_management_screen_ui.dart');
+    return _buildScreen(context);
   }
 
   Color _getStatusColor(TableStatus status) {

@@ -32,7 +32,6 @@ All cashier access must go through `UnifiedPOSScreen`.
 
 - Backend expansion work
 - New non-POS modules unrelated to checkout flow
-- Full architecture migration (for example SQLite to Isar)
 
 ## Milestones
 

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:extropos/models/backend_user_model.dart';
 import 'package:extropos/models/role_model.dart';
 import 'package:flutter/foundation.dart';

@@ -1,8 +1,7 @@
 part of 'printers_management_screen.dart';
 
-extension PrintersManagementScreenUI on _PrintersManagementScreenState {
-  @override
-  Widget build(BuildContext context) {
+extension _PrintersManagementScreenUI on _PrintersManagementScreenState {
+  Widget _buildScreen(BuildContext context) {
     return Scaffold(
       body: _isLoading
           ? const Center(
@@ -265,9 +264,7 @@ extension PrintersManagementScreenUI on _PrintersManagementScreenState {
   }
 
   Widget _buildRightPanel() {
-    final selectedPrinter = _selectedPrinterId != null
-        ? printers.firstWhereOrNull((p) => p.id == _selectedPrinterId)
-        : null;
+    final selectedPrinter = _findPrinterById(_selectedPrinterId);
 
     return Container(
       color: const Color(0xFFF8FAFC),

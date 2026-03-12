@@ -1,6 +1,9 @@
 import 'dart:io';
+
 import 'package:extropos/models/analytics_models.dart';
 import 'package:extropos/models/sales_report.dart';
+import 'package:extropos/screens/sales_history_screen.dart';
+import 'package:extropos/screens/shift_reports_screen.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:extropos/widgets/kpi_card.dart';
@@ -8,10 +11,7 @@ import 'package:extropos/widgets/report_date_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:csv/csv.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 /// Modern Reports Dashboard Screen
 /// Provides comprehensive analytics and reporting capabilities
@@ -35,7 +35,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   List<ProductAnalytics> _productAnalytics = [];
   List<DailySales> _dailySales = [];
   List<String> _categories = [];
-  List<String> _staffMembers = [];
+  final List<String> _staffMembers = [];
   bool _isLoading = true;
 
   @override
@@ -426,7 +426,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 'Sales History',
                 Icons.history,
                 Colors.blue,
-                () => Navigator.pushNamed(context, '/sales-history'),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SalesHistoryScreen(),
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -435,7 +440,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 'Shift Reports',
                 Icons.access_time,
                 Colors.green,
-                () => Navigator.pushNamed(context, '/shift-reports'),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ShiftReportsScreen(),
+                  ),
+                ),
               ),
             ),
           ],
@@ -497,13 +507,116 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _showProductReports() {
-    // TODO: Navigate to detailed product reports
-    ToastHelper.showToast(context, 'Product reports coming soon');
+    if (_topProducts.isEmpty && _productAnalytics.isEmpty) {
+      ToastHelper.showToast(context, 'No product report data available');
+      return;
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Product Reports',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                ..._topProducts.take(5).map(
+                  (product) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(product.productName),
+                    subtitle: Text('${product.unitsSold} units sold'),
+                    trailing: Text('RM ${product.revenue.toStringAsFixed(2)}'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _exportToCSV();
+                        },
+                        icon: const Icon(Icons.file_download),
+                        label: const Text('Export CSV'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _exportToPDF();
+                        },
+                        icon: const Icon(Icons.picture_as_pdf),
+                        label: const Text('Export PDF'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showFinancialReports() {
-    // TODO: Navigate to financial reports
-    ToastHelper.showToast(context, 'Financial reports coming soon');
+    final summary = _salesSummary;
+    if (summary == null) {
+      ToastHelper.showToast(context, 'No financial report data available');
+      return;
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Financial Report Summary'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Gross Sales: RM ${summary.grossSales.toStringAsFixed(2)}'),
+              Text('Net Sales: RM ${summary.netSales.toStringAsFixed(2)}'),
+              Text('Tax: RM ${summary.totalTax.toStringAsFixed(2)}'),
+              Text('Service Charge: RM ${summary.totalServiceCharge.toStringAsFixed(2)}'),
+              Text('Discounts: RM ${summary.totalDiscount.toStringAsFixed(2)}'),
+              Text('Transactions: ${summary.transactionCount}'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _exportToCSV();
+              },
+              child: const Text('Export CSV'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _exportToPDF();
+              },
+              child: const Text('Export PDF'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildAdvancedFilters() {
@@ -594,6 +707,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildKPIGrid(SalesSummary summary, SalesSummary? comparison) {
+    final currentAverageOrderValue = summary.transactionCount > 0
+        ? summary.netSales / summary.transactionCount
+        : 0.0;
+    final comparisonAverageOrderValue = (comparison != null && comparison.transactionCount > 0)
+        ? comparison.netSales / comparison.transactionCount
+        : 0.0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         int columns = 2;
@@ -638,13 +758,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
             KPICard(
               title: 'Avg Order Value',
-              value: 'RM ${(summary.netSales / summary.transactionCount).toStringAsFixed(2)}',
+              value: 'RM ${currentAverageOrderValue.toStringAsFixed(2)}',
               icon: Icons.inventory,
               color: Colors.purple,
               subtitle: comparison != null
                   ? _calculatePercentageChange(
-                      summary.netSales / summary.transactionCount,
-                      comparison.netSales / comparison.transactionCount)
+                      currentAverageOrderValue,
+                      comparisonAverageOrderValue,
+                    )
                   : null,
             ),
           ],
@@ -657,7 +778,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (previous == 0) return '+∞%';
     final change = ((current - previous) / previous) * 100;
     final sign = change >= 0 ? '+' : '';
-    return '${sign}${change.toStringAsFixed(1)}%';
+    return '$sign${change.toStringAsFixed(1)}%';
   }
 
   Widget _buildStaffPerformance() {

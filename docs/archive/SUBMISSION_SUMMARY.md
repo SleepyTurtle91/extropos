@@ -1,5 +1,7 @@
 # 🎉 FlutterPOS v1.0.25 - Submitted to GitHub
 
+> **Archive Note**: The Isar database integration referenced in this submission was subsequently abandoned in March 2026. SQLite (sqflite) remains the production database. This document is preserved for historical reference.
+
 ## ✅ COMPLETE - APK & GitHub Release Submitted
 
 **Status**: Successfully committed and pushed to GitHub  

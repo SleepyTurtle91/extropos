@@ -1,6 +1,6 @@
 part of 'setup_screen.dart';
 
-extension SetupScreenSmallWidgets on _SetupScreenState {
+extension _SetupScreenSmallWidgets on _SetupScreenState {
   Widget _buildStepContent(int currentStep) {
     switch (currentStep) {
       case 1:

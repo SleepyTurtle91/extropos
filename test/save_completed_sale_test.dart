@@ -101,7 +101,7 @@ void main() {
     test('unmapped items should skip persistence (return null)', () async {
       final dbService = DatabaseService.instance;
 
-      final product = Product('Nonexistent Item', 5.0, 'Misc', Icons.help);
+      final product = Product('Nonexistent Item', 5.0, 'Misc', Icons.help, id: 'test_Nonexistent Item');
       final cartItem = CartItem(product, 1);
 
       final subtotal = cartItem.totalPrice;
@@ -143,7 +143,7 @@ void main() {
       );
       await dbService.insertItem(item);
 
-      final product = Product(item.name, item.price, category.name, item.icon);
+      final product = Product(item.name, item.price, category.name, item.icon, id: item.id);
       final cartItem = CartItem(product, 1);
 
       final subtotal = cartItem.totalPrice;
@@ -193,7 +193,7 @@ void main() {
       );
       await dbService.insertItem(item);
 
-      final product = Product(item.name, item.price, category.name, item.icon);
+      final product = Product(item.name, item.price, category.name, item.icon, id: item.id);
       final cartItem = CartItem(product, 1, seatNumber: 3);
 
       final subtotal = cartItem.totalPrice;
@@ -247,7 +247,7 @@ void main() {
       );
       await dbService.insertItem(item);
 
-      final product = Product(item.name, item.price, category.name, item.icon);
+      final product = Product(item.name, item.price, category.name, item.icon, id: item.id);
       final hhDiscount = item.price * BusinessInfo.instance.happyHourDiscountPercent;
       final cartItem = CartItem(product, 1, priceAdjustment: -hhDiscount);
 

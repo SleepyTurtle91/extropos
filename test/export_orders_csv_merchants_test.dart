@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
@@ -22,13 +23,23 @@ void main() {
     DatabaseHelper.overrideDatabaseFilePath(dbFile);
     await DatabaseHelper.instance.resetDatabase();
 
+    await DatabaseService.instance.insertCategory(
+      Category(
+        id: 'test-category',
+        name: 'Test Category',
+        description: 'Test category for CSV export',
+        icon: Icons.category,
+        color: Colors.blue,
+      ),
+    );
+
     // Insert item used in the order
     final item = Item(
       id: 'itest',
       name: 'CSV Product',
       description: 'CSV test',
       price: 10.0,
-      categoryId: '',
+      categoryId: 'test-category',
       icon: Icons.shop,
       color: const Color(0xFF000000),
     );
@@ -37,7 +48,7 @@ void main() {
 
   test('CSV export includes merchant columns and friendly name', () async {
     final cartItem = CartItem(
-      Product('CSV Product', 10.0, 'Cat', Icons.shop),
+      Product('CSV Product', 10.0, 'Cat', Icons.shop, id: 'test_CSV Product'),
       1,
     );
     // Save a sale with merchantId

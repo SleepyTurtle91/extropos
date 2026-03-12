@@ -1,6 +1,6 @@
 part of 'unified_pos_screen.dart';
 
-extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
+extension _UnifiedPOSSidebar on _UnifiedPOSScreenState {
   Widget _buildSidebar() {
     final isModeLocked = ConfigService.instance.isSetupDone;
     final lockedMode = _getLockModeFromConfig();
@@ -278,12 +278,10 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
 
     switch (label) {
       case 'Dashboard':
-        // TODO: Implement sales dashboard screen
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const SalesDashboardScreen()),
-        // );
-        ToastHelper.showToast(context, 'Dashboard not yet implemented');
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ReportsScreen()),
+        );
         break;
       case 'Reports':
         await Navigator.push(
@@ -292,12 +290,10 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
         );
         break;
       case 'Transactions':
-        // TODO: Implement sales history screen
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
-        // );
-        ToastHelper.showToast(context, 'Transactions not yet implemented');
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SalesHistoryScreen()),
+        );
         break;
       case 'Kitchen':
         // TODO: Implement kitchen display screen
@@ -308,12 +304,10 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
         ToastHelper.showToast(context, 'Kitchen display not yet implemented');
         break;
       case 'Return & Void':
-        // TODO: Implement refund service screen
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const RefundServiceScreen()),
-        // );
-        ToastHelper.showToast(context, 'Return & Void not yet implemented');
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RefundScreen()),
+        );
         break;
       case 'Tables':
         if (activeMode == POSMode.restaurant) {
@@ -444,8 +438,14 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
             activeMode = mode;
             activeTab = 'POS';
             activeCategory = 'All';
+            if (mode != POSMode.restaurant) {
+              selectedTableId = null;
+            }
           });
           _fetchData();
+          if (mode == POSMode.restaurant) {
+            _loadTables();
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -470,7 +470,125 @@ extension UnifiedPOSSidebar on _UnifiedPOSScreenState {
   }
 
   void _showTableSelectionDialog() {
-    //TODO: Implement table selection dialog
-    ToastHelper.showToast(context, 'Table selection coming soon');
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> refreshTables() async {
+              final tables = await DatabaseService.instance.getTables();
+              if (!mounted) return;
+              _updateState(() => availableTables = tables);
+              setModalState(() {});
+            }
+
+            Color statusColor(TableStatus status) {
+              switch (status) {
+                case TableStatus.available:
+                  return Colors.green;
+                case TableStatus.occupied:
+                  return Colors.orange;
+                case TableStatus.reserved:
+                  return Colors.blue;
+                case TableStatus.merged:
+                  return Colors.purple;
+                case TableStatus.cleaning:
+                  return Colors.brown;
+              }
+            }
+
+            if (availableTables.isEmpty) {
+              refreshTables();
+            }
+
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Select Table',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: refreshTables,
+                          icon: const Icon(Icons.refresh),
+                          tooltip: 'Refresh tables',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (selectedTableId != null)
+                      TextButton.icon(
+                        onPressed: () {
+                          _updateState(() => selectedTableId = null);
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(Icons.clear),
+                        label: const Text('Clear selected table'),
+                      ),
+                    const SizedBox(height: 8),
+                    if (availableTables.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text('No tables found. Configure tables first.'),
+                        ),
+                      )
+                    else
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 420),
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: availableTables.length,
+                          separatorBuilder: (_, separatorIndex) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final table = availableTables[index];
+                            final selected = table.id == selectedTableId;
+
+                            return ListTile(
+                              onTap: () {
+                                _updateState(() {
+                                  selectedTableId = table.id;
+                                  activeTab = 'POS';
+                                });
+                                Navigator.pop(context);
+                                ToastHelper.showToast(context, 'Selected ${table.name}');
+                              },
+                              leading: CircleAvatar(
+                                backgroundColor: statusColor(table.status).withOpacity(0.12),
+                                child: Icon(
+                                  Icons.table_restaurant,
+                                  color: statusColor(table.status),
+                                ),
+                              ),
+                              title: Text(table.name),
+                              subtitle: Text(
+                                '${table.status.name.toUpperCase()} • Capacity ${table.capacity}',
+                              ),
+                              trailing: selected
+                                  ? const Icon(Icons.check_circle, color: Colors.green)
+                                  : null,
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

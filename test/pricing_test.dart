@@ -17,8 +17,8 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final p1 = Product('Coffee', 10.0, 'Beverages', Icons.local_cafe);
-      final p2 = Product('Cake', 15.0, 'Desserts', Icons.cake);
+      final p1 = Product('Coffee', 10.0, 'Beverages', Icons.local_cafe, id: 'test_Coffee');
+      final p2 = Product('Cake', 15.0, 'Desserts', Icons.cake, id: 'test_Cake');
       final items = [
         CartItem(p1, 2), // 20.0
         CartItem(p2, 1), // 15.0
@@ -39,7 +39,7 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final p = Product('Burger', 12.0, 'Food', Icons.fastfood);
+      final p = Product('Burger', 12.0, 'Food', Icons.fastfood, id: 'test_Burger');
       final items = [CartItem(p, 3)]; // 36.0
 
       expect(Pricing.subtotal(items), 36.0);
@@ -57,7 +57,7 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final base = Product('Pizza', 20.0, 'Food', Icons.local_pizza);
+      final base = Product('Pizza', 20.0, 'Food', Icons.local_pizza, id: 'test_Pizza');
       final item = CartItem(base, 2, priceAdjustment: 2.0, discountPerUnit: 1.0);
       // finalPrice per unit = 20 + 2 - 1 = 21; total = 42
       final items = [item];
@@ -77,7 +77,7 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final p = Product('Tea', 5.0, 'Drink', Icons.local_drink);
+      final p = Product('Tea', 5.0, 'Drink', Icons.local_drink, id: 'test_Tea');
       final items = [CartItem(p, 2)]; // subtotal = 10.0
 
       // Large discount that exceeds subtotal

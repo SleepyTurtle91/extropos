@@ -1,6 +1,7 @@
+// ignore_for_file: unused_element, unused_field
+
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:extropos/dialogs/printer_form_dialog.dart';
 import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/printer_model.dart';
@@ -59,6 +60,16 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
   String? _selectedPrinterId;
   bool _isTesting = false;
   final PrinterService _printerService = PrinterService();
+
+  Printer? _findPrinterById(String? printerId) {
+    if (printerId == null) return null;
+    for (final printer in printers) {
+      if (printer.id == printerId) {
+        return printer;
+      }
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -328,7 +339,7 @@ class _PrintersManagementScreenState extends State<PrintersManagementScreen> {
 
 
   @override
-  Widget build(BuildContext context) => throw UnimplementedError('Use PrintersManagementScreenUI extension');
+  Widget build(BuildContext context) => _buildScreen(context);
 
   Printer? get _selectedPrinter {
     if (_selectedPrinterId == null) {

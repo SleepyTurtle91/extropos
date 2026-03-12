@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('Split logic reduces quantities correctly', () {
-    final p1 = Product('A', 10.0, 'Cat', Icons.shop);
-    final p2 = Product('B', 12.0, 'Cat', Icons.shop);
+    final p1 = Product('A', 10.0, 'Cat', Icons.shop, id: 'test_A');
+    final p2 = Product('B', 12.0, 'Cat', Icons.shop, id: 'test_B');
 
     final cart = [
       CartItem(p1, 3),

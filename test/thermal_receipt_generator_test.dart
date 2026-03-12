@@ -32,8 +32,8 @@ void main() {
   group('ThermalReceiptGenerator', () {
     test('should generate receipt for 80mm paper', () {
       final items = <CartItem>[
-        CartItem(Product('Burger', 15.00, 'Food', Icons.fastfood), 2),
-        CartItem(Product('Fries', 8.00, 'Food', Icons.restaurant), 1),
+        CartItem(Product('Burger', 15.00, 'Food', Icons.fastfood, id: 'test_Burger'), 2),
+        CartItem(Product('Fries', 8.00, 'Food', Icons.restaurant, id: 'test_Fries'), 1),
       ];
 
       final paymentMethod = PaymentMethod(id: 'cash', name: 'Cash');
@@ -60,7 +60,7 @@ void main() {
 
     test('should generate receipt for 58mm paper', () {
       final items = <CartItem>[
-        CartItem(Product('Coffee', 5.00, 'Beverage', Icons.local_cafe), 1),
+        CartItem(Product('Coffee', 5.00, 'Beverage', Icons.local_cafe, id: 'test_Coffee'), 1),
       ];
 
       final paymentMethod = PaymentMethod(id: 'card', name: 'Card');
@@ -84,7 +84,7 @@ void main() {
 
     test('should handle items with modifiers', () {
       final itemWithModifier = CartItem(
-        Product('Pizza', 20.00, 'Food', Icons.local_pizza),
+        Product('Pizza', 20.00, 'Food', Icons.local_pizza, id: 'test_Pizza'),
         1,
       );
 

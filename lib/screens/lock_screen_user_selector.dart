@@ -1,6 +1,6 @@
 part of 'lock_screen.dart';
 
-extension LockScreenUserSelector on _LockScreenState {
+extension _LockScreenUserSelector on _LockScreenState {
   Widget _buildUserSelector({double screenScale = 1.0}) {
     final selected = _selectedUser;
     final showUsers = _showUsers && _users.isNotEmpty;

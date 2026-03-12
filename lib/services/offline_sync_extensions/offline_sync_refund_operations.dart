@@ -1,5 +1,6 @@
 import 'package:extropos/services/offline_sync_models.dart';
 import 'package:extropos/services/offline_sync_service.dart';
+import 'package:uuid/uuid.dart';
 
 /// Extension to queue refund and void operations for offline sync
 extension OfflineSyncRefundOperations on OfflineSyncService {
@@ -148,7 +149,6 @@ extension OfflineSyncRefundOperations on OfflineSyncService {
     final storageService = _getStorageService();
     if (storageService == null) return;
 
-    import 'package:uuid/uuid.dart';
     const uuid = Uuid();
 
     await storageService.upsertQueueItem(

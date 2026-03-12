@@ -1,3 +1,4 @@
+import 'package:extropos/models/analytics_models.dart';
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/printer_model.dart' as printer_model;
 import 'package:extropos/services/database_service.dart';
@@ -23,7 +24,7 @@ class ReportExportService {
     required double netSales,
     required int transactionCount,
     required double avgTicket,
-    required List<dynamic> topProducts,
+    required List<ProductPerformance> topProducts,
     required String periodLabel,
   }) async {
     final buffer = StringBuffer();
@@ -99,10 +100,10 @@ class ReportExportService {
 
   /// Export PDF report
   Future<bool> exportPDF({
-    required dynamic summary,
-    required List<dynamic> categories,
-    required List<dynamic> topProducts,
-    required List<dynamic> paymentMethods,
+    required SalesSummary summary,
+    required List<CategoryPerformance> categories,
+    required List<ProductPerformance> topProducts,
+    required List<PaymentMethodStats> paymentMethods,
     required String periodLabel,
   }) async {
     try {
@@ -127,9 +128,9 @@ class ReportExportService {
 
   /// Print thermal 80mm receipt
   Future<bool> printThermal80mm({
-    required dynamic summary,
-    required List<dynamic> categories,
-    required List<dynamic> paymentMethods,
+    required SalesSummary summary,
+    required List<CategoryPerformance> categories,
+    required List<PaymentMethodStats> paymentMethods,
     required String periodLabel,
   }) async {
     try {

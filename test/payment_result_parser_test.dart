@@ -1,5 +1,4 @@
 import 'package:extropos/models/payment_models.dart';
-import 'package:extropos/models/payment_split_model.dart';
 import 'package:extropos/utils/payment_result_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
 

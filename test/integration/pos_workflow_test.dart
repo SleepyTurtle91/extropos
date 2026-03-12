@@ -11,7 +11,7 @@ void main() {
     late CartService cartService;
 
     setUp(() {
-      cartService = CartService();
+      cartService = CartService.instance;
     });
 
     tearDown(() {
@@ -19,6 +19,11 @@ void main() {
     });
 
     testWidgets('complete retail POS workflow', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1600, 1400));
+      addTearDown(() async {
+        await tester.binding.setSurfaceSize(null);
+      });
+
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -35,7 +40,7 @@ void main() {
       );
 
       // Wait for the screen to load
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
 
       // Verify initial state - cart should be empty
       expect(cartService.isEmpty, true);

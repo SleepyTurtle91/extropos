@@ -1,6 +1,6 @@
 part of 'retail_pos_screen.dart';
 
-extension RetailPOSUi on _RetailPOSScreenState {
+extension _RetailPOSUi on _RetailPOSScreenState {
   Widget _buildSelectionBar() {
     return Container(
       padding: const EdgeInsets.all(12),

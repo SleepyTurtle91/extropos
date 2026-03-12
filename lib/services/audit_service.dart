@@ -220,6 +220,12 @@ class AuditService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clear all logs (public alias for testing)
+  void clearCache() {
+    _activityLogs.clear();
+    notifyListeners();
+  }
+
   @override
   String toString() => 'AuditService(totalLogs: ${_activityLogs.length})';
 }

@@ -1,7 +1,7 @@
 part of 'printers_management_screen.dart';
 
 // Widget builder methods extracted from _PrintersManagementScreenState
-extension PrintersManagementWidgets on _PrintersManagementScreenState {
+extension _PrintersManagementWidgets on _PrintersManagementScreenState {
   Widget _buildJobToggle({
     required String title,
     required String description,

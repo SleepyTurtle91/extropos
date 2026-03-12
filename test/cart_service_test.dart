@@ -7,7 +7,8 @@ void main() {
     late CartService cartService;
 
     setUp(() {
-      cartService = CartService();
+      cartService = CartService.instance;
+      cartService.clearCart();
     });
 
     tearDown(() {

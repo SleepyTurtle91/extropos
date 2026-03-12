@@ -1,6 +1,6 @@
 part of 'modifier_groups_management_screen.dart';
 
-extension ModifierGroupsUI on _ModifierGroupsManagementScreenState {
+extension _ModifierGroupsUI on _ModifierGroupsManagementScreenState {
   Widget _buildModifierGroupsManagementScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

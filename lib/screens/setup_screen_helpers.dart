@@ -1,6 +1,6 @@
 part of 'setup_screen.dart';
 
-extension SetupScreenHelpers on _SetupScreenState {
+extension _SetupScreenHelpers on _SetupScreenState {
   bool _isNextDisabled() {
     if (_step == 1) {
       return _storeNameCtrl.text.trim().isEmpty || _businessType.isEmpty;

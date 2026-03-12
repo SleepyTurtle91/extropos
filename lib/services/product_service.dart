@@ -144,6 +144,7 @@ class ProductService {
       _iconFromCodePoint(
         (row['icon_code_point'] as int?) ?? 61184, // default icon
       ),
+      id: row['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       imagePath: row['image_url']?.toString(),
       printerOverride: row['printer_override']?.toString(),
     );

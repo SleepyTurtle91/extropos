@@ -5,11 +5,13 @@
 library;
 
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/order_status.dart';
 import 'package:extropos/models/p2p_device_model.dart';
 import 'package:extropos/models/p2p_message_model.dart';
 import 'package:extropos/models/p2p_order_message_model.dart';
+import 'package:extropos/models/product.dart';
 import 'package:extropos/services/local_network_p2p_service.dart';
-import 'package:extropos/services/p2p_order_router_service.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 /// Mock P2P Service for testing
@@ -98,6 +100,16 @@ class MockLocalNetworkP2PService implements LocalNetworkP2PService {
   @override
   Future<void> dispose() async {
     await stop();
+  }
+
+  @override
+  Future<void> sendOrder(P2POrderMessage orderMessage) async {
+    _sentMessages.add(orderMessage);
+  }
+
+  @override
+  Future<void> sendOrderStatus(P2POrderStatusMessage statusMessage) async {
+    _sentMessages.add(statusMessage);
   }
 
   // Mock-specific methods for testing
@@ -267,15 +279,7 @@ class P2PTestScenario {
 
   /// Simulate device disconnected
   void simulateDeviceDisconnected(String deviceId) {
-    final device = connectedDevices.firstWhere(
-      (d) => d.deviceId == deviceId,
-      orElse: () => null as dynamic,
-    );
-
     connectedDevices.removeWhere((d) => d.deviceId == deviceId);
-    final disconnected = device.copyWith(
-      connectionStatus: P2PConnectionStatus.disconnected,
-    );
     messageLog.add(P2PMessage(
       messageId: const Uuid().v4(),
       messageType: P2PMessageType.error,
@@ -283,7 +287,7 @@ class P2PTestScenario {
       timestamp: DateTime.now(),
       payload: {'event': 'disconnected'},
     ));
-    }
+  }
 
   /// Get all sent orders from log
   List<P2POrderMessage> getSentOrders() {
@@ -315,11 +319,7 @@ class P2PTestUtils {
     for (int i = 0; i < count; i++) {
       items.add(
         CartItem(
-          MockProduct(
-            id: 'product-$i',
-            name: 'Test Product $i',
-            price: 50.0,
-          ),
+          Product('Test Product $i', 50.0, 'General', Icons.star, id: 'product-$i'),
           1,
         ),
       );
@@ -389,18 +389,7 @@ class P2PTestUtils {
 }
 
 /// Mock Product for testing cart items
-class MockProduct {
-  final String id;
-  final String name;
-  final double price;
-
-  MockProduct({
-    required this.id,
-    required this.name,
-    required this.price,
-  });
-}
-
+// Note: Use Product directly instead of MockProduct.
 // Import required for tests
 /*
 import 'package:extropos/models/cart_item.dart';

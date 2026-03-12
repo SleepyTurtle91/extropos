@@ -3,7 +3,9 @@
   "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-21.0.10",
   "gradle.wrapper.enabled": true,
   "java.import.gradle.wrapper.enabled": true,
-  "gradle.java.home": "C:\\Program Files\\Java\\jdk-21.0.10",
+  
+  /* MATCH GRADLE TO SYSTEM */
+  "gradle.java.home": "C:\\Program Files\\Android\\Android Studio\\jbr",
   "java.configuration.runtimes": [
     {
       "name": "JavaSE-21",
@@ -11,30 +13,32 @@
       "default": true
     }
   ],
-  "java.gradle.buildServer.enabled": "off",
-  "gradle.allowParallelRun": false,
-  "gradle.nestedProjects": false,
+
+  /* FLUTTER & DART SPEED */
   "dart.flutterSdkPath": "E:\\flutter",
   "dart.sdkPath": "E:\\flutter",
   "dart.analysisExcludedFolders": [
     "windows",
     "linux",
-    "macos"
+    "macos",
+    "build"
   ],
+  "dart.previewLsp": true,
+  "dart.hotReloadOnSave": "all",
+
+  /* TERMINAL & PERFORMANCE */
+  "terminal.integrated.gpuAcceleration": "on",
+  "java.gradle.buildServer.enabled": "off",
+  "gradle.allowParallelRun": true, // Changed to true: your Ryzen 2400G has 8 threads!
+  
+  /* CLEANUP */
+  "php.validate.enable": false,
+  "cmake.ignoreCMakeListsMissing": true,
+  "markdownlint.enable": false,
   "files.associations": {
     "tuple": "cpp",
     "utility": "cpp",
     "xstring": "cpp",
     "ios": "cpp"
-  },
-  "php.validate.enable": false,
-  "php.validate.executablePath": null,
-  "chat.tools.terminal.autoApprove": {
-    "git restore": true
-  },
-  "cmake.ignoreCMakeListsMissing": true,
-  "markdownlint.enable": false,
-  "[markdown]": {
-    "editor.defaultFormatter": null
   }
 }

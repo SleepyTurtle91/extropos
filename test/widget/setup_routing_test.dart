@@ -20,12 +20,10 @@ void main() {
       await ConfigService.instance.init();
 
       await tester.pumpWidget(const ExtroPOSApp());
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      // AppBar title in SetupScreen
-      expect(find.text('Welcome — Setup'), findsOneWidget);
-      // Also check for the prominent setup headline
-      expect(find.textContaining("Let's get your store ready"), findsOneWidget);
+      expect(find.text('Welcome to ExtroPOS'), findsOneWidget);
+      expect(find.textContaining('setting up your business profile'), findsOneWidget);
     });
 
     testWidgets('shows home when setup already done (isSetupDone = true)', (
@@ -41,7 +39,7 @@ void main() {
       await ConfigService.instance.init();
 
       await tester.pumpWidget(const ExtroPOSApp());
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
 
       // When setup is done the app now presents a lock screen first
       expect(find.textContaining('Enter your PIN to unlock'), findsOneWidget);

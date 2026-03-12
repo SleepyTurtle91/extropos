@@ -6,7 +6,10 @@ import 'package:extropos/models/cart_item.dart';
 class CartCalculationService {
   /// Calculate subtotal from cart items
   static double calculateSubtotal(List<CartItem> items) {
-    return items.fold(0.0, (sum, item) => sum + (item.quantity * item.price));
+    return items.fold(
+      0.0,
+      (sum, item) => sum + (item.quantity * item.finalPrice),
+    );
   }
 
   /// Calculate tax amount

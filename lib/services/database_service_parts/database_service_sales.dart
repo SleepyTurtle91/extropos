@@ -1,6 +1,50 @@
 part of '../database_service.dart';
 
 extension DatabaseServiceSales on DatabaseService {
+  Future<String> _ensureValidUserId(
+    Database db,
+    String preferredUserId,
+    String nowIso,
+  ) async {
+    final preferred = await db.query(
+      'users',
+      columns: ['id'],
+      where: 'id = ?',
+      whereArgs: [preferredUserId],
+      limit: 1,
+    );
+    if (preferred.isNotEmpty) {
+      return preferredUserId;
+    }
+
+    final fallback = await db.query(
+      'users',
+      columns: ['id'],
+      where: 'is_active = ?',
+      whereArgs: [1],
+      orderBy: 'created_at ASC',
+      limit: 1,
+    );
+    if (fallback.isNotEmpty) {
+      return fallback.first['id'].toString();
+    }
+
+    await db.insert(
+      'users',
+      {
+        'id': preferredUserId,
+        'name': 'System',
+        'role': 'admin',
+        'is_active': 1,
+        'created_at': nowIso,
+        'updated_at': nowIso,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+
+    return preferredUserId;
+  }
+
   Future<String?> saveCompletedSale({
     required List<CartItem> cartItems,
     required double subtotal,
@@ -47,7 +91,12 @@ extension DatabaseServiceSales on DatabaseService {
         orderType: orderType,
         cafeOrderNumber: cafeOrderNumber,
       );
-      final resolvedUserId = userId ?? '1';
+      final requestedUserId = userId ?? '1';
+      final resolvedUserId = await _ensureValidUserId(
+        db,
+        requestedUserId,
+        nowIso,
+      );
 
       final activeShift = await ShiftService.instance.getCurrentShift(
         resolvedUserId,
@@ -214,7 +263,12 @@ extension DatabaseServiceSales on DatabaseService {
       orderType: orderType,
       cafeOrderNumber: cafeOrderNumber,
     );
-    final resolvedUserId = userId ?? '1';
+    final requestedUserId = userId ?? '1';
+    final resolvedUserId = await _ensureValidUserId(
+      db,
+      requestedUserId,
+      nowIso,
+    );
 
     final activeShift = await ShiftService.instance.getCurrentShift(
       resolvedUserId,

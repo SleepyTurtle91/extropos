@@ -1,7 +1,9 @@
+// ignore_for_file: unused_element
+
 part of 'printers_management_screen.dart';
 
 // Printer discovery operations extracted from PrintersManagementOperations
-extension PrintersDiscoveryOperations on _PrintersManagementScreenState {
+extension _PrintersDiscoveryOperations on _PrintersManagementScreenState {
   Future<void> _discoverPrintersAsync() async {
     if (!mounted || !_isInitialized) return;
 

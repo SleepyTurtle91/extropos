@@ -1,6 +1,6 @@
 part of 'setup_screen.dart';
 
-extension SetupScreenFutures on _SetupScreenState {
+extension _SetupScreenFutures on _SetupScreenState {
   Future<void> _finishSetup() async {
     if (_isProcessing) return;
 

@@ -67,7 +67,10 @@ void main() {
 
       // Only check for radio buttons if the screen shows the activation form
       if (find.text('Choose Activation Method').evaluate().isNotEmpty) {
-        expect(find.byType(RadioListTile), findsNWidgets(2));
+        final radioTiles = find.byWidgetPredicate(
+          (widget) => widget.runtimeType.toString().startsWith('RadioListTile<'),
+        );
+        expect(radioTiles, findsNWidgets(2));
       } else {
         // If activated, just verify the screen renders
         expect(find.text('Software Activation'), findsOneWidget);

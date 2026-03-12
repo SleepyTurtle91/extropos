@@ -1,6 +1,6 @@
 part of 'tables_management_screen.dart';
 
-extension TablesManagementContent on _TablesManagementScreenState {
+extension _TablesManagementContent on _TablesManagementScreenState {
   Widget _buildStatsSection() {
     return Container(
       padding: const EdgeInsets.all(16),

@@ -57,16 +57,12 @@ double taxAmount = info.isTaxEnabled ? subtotal * info.taxRate : 0.0;
 
 ### Database Pattern
 
-**Current**: SQLite via `DatabaseHelper.instance`  
-**Future**: Isar migration (models in `lib/models/isar/`)
+**Current**: SQLite via `DatabaseHelper.instance`
 
 ```dart
 // SQLite query pattern
 final db = await DatabaseHelper.instance.database;
 final products = await db.query('products', where: 'is_active = ?', whereArgs: [1]);
-
-// Isar pattern (when integrated)
-final products = await IsarDatabaseService.getAllProducts();
 
 ```
 
@@ -607,8 +603,6 @@ class _ProductGridScreenState extends State<ProductGridScreen> {
 
 - [ ] Use `DatabaseHelper.instance` for SQLite
 
-- [ ] Prepare for Isar migration
-
 - [ ] Add proper indexes for frequently queried fields
 
 - [ ] Implement pagination for large datasets
@@ -787,8 +781,6 @@ lib/
 │   ├── customer.dart
 │   ├── product.dart
 │   ├── transaction.dart
-│   └── isar/                          # Future Isar models
-
 ├── screens/
 │   ├── unified_pos_screen.dart        # Main POS router
 
@@ -848,9 +840,6 @@ UserSessionService()               // Current user
 TrainingModeService.instance       // Training mode
 ResetService.instance              // Reset broadcasting
 LockManager.instance               // PIN lock
-
-// Future: Isar
-IsarDatabaseService.instance       // When Isar integrated
 
 ```
 

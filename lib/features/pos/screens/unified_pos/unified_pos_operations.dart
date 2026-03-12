@@ -1,6 +1,6 @@
 part of 'unified_pos_screen.dart';
 
-extension UnifiedPOSOperations on _UnifiedPOSScreenState {
+extension _UnifiedPOSOperations on _UnifiedPOSScreenState {
   Future<void> _fetchData() async {
     _updateState(() => isLoading = true);
 
@@ -47,6 +47,23 @@ extension UnifiedPOSOperations on _UnifiedPOSScreenState {
     }
   }
 
+  Future<void> _loadTables() async {
+    try {
+      final tables = await DatabaseService.instance.getTables();
+      if (!mounted) return;
+      _updateState(() {
+        availableTables = tables;
+        if (selectedTableId != null &&
+            !availableTables.any((table) => table.id == selectedTableId)) {
+          selectedTableId = null;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      _updateState(() => availableTables = []);
+    }
+  }
+
   String _getCategoryName(String categoryId, List<dynamic> categories) {
     try {
       final category = categories.firstWhere(
@@ -87,8 +104,18 @@ extension UnifiedPOSOperations on _UnifiedPOSScreenState {
   }
 
   double get subtotal => cart.fold(0, (sum, item) => sum + item.total);
-  double get tax => subtotal * 0.08;
-  double get total => subtotal + tax;
+
+  double get tax {
+    final info = BusinessInfo.instance;
+    return info.isTaxEnabled ? subtotal * info.taxRate : 0.0;
+  }
+
+  double get serviceCharge {
+    final info = BusinessInfo.instance;
+    return info.isServiceChargeEnabled ? subtotal * info.serviceChargeRate : 0.0;
+  }
+
+  double get total => subtotal + tax + serviceCharge;
 
   List<pos_cart.CartItem> _buildPaymentCartItems() {
     return cart
@@ -126,6 +153,7 @@ extension UnifiedPOSOperations on _UnifiedPOSScreenState {
           availablePaymentMethods: paymentMethods,
           cartItems: _buildPaymentCartItems(),
           orderType: activeMode.name,
+          tableId: activeMode == POSMode.restaurant ? selectedTableId : null,
         ),
       ),
     );

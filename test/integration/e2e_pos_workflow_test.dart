@@ -62,9 +62,9 @@ void main() {
         final cartItems = <CartItem>[];
 
         // Step 1: Add products to cart
-        cartItems.add(CartItem(Product('Burger', 10.0, 'Food', Icons.fastfood), 2)); // 2 x $10 = $20
-        cartItems.add(CartItem(Product('Fries', 15.0, 'Food', Icons.restaurant), 1)); // 1 x $15 = $15
-        cartItems.add(CartItem(Product('Drink', 8.0, 'Beverage', Icons.local_cafe), 3)); // 3 x $8 = $24
+        cartItems.add(CartItem(Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger'), 2)); // 2 x $10 = $20
+        cartItems.add(CartItem(Product('Fries', 15.0, 'Food', Icons.restaurant, id: 'test_Fries'), 1)); // 1 x $15 = $15
+        cartItems.add(CartItem(Product('Drink', 8.0, 'Beverage', Icons.local_cafe, id: 'test_Drink'), 3)); // 3 x $8 = $24
 
         // Step 2: Calculate totals
         final subtotal = cartItems.fold<double>(
@@ -133,9 +133,9 @@ void main() {
       });
 
       test('should handle cart modifications during checkout', () async {
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
-        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant);
-        final p3 = Product('Drink', 8.0, 'Beverage', Icons.local_cafe);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
+        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant, id: 'test_Fries');
+        final p3 = Product('Drink', 8.0, 'Beverage', Icons.local_cafe, id: 'test_Drink');
         final cartItems = <CartItem>[];
 
         // Add initial items
@@ -176,7 +176,7 @@ void main() {
       });
 
       test('should handle payment failures gracefully', () async {
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
         final cartItems = <CartItem>[];
 
         cartItems.add(CartItem(p1, 1));
@@ -198,9 +198,9 @@ void main() {
 
     group('Cafe Mode Integration Tests', () {
       test('should handle order numbering system', () async {
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
-        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant);
-        final p3 = Product('Drink', 8.0, 'Beverage', Icons.local_cafe);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
+        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant, id: 'test_Fries');
+        final p3 = Product('Drink', 8.0, 'Beverage', Icons.local_cafe, id: 'test_Drink');
         final activeOrders = <Map<String, dynamic>>[];
         var nextOrderNumber = 1;
 
@@ -258,7 +258,7 @@ void main() {
 
       test('should track active orders efficiently', () async {
         final activeOrders = <Map<String, dynamic>>[];
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
 
         // Simulate busy cafe period - create many orders quickly
         final stopwatch = Stopwatch()..start();
@@ -311,9 +311,9 @@ void main() {
           });
         }
 
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
-        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant);
-        final p3 = Product('Drink', 8.0, 'Beverage', Icons.local_cafe);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
+        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant, id: 'test_Fries');
+        final p3 = Product('Drink', 8.0, 'Beverage', Icons.local_cafe, id: 'test_Drink');
 
         // Customer sits at table 1
         tables[0]['status'] = 'occupied';
@@ -376,8 +376,8 @@ void main() {
           });
         }
 
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
-        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
+        final p2 = Product('Fries', 15.0, 'Food', Icons.restaurant, id: 'test_Fries');
 
         // Two parties occupy separate tables
         tables[0]['status'] = 'occupied';
@@ -416,7 +416,7 @@ void main() {
 
     group('Performance Integration Tests', () {
       test('should handle high-volume transactions efficiently', () async {
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
         final transactions = <Map<String, dynamic>>[];
 
         final stopwatch = Stopwatch()..start();
@@ -471,7 +471,7 @@ void main() {
       });
 
       test('should maintain data consistency under load', () async {
-        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood);
+        final p1 = Product('Burger', 10.0, 'Food', Icons.fastfood, id: 'test_Burger');
         final concurrentTransactions = <Future<void>>[];
 
         // Launch multiple concurrent transactions

@@ -92,6 +92,7 @@ class ParkedSale {
       'cartItems': cartItems
           .map(
             (item) => {
+              'productId': item.product.id,
               'productName': item.product.name,
               'productPrice': item.product.price,
               'category': item.product.category,
@@ -128,6 +129,8 @@ class ParkedSale {
           itemJson['productPrice'],
           itemJson['category'],
           _getIconFromCodePoint(itemJson['icon']),
+          id: itemJson['productId']?.toString() ??
+              'parked-${itemJson['productName']}-${itemJson['category']}',
         );
 
         // Reconstruct modifiers

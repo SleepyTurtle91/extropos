@@ -1,7 +1,7 @@
 part of '../database_helper.dart';
 
 extension DatabaseHelperUpgradePart1 on DatabaseHelper {
-  Future<void> _applyUpgrades_v2_v35(Database db, int oldVersion) async {
+  Future<void> _applyUpgradesV2V35(Database db, int oldVersion) async {
     if (oldVersion < 34) {
       try {
         await db.execute('''

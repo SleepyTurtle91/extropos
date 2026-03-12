@@ -7,8 +7,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('split subtraction avoids negative quantities and preserves seats', () {
-    final p1 = Product('A', 10.0, 'Test', Icons.shop);
-    final p2 = Product('B', 12.0, 'Test', Icons.shop);
+    final p1 = Product('A', 10.0, 'Test', Icons.shop, id: 'test_A');
+    final p2 = Product('B', 12.0, 'Test', Icons.shop, id: 'test_B');
 
     final cart = [
       CartItem(p1, 2, seatNumber: 1),

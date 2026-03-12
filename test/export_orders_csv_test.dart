@@ -55,7 +55,7 @@ void main() {
       await dbService.insertItem(item);
 
       // Prepare cart item and save a completed sale
-      final product = Product(item.name, item.price, category.name, item.icon);
+      final product = Product(item.name, item.price, category.name, item.icon, id: item.id);
       final cartItem = CartItem(product, 2);
 
       final subtotal = cartItem.totalPrice;

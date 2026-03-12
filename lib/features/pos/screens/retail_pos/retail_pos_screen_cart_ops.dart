@@ -1,6 +1,6 @@
 part of 'retail_pos_screen.dart';
 
-extension RetailPOSCartOps on _RetailPOSScreenState {
+extension _RetailPOSCartOps on _RetailPOSScreenState {
   Future<void> addToCart(Product p) async {
     if (p.hasVariants) {
       final selectedVariant = await showDialog<ProductVariant>(

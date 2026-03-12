@@ -19,14 +19,18 @@ extension PaymentServiceCashCard on PaymentService {
     String? merchantId,
   }) async {
     try {
-      final validationError = await _validateCartItemsExistInDB(cartItems);
-      if (validationError != null) {
-        developer.log('❌ Cart validation failed: $validationError');
-        return PaymentResult.failure(
-          errorMessage: validationError,
-          paymentSplits: [PaymentSplit(paymentMethod: PaymentMethod(id: 'cash', name: 'Cash'), amount: amountPaid)],
-          amountPaid: amountPaid,
-        );
+      final isTrainingMode = TrainingModeService.instance.isTrainingMode;
+
+      if (!isTrainingMode) {
+        final validationError = await _validateCartItemsExistInDB(cartItems);
+        if (validationError != null) {
+          developer.log('❌ Cart validation failed: $validationError');
+          return PaymentResult.failure(
+            errorMessage: validationError,
+            paymentSplits: [PaymentSplit(paymentMethod: PaymentMethod(id: 'cash', name: 'Cash'), amount: amountPaid)],
+            amountPaid: amountPaid,
+          );
+        }
       }
 
       if (amountPaid < totalAmount) {
@@ -57,7 +61,7 @@ extension PaymentServiceCashCard on PaymentService {
 
       final paymentMethod = PaymentMethod(id: 'cash', name: 'Cash');
 
-      if (TrainingModeService.instance.isTrainingMode) {
+      if (isTrainingMode) {
         final fakeReceipt = 'TRAIN-${DateTime.now().millisecondsSinceEpoch}';
         TrainingModeService.instance.addTrainingTransaction({
           'receiptNumber': fakeReceipt,
@@ -174,19 +178,27 @@ extension PaymentServiceCashCard on PaymentService {
     String? merchantId,
   }) async {
     try {
-      final validationError = await _validateCartItemsExistInDB(cartItems);
-      if (validationError != null) {
-        developer.log('❌ Cart validation failed: $validationError');
-        return PaymentResult.failure(
-          errorMessage: validationError,
-          paymentSplits: [PaymentSplit(paymentMethod: paymentMethod, amount: totalAmount)],
-          amountPaid: totalAmount,
-        );
+      final isTrainingMode = TrainingModeService.instance.isTrainingMode;
+
+      if (!isTrainingMode) {
+        final validationError = await _validateCartItemsExistInDB(cartItems);
+        if (validationError != null) {
+          developer.log('❌ Cart validation failed: $validationError');
+          return PaymentResult.failure(
+            errorMessage: validationError,
+            paymentSplits: [PaymentSplit(paymentMethod: paymentMethod, amount: totalAmount)],
+            amountPaid: totalAmount,
+          );
+        }
       }
 
-      await Future.delayed(const Duration(seconds: 2));
+      if (!isTrainingMode) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
 
-      final isValidCard = await _validateCardPayment(totalAmount);
+      final isValidCard = isTrainingMode
+          ? true
+          : await _validateCardPayment(totalAmount);
 
       if (!isValidCard) {
         return PaymentResult.failure(
@@ -212,7 +224,7 @@ extension PaymentServiceCashCard on PaymentService {
           ? subtotalAfterDiscount * info.serviceChargeRate
           : 0.0;
 
-      if (TrainingModeService.instance.isTrainingMode) {
+      if (isTrainingMode) {
         final fakeReceipt = 'TRAIN-${DateTime.now().millisecondsSinceEpoch}';
         TrainingModeService.instance.addTrainingTransaction({
           'receiptNumber': fakeReceipt,

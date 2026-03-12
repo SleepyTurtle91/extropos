@@ -1,6 +1,6 @@
 part of 'lock_screen.dart';
 
-extension LockScreenRightPanel on _LockScreenState {
+extension _LockScreenRightPanel on _LockScreenState {
   Widget _buildRightPanel({required BoxConstraints constraints}) {
     final screenScale = constraints.maxWidth > 600
         ? constraints.maxWidth / 1200

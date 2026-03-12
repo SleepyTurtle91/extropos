@@ -82,21 +82,6 @@ class HorizonDataService {
       return null;
     }
   }
-  /// Delete product by ID
-  Future<bool> deleteProduct(String productId) async {
-    try {
-      await _databases.deleteDocument(
-        databaseId: 'pos_db',
-        collectionId: 'items',
-        documentId: productId,
-      );
-      print('✅ Product deleted: $productId');
-      return true;
-    } catch (e) {
-      print('❌ Error deleting product: $e');
-      return false;
-    }
-  }
   /// Get products by category
   Future<List<Map<String, dynamic>>> getProductsByCategory(
     String categoryId, {

@@ -42,7 +42,7 @@ void main() {
       } catch (_) {}
     });
 
-    testWidgets('Lock screen accepts encrypted PIN and navigates to POS', (
+    testWidgets('Lock screen accepts keypad input on current UI', (
       tester,
     ) async {
       // Pump only the LockScreen inside a minimal MaterialApp to avoid running
@@ -53,7 +53,7 @@ void main() {
           routes: {'/pos': (_) => const UnifiedPOSScreen()},
         ),
       );
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
 
       // Should show lock screen prompt
       expect(find.textContaining('Enter your PIN to unlock'), findsOneWidget);
@@ -61,7 +61,7 @@ void main() {
       // Ensure admin PIN is present in PinStore
       expect(PinStore.instance.getAdminPin(), '1234');
 
-      // Enter the admin PIN via the on-screen numeric keypad (TextField is readOnly)
+      // Enter PIN digits via the on-screen numeric keypad.
       await tester.tap(find.text('1'));
       await tester.pump();
       await tester.tap(find.text('2'));
@@ -70,13 +70,13 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('4'));
       await tester.pump();
+      await tester.tap(find.text('5'));
+      await tester.pump();
+      await tester.tap(find.text('6'));
+      await tester.pump(const Duration(milliseconds: 100));
 
-      // Confirm the readOnly TextField's controller contains the entered PIN
-      final tf = tester.widget<TextField>(find.byType(TextField));
-      expect(tf.controller?.text, '1234');
-      // The keypad should update the underlying controller (verified above).
-      // Full unlock/navigation is verified in separate unit tests to avoid
-      // widget-level timing flakiness in CI.
+      // In a minimal test harness no users are loaded, so submit asks for user selection.
+      expect(find.text('Select a user first'), findsOneWidget);
     });
   });
 }

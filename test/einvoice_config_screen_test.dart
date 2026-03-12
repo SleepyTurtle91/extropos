@@ -46,6 +46,12 @@ void main() {
         ),
       );
 
+      final listView = find.byType(ListView);
+      for (int i = 0; i < 8 && find.text('Test Connection').evaluate().isEmpty; i++) {
+        await tester.drag(listView, const Offset(0, -350));
+        await tester.pump();
+      }
+
       expect(find.text('Test Connection'), findsOneWidget);
     });
 
@@ -56,7 +62,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      expect(find.byType(ListView), findsOneWidget);
     });
   });
 }

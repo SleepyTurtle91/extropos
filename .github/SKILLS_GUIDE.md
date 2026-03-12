@@ -217,7 +217,7 @@ Paste your code and ask for review:
 **Your FlutterPOS Application**:
 - **Type**: Multi-flavor Flutter app (POS/KDS/Backend/KeyGen)
 - **Platforms**: Windows desktop (primary), Android tablets (secondary)
-- **Database**: SQLite (current), Isar (migration planned)
+- **Database**: SQLite (sqflite, production-stable)
 - **Architecture**: Three-layer modular pattern (Layer A/B/C)
 - **Tests**: 100+ unit/integration tests
 - **Tested Features**: All business logic, main workflows, critical components
@@ -231,6 +231,19 @@ Paste your code and ask for review:
 6. ✅ **Dependency injection** always
 7. ✅ **Error handling** with try-catch
 8. ✅ **Unit tests** for all logic
+
+---
+
+## Bug Prevention Rules
+
+- **Overflows:** If a test fails with `RenderFlex overflowed`, automatically
+    suggest wrapping the offending widget in a `SingleChildScrollView`.
+- **Database:** All item inserts must verify that the `category_id` exists
+    first to avoid FOREIGN KEY 787 errors.
+- **Migrations:** Ensure `CREATE TABLE` statements always run before
+    `UPDATE`/`INSERT` statements in migration scripts.
+- **Tests:** If `pumpAndSettle` times out, check for heavy I/O or CFD
+    initialization blocking the main thread.
 
 ---
 

@@ -103,7 +103,7 @@ Analyze codebase → Flask of skills → Refactor progressively
 - Windows desktop primary, Android tablets secondary
 - Three-layer architecture with 500-line file limits
 - 100+ unit/integration tests
-- SQLite database (Isar migration planned)
+- SQLite database (sqflite)
 
 All skills are designed specifically for your FlutterPOS codebase patterns.
 

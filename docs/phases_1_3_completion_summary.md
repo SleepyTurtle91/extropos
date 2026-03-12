@@ -1,5 +1,7 @@
 # POS Refactor Completion Summary - Phases 1-3
 
+> **Archive Note**: The `packages/isar_models/` package and all Isar integration work described in Phase 1 was subsequently removed in March 2026. Isar was abandoned in favour of SQLite (sqflite) for stability. This document is preserved for historical reference.
+
 **Project**: ExtroPOS Modular Architecture Refactor  
 **Duration**: February 25-26, 2026  
 **Goal**: Restructure monolithic Flutter/Dart app to enforce 500–1000 line limit per file

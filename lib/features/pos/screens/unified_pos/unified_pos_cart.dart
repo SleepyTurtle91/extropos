@@ -1,6 +1,6 @@
 part of 'unified_pos_screen.dart';
 
-extension UnifiedPOSCart on _UnifiedPOSScreenState {
+extension _UnifiedPOSCart on _UnifiedPOSScreenState {
   Widget _buildCartSection() {
     return Container(
       width: 380,

@@ -1,6 +1,6 @@
 part of 'lock_screen.dart';
 
-extension LockScreenLeftPanel on _LockScreenState {
+extension _LockScreenLeftPanel on _LockScreenState {
   Widget _buildLeftPanel() {
     return Stack(
       children: [

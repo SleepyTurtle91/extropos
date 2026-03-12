@@ -1,6 +1,6 @@
 part of 'tables_management_screen.dart';
 
-extension TablesManagementOperations on _TablesManagementScreenState {
+extension _TablesManagementOperations on _TablesManagementScreenState {
   Future<void> _loadTables() async {
     final currentContext = context;
     try {

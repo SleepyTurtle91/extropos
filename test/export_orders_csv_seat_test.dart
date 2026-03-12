@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
@@ -22,12 +23,22 @@ void main() {
     DatabaseHelper.overrideDatabaseFilePath(dbFile);
     await DatabaseHelper.instance.resetDatabase();
 
+    await DatabaseService.instance.insertCategory(
+      Category(
+        id: 'test-category',
+        name: 'Test Category',
+        description: 'Test category for seat export',
+        icon: Icons.category,
+        color: Colors.blue,
+      ),
+    );
+
     final item = Item(
       id: 'sitem',
       name: 'Seat Product',
       description: 'Seat test',
       price: 10.0,
-      categoryId: '',
+      categoryId: 'test-category',
       icon: Icons.shop,
       color: const Color(0xFF000000),
     );
@@ -36,7 +47,7 @@ void main() {
 
   test('CSV export includes seat numbers in order items', () async {
     final cartItem = CartItem(
-      Product('Seat Product', 10.0, 'Cat', Icons.shop),
+      Product('Seat Product', 10.0, 'Cat', Icons.shop, id: 'test_Seat Product'),
       1,
       seatNumber: 2,
     );

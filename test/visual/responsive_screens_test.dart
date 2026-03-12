@@ -1,13 +1,8 @@
 import 'dart:io';
 
-import 'package:extropos/models/table_model.dart';
-import 'package:extropos/screens/cafe_pos_screen.dart';
+import 'package:extropos/features/pos/screens/retail_pos/retail_pos_screen.dart';
 import 'package:extropos/screens/items_management_screen.dart';
-import 'package:extropos/screens/kitchen_display_screen.dart';
-import 'package:extropos/screens/order_queue_screen.dart';
-import 'package:extropos/screens/pos_order_screen_fixed.dart';
 import 'package:extropos/screens/printers_management_screen.dart';
-import 'package:extropos/screens/retail_pos_screen.dart';
 import 'package:extropos/screens/table_selection_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:flutter/material.dart';
@@ -41,12 +36,10 @@ void main() {
     testWidgets('Retail POS at ${size.width}x${size.height} does not overflow', (
       WidgetTester tester,
     ) async {
-      // Use the WidgetTester.view APIs (preferred over the deprecated window test helpers)
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
 
       await tester.pumpWidget(MaterialApp(home: RetailPOSScreen()));
-      // Use controlled pumps to allow async initialization without hanging
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
@@ -55,56 +48,6 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
     });
-
-    testWidgets('Cafe POS at ${size.width}x${size.height} does not overflow', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = size;
-      tester.view.devicePixelRatio = 1.0;
-
-      await tester.pumpWidget(MaterialApp(home: CafePOSScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-    });
-
-    testWidgets(
-      'Kitchen Display at ${size.width}x${size.height} does not overflow',
-      (WidgetTester tester) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-
-        await tester.pumpWidget(MaterialApp(home: KitchenDisplayScreen()));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
-
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
-      },
-    );
-
-    testWidgets(
-      'Order Queue at ${size.width}x${size.height} does not overflow',
-      (WidgetTester tester) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-
-        await tester.pumpWidget(MaterialApp(home: OrderQueueScreen()));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
-
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
-      },
-    );
 
     testWidgets(
       'Items management at ${size.width}x${size.height} does not overflow',
@@ -164,26 +107,6 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
 
         await tester.pumpWidget(MaterialApp(home: TableSelectionScreen()));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 200));
-
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
-      },
-    );
-
-    testWidgets(
-      'POS Order screen at ${size.width}x${size.height} does not overflow',
-      (WidgetTester tester) async {
-        tester.view.physicalSize = size;
-        tester.view.devicePixelRatio = 1.0;
-
-        final table = RestaurantTable(id: 't1', name: 'T1', capacity: 4);
-        await tester.pumpWidget(
-          MaterialApp(home: POSOrderScreen(table: table)),
-        );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 200));
 

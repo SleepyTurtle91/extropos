@@ -1,6 +1,6 @@
 part of 'items_management_screen.dart';
 
-extension ItemsManagementUIBuilders on _ItemsManagementScreenState {
+extension _ItemsManagementUIBuilders on _ItemsManagementScreenState {
   Widget _buildItemsManagementScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

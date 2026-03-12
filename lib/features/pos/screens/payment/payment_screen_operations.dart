@@ -1,7 +1,7 @@
 part of 'payment_screen.dart';
 
 /// Payment processing logic and helpers
-extension PaymentScreenOperations on _PaymentScreenState {
+extension _PaymentScreenOperations on _PaymentScreenState {
   /// Get the amount entered by user
   double get _enteredAmount => double.tryParse(_amountController.text) ?? 0.0;
 
@@ -76,7 +76,6 @@ extension PaymentScreenOperations on _PaymentScreenState {
                   .toLowerCase()
                   .contains('e-wallet'))) {
         _updateState(() => _isProcessing = false);
-        final orderRef = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
         // TODO: Implement e-wallet payment screen
         // final resultMap = await Navigator.push(
         //   context,
@@ -84,7 +83,7 @@ extension PaymentScreenOperations on _PaymentScreenState {
         //     builder: (context) => EWalletPaymentScreen(
         //       amount: widget.totalAmount,
         //       methodName: _selectedPaymentMethod!.name,
-        //       orderRef: orderRef,
+        //       orderRef: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
         //       merchantId: widget.merchantId,
         //     ),
         //   ),
@@ -198,7 +197,20 @@ extension PaymentScreenOperations on _PaymentScreenState {
         }
 
         // Payment successful - show receipt preview
-        final showReceipt = await Navigator.push(
+        final businessInfo = BusinessInfo.instance;
+        final subtotal = widget.cartItems?.fold<double>(
+              0.0,
+              (sum, item) => sum + (item.finalPrice * item.quantity),
+            ) ??
+            widget.totalAmount;
+        final taxAmount = businessInfo.isTaxEnabled
+            ? subtotal * businessInfo.taxRate
+            : 0.0;
+        final serviceChargeAmount = businessInfo.isServiceChargeEnabled
+            ? subtotal * businessInfo.serviceChargeRate
+            : 0.0;
+
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ReceiptPreviewScreen(
@@ -209,9 +221,9 @@ extension PaymentScreenOperations on _PaymentScreenState {
                 'quantity': item.quantity,
                 'category_id': item.product.category,
               }).toList() ?? [],
-              subtotal: widget.cartItems?.fold<double>(0.0, (sum, item) => sum + (item.finalPrice * item.quantity)) ?? widget.totalAmount,
-              tax: 0.0, // TODO: Calculate actual tax from business settings
-              serviceCharge: 0.0, // TODO: Calculate actual service charge from business settings
+              subtotal: subtotal,
+              tax: taxAmount,
+              serviceCharge: serviceChargeAmount,
               total: widget.totalAmount,
               paymentResult: result,
               onPrint: () {

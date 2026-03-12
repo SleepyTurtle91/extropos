@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
 import 'package:extropos/models/product.dart';
 import 'package:extropos/services/cart_service.dart';
@@ -161,6 +162,16 @@ void main() {
     DatabaseHelper.overrideDatabaseFilePath(dbFile);
     await DatabaseHelper.instance.resetDatabase();
 
+    await DatabaseService.instance.insertCategory(
+      Category(
+        id: 'test-category',
+        name: 'Test Category',
+        description: 'Stress test category',
+        icon: Icons.category,
+        color: Colors.blue,
+      ),
+    );
+
     // Insert test products for stress testing
     final productNames = [
       'Coffee',
@@ -192,6 +203,7 @@ void main() {
         (i + 1) * 5.0,
         'Test Category',
         Icons.shopping_cart,
+        id: 'product_$i',
       ));
     }
 
@@ -241,7 +253,7 @@ void main() {
 
       for (int tx = 0; tx < 50; tx++) {
         final stopwatch = Stopwatch()..start();
-        final cartService = CartService();
+        final cartService = CartService.instance;
 
         try {
           // Simulate random cart with 1-5 items
@@ -348,7 +360,7 @@ void main() {
         futures.add(
           Future(() async {
             try {
-              final cartService = CartService();
+              final cartService = CartService.instance;
 
               // Simulate random cart
               final itemCount = random.nextInt(4) + 1;
@@ -427,7 +439,7 @@ void main() {
       final random = Random();
 
       for (int tx = 0; tx < 100; tx++) {
-        final cartService = CartService();
+        final cartService = CartService.instance;
 
         try {
           // Quick random items
@@ -479,7 +491,7 @@ void main() {
       print('Verifying cart consistency during stress conditions');
       print('');
 
-      final cartService = CartService();
+      final cartService = CartService.instance;
       
       // Add and manipulate items rapidly
       for (int i = 0; i < 50; i++) {

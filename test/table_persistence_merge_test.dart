@@ -43,8 +43,8 @@ void main() {
     await db.updateTable(t2);
 
     // Merge: move orders from t1 and t2 into t3 in-memory and persist t3 occupied
-    t3.addOrMergeOrder(CartItem(Product('A', 10.0, 'Cat', Icons.shop), 2));
-    t3.addOrMergeOrder(CartItem(Product('B', 5.0, 'Cat', Icons.shop), 1));
+    t3.addOrMergeOrder(CartItem(Product('A', 10.0, 'Cat', Icons.shop, id: 'test_A'), 2));
+    t3.addOrMergeOrder(CartItem(Product('B', 5.0, 'Cat', Icons.shop, id: 'test_B'), 1));
     t3.status = TableStatus.occupied;
     await db.updateTable(t3);
 

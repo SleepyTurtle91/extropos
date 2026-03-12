@@ -24,8 +24,8 @@ void main() {
 
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ExtroPOSApp());
-    // Allow any startup timers/animations to settle (tutorial delay, etc.)
-    await tester.pumpAndSettle(const Duration(seconds: 1));
+    // Lock screen runs periodic timers/animations; use bounded pumping.
+    await tester.pump(const Duration(milliseconds: 500));
 
     // After setup is done the app requires unlocking first; verify lock screen
     expect(find.textContaining('Enter your PIN to unlock'), findsOneWidget);

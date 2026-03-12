@@ -1,6 +1,6 @@
 part of 'users_management_screen.dart';
 
-extension UsersManagementUI on _UsersManagementScreenState {
+extension _UsersManagementUI on _UsersManagementScreenState {
   Widget _buildUsersManagementScreen(BuildContext context) {
     if (_isLoading) {
       return Scaffold(

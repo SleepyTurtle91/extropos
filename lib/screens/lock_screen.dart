@@ -38,7 +38,7 @@ class LockScreen extends StatefulWidget {
 }
 
 class _LockScreenState extends State<LockScreen>
-    with SingleTickerProviderStateMixin {
+  with TickerProviderStateMixin {
   final List<Color> _userColors = const [
     Color(0xFF6366F1),
     Color(0xFF10B981),

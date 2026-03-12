@@ -7,14 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Offline-First Smoke Tests', () {
-    late DatabaseHelper dbHelper;
     late OfflineSyncStorageService syncStorage;
     late OfflineSyncService syncService;
-
-    setUpAll(() async {
-      // Initialize database in test mode
-      dbHelper = DatabaseHelper.instance;
-    });
 
     setUp(() async {
       // Reset sync storage for each test

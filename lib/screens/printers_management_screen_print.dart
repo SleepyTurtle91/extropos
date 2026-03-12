@@ -1,7 +1,7 @@
 part of 'printers_management_screen.dart';
 
 // Printer test and debug print operations
-extension PrintersPrintOperations on _PrintersManagementScreenState {
+extension _PrintersPrintOperations on _PrintersManagementScreenState {
   Future<void> _sampleReceiptPrint(Printer printer) async {
     try {
       // Pre-check connection details to avoid unnecessary fallback behavior

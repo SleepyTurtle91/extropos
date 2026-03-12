@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
@@ -169,6 +170,16 @@ void main() {
     DatabaseHelper.overrideDatabaseFilePath(dbFile);
     await DatabaseHelper.instance.resetDatabase();
 
+    await DatabaseService.instance.insertCategory(
+      Category(
+        id: 'test-category',
+        name: 'Test Category',
+        description: 'Return/void test category',
+        icon: Icons.category,
+        color: Colors.blue,
+      ),
+    );
+
     // Insert test products
     final productNames = [
       'Coffee',
@@ -200,6 +211,7 @@ void main() {
         (i + 1) * 5.0,
         'Test Category',
         Icons.shopping_cart,
+        id: 'product_$i',
       ));
     }
 
@@ -250,10 +262,12 @@ void main() {
 
       for (int op = 0; op < 20; op++) {
         final stopwatch = Stopwatch()..start();
-        final cartService = CartService();
+        final cartService = CartService.instance;
         final refundService = RefundService.instance;
 
         try {
+          cartService.clearCart();
+
           // Build cart with 2-4 items
           final itemCount = random.nextInt(3) + 2;
           double originalTotal = 0.0;
@@ -366,10 +380,12 @@ void main() {
 
       for (int op = 0; op < 30; op++) {
         final stopwatch = Stopwatch()..start();
-        final cartService = CartService();
+        final cartService = CartService.instance;
         final refundService = RefundService.instance;
 
         try {
+          cartService.clearCart();
+
           // Build cart with 3-5 items
           final itemCount = random.nextInt(3) + 3;
           double originalTotal = 0.0;
@@ -498,10 +514,12 @@ void main() {
       for (int op = 0; op < 20; op++) {
         final isVoid = op % 2 == 0;
         final stopwatch = Stopwatch()..start();
-        final cartService = CartService();
+        final cartService = CartService.instance;
         final refundService = RefundService.instance;
 
         try {
+          cartService.clearCart();
+
           // Build cart
           final itemCount = random.nextInt(3) + 2;
           double originalTotal = 0.0;

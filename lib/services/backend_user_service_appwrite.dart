@@ -2,6 +2,7 @@ import 'package:extropos/models/backend_user_model.dart';
 import 'package:extropos/services/appwrite_phase1_service.dart';
 import 'package:extropos/services/audit_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:universal_io/io.dart' show Platform;
 import 'package:uuid/uuid.dart';
 
 /// Backend User Service - Appwrite Version

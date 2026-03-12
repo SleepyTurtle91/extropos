@@ -1,9 +1,8 @@
 part of 'table_management_screen.dart';
 
 /// UI extension for TableManagementScreen
-extension TableManagementScreenUI on _TableManagementScreenState {
-  @override
-  Widget build(BuildContext context) {
+extension _TableManagementScreenUI on _TableManagementScreenState {
+  Widget _buildScreen(BuildContext context) {
     final stats = _tableService.getTableStatistics();
 
     return Scaffold(

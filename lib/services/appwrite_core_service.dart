@@ -154,6 +154,11 @@ class AppwriteCoreService {
     final prefs = await SharedPreferences.getInstance();
     String? deviceId = prefs.getString('device_id');
 
+    if (deviceId == null || deviceId.isEmpty) {
+      deviceId = ID.unique();
+      await prefs.setString('device_id', deviceId);
+    }
+
     return deviceId;
   }
 

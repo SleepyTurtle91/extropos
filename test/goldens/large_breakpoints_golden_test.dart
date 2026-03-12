@@ -1,18 +1,12 @@
 import 'dart:io';
 
-import 'package:extropos/models/table_model.dart';
-import 'package:extropos/screens/backend_home_screen.dart';
+import 'package:extropos/features/pos/screens/retail_pos/retail_pos_screen.dart';
 import 'package:extropos/screens/business_info_screen.dart';
 import 'package:extropos/screens/customers_management_screen.dart';
 import 'package:extropos/screens/items_management_screen.dart';
 import 'package:extropos/screens/keygen_home_screen.dart';
-import 'package:extropos/screens/kitchen_display_screen.dart';
-import 'package:extropos/screens/mode_selection_screen.dart';
-import 'package:extropos/screens/order_queue_screen.dart';
-import 'package:extropos/screens/pos_order_screen.dart';
 import 'package:extropos/screens/printers_management_screen.dart';
 import 'package:extropos/screens/reports_screen.dart';
-import 'package:extropos/screens/retail_pos_screen.dart';
 import 'package:extropos/screens/table_selection_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:flutter/material.dart';
@@ -71,29 +65,6 @@ void main() {
       });
     });
 
-    testWidgets('Kitchen Display golden at ${size.width}x${size.height}', (
-      tester,
-    ) async {
-      tester.binding.window.physicalSizeTestValue = size;
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-
-      await tester.pumpWidget(MaterialApp(home: KitchenDisplayScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-
-      await expectLater(
-        find.byType(KitchenDisplayScreen),
-        matchesGoldenFile(
-          'goldens/kitchen_${size.width.toInt()}x${size.height.toInt()}.png',
-        ),
-      );
-
-      addTearDown(() {
-        tester.binding.window.clearPhysicalSizeTestValue();
-        tester.binding.window.clearDevicePixelRatioTestValue();
-      });
-    });
-
     testWidgets('Table Selection golden at ${size.width}x${size.height}', (
       tester,
     ) async {
@@ -117,54 +88,7 @@ void main() {
       });
     });
 
-    testWidgets('POS Order golden at ${size.width}x${size.height}', (
-      tester,
-    ) async {
-      tester.binding.window.physicalSizeTestValue = size;
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-
-      // POSOrderScreen requires a RestaurantTable to be passed
-      final table = RestaurantTable(id: 'golden-1', name: 'T1', capacity: 4);
-      await tester.pumpWidget(MaterialApp(home: POSOrderScreen(table: table)));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-
-      await expectLater(
-        find.byType(POSOrderScreen),
-        matchesGoldenFile(
-          'goldens/posorder_${size.width.toInt()}x${size.height.toInt()}.png',
-        ),
-      );
-
-      addTearDown(() {
-        tester.binding.window.clearPhysicalSizeTestValue();
-        tester.binding.window.clearDevicePixelRatioTestValue();
-      });
-    });
-
-    // Additional app-wide screens to capture broader surface area
-    testWidgets('Order Queue golden at ${size.width}x${size.height}', (
-      tester,
-    ) async {
-      tester.binding.window.physicalSizeTestValue = size;
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-
-      await tester.pumpWidget(MaterialApp(home: OrderQueueScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-
-      await expectLater(
-        find.byType(OrderQueueScreen),
-        matchesGoldenFile(
-          'goldens/orderqueue_${size.width.toInt()}x${size.height.toInt()}.png',
-        ),
-      );
-
-      addTearDown(() {
-        tester.binding.window.clearPhysicalSizeTestValue();
-        tester.binding.window.clearDevicePixelRatioTestValue();
-      });
-    });
+    // POSOrderScreen and OrderQueueScreen screens removed from codebase
 
     testWidgets('Items Management golden at ${size.width}x${size.height}', (
       tester,
@@ -272,52 +196,6 @@ void main() {
         find.byType(BusinessInfoScreen),
         matchesGoldenFile(
           'goldens/business_${size.width.toInt()}x${size.height.toInt()}.png',
-        ),
-      );
-
-      addTearDown(() {
-        tester.binding.window.clearPhysicalSizeTestValue();
-        tester.binding.window.clearDevicePixelRatioTestValue();
-      });
-    });
-
-    testWidgets('Mode Selection golden at ${size.width}x${size.height}', (
-      tester,
-    ) async {
-      tester.binding.window.physicalSizeTestValue = size;
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-
-      await tester.pumpWidget(MaterialApp(home: ModeSelectionScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-
-      await expectLater(
-        find.byType(ModeSelectionScreen),
-        matchesGoldenFile(
-          'goldens/mode_${size.width.toInt()}x${size.height.toInt()}.png',
-        ),
-      );
-
-      addTearDown(() {
-        tester.binding.window.clearPhysicalSizeTestValue();
-        tester.binding.window.clearDevicePixelRatioTestValue();
-      });
-    });
-
-    testWidgets('Backend Home golden at ${size.width}x${size.height}', (
-      tester,
-    ) async {
-      tester.binding.window.physicalSizeTestValue = size;
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-
-      await tester.pumpWidget(MaterialApp(home: BackendHomeScreen()));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
-
-      await expectLater(
-        find.byType(BackendHomeScreen),
-        matchesGoldenFile(
-          'goldens/backend_${size.width.toInt()}x${size.height.toInt()}.png',
         ),
       );
 

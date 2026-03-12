@@ -4,7 +4,6 @@
 
 | Item | Status | Details |
 |------|--------|---------|
-| **Generated Code Isolation** | ✅ Complete | packages/isar_models/ functional |
 | **Auth Module** | ✅ Complete | lib/features/auth/ organized, 17 imports updated |
 | **POS Screens Organization** | ✅ Complete | lib/features/pos/screens/ structure ready |
 | **Model Consolidation** | ✅ Complete | 10 files → 5 domain groups |
@@ -37,8 +36,6 @@ lib/models/
 ├── category_models.dart     ✅ 156 lines
 └── infrastructure_models.dart ✅ 171 lines
 
-packages/
-└── isar_models/            ✅ isolated generated code
 ```
 
 ---
@@ -80,7 +77,6 @@ python scripts/check_dart_line_counts.py 2>&1 | head -20  # See violations
 | Payment screen | lib/features/pos/screens/payment/ | ✅ moved |
 | Payment widgets | lib/features/pos/screens/payment/widgets/ | ✅ created (2) |
 | Consolidated models | lib/models/{enum,payment,product,category,infrastructure}_models.dart | ✅ consolidated |
-| Isar models (generated) | packages/isar_models/lib/src/ | ✅ isolated |
 | CI validation | .github/workflows/ci.yml | ✅ integrated |
 | Line-count script | scripts/check_dart_line_counts.py | ✅ active |
 
@@ -179,10 +175,6 @@ lib/features/pos/screens/ ←→ lib/models/
     ↓
     Uses: payment_models, product_models, category_models, enum_models, infrastructure_models
 
-lib/models/ ←→ packages/isar_models/
-    ↓
-    Imports from: isar_models for IrisModel types (when needed)
-
 All modules ←→ lib/services/database_service.dart
     ↓
     Current: Direct service calls
@@ -217,14 +209,10 @@ All modules ←→ lib/services/database_service.dart
 ❌ **Don't**: Add code to database_service.dart (Phase 4 target, will decompose)  
 ✅ **Do**: Comment where future service decomposition should happen
 
-❌ **Don't**: Create new Isar models in lib/models/isar/  
-✅ **Do**: Add to packages/isar_models/lib/src/ if needed; export from isar_models.dart
-
 ---
 
 ## Success Criteria (Phase 1-3)
 
-✅ Generated code isolated (packages/isar_models/)  
 ✅ Auth services consolidated (lib/features/auth/)  
 ✅ POS screens organized (lib/features/pos/screens/)  
 ✅ Models consolidated (5 domain groups)  

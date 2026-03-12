@@ -1,6 +1,6 @@
 part of 'lock_screen.dart';
 
-extension LockScreenNumpad on _LockScreenState {
+extension _LockScreenNumpad on _LockScreenState {
   Widget _buildNumpad({double screenScale = 1.0}) {
     return AnimatedBuilder(
       animation: _shakeAnimation,

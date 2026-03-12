@@ -1,6 +1,6 @@
 part of 'unified_pos_screen.dart';
 
-extension UnifiedPOSHeader on _UnifiedPOSScreenState {
+extension _UnifiedPOSHeader on _UnifiedPOSScreenState {
   Widget _buildHeader() {
     return Container(
       height: 80,

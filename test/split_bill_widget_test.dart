@@ -10,8 +10,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('SplitBillDialog allows seat selection and returns split item with seat', (WidgetTester tester) async {
-    final prodA = Product('A', 10.0, 'Cat', Icons.local_cafe);
-    final prodB = Product('B', 5.0, 'Cat', Icons.local_cafe);
+    final prodA = Product('A', 10.0, 'Cat', Icons.local_cafe, id: 'test_A');
+    final prodB = Product('B', 5.0, 'Cat', Icons.local_cafe, id: 'test_B');
     final ciA = CartItem(prodA, 1, seatNumber: 3);
     final ciB = CartItem(prodB, 2, seatNumber: 2);
 

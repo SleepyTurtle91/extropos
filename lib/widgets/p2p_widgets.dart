@@ -141,7 +141,7 @@ class P2PConnectedDevicesPanel extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: connectedDevices.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (_, separatorIndex) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final device = connectedDevices[index];
                 return ListTile(

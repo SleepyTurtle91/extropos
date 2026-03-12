@@ -1,6 +1,6 @@
 part of 'unified_pos_screen.dart';
 
-extension UnifiedPOSProducts on _UnifiedPOSScreenState {
+extension _UnifiedPOSProducts on _UnifiedPOSScreenState {
   Widget _buildMainView() {
     if (activeMode == POSMode.restaurant && activeTab == 'POS' && selectedTableId == null) {
       return _buildTableSelectionView();
@@ -26,6 +26,10 @@ extension UnifiedPOSProducts on _UnifiedPOSScreenState {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (activeMode == POSMode.restaurant && selectedTableId != null) ...[
+            _buildSelectedTableBanner(),
+            const SizedBox(height: 16),
+          ],
           _buildCategoryFilter(),
           const SizedBox(height: 24),
           Expanded(
@@ -133,9 +137,171 @@ extension UnifiedPOSProducts on _UnifiedPOSScreenState {
   }
 
   Widget _buildTableSelectionView() {
-    return const Center(
-      child: Text('Select a Table to Begin - Coming Soon'),
+    if (availableTables.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.table_restaurant, size: 56, color: Colors.grey),
+              const SizedBox(height: 12),
+              const Text(
+                'No tables available',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              const Text('Load or configure tables before taking restaurant orders.'),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _loadTables,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh Tables'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          int columns = 4;
+          if (constraints.maxWidth < 600) {
+            columns = 1;
+          } else if (constraints.maxWidth < 900) {
+            columns = 2;
+          } else if (constraints.maxWidth < 1200) {
+            columns = 3;
+          }
+
+          return GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              childAspectRatio: 1.5,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: availableTables.length,
+            itemBuilder: (context, index) {
+              final table = availableTables[index];
+              final statusColor = _tableStatusColor(table.status);
+
+              return InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  _updateState(() => selectedTableId = table.id);
+                  ToastHelper.showToast(context, 'Selected ${table.name}');
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: statusColor.withOpacity(0.5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.table_restaurant, color: statusColor),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              table.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        table.status.name.toUpperCase(),
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Capacity ${table.capacity}'),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
+  }
+
+  Widget _buildSelectedTableBanner() {
+    RestaurantTable? selectedTable;
+    for (final table in availableTables) {
+      if (table.id == selectedTableId) {
+        selectedTable = table;
+        break;
+      }
+    }
+
+    if (selectedTable == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.table_restaurant, color: Colors.blue.shade700),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '${selectedTable.name} • ${selectedTable.status.name.toUpperCase()}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          TextButton(
+            onPressed: () => _updateState(() => selectedTableId = null),
+            child: const Text('Change'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _tableStatusColor(TableStatus status) {
+    switch (status) {
+      case TableStatus.available:
+        return Colors.green;
+      case TableStatus.occupied:
+        return Colors.orange;
+      case TableStatus.reserved:
+        return Colors.blue;
+      case TableStatus.merged:
+        return Colors.purple;
+      case TableStatus.cleaning:
+        return Colors.brown;
+    }
   }
 
   Widget _buildProductCard(Product p) {
@@ -151,10 +317,10 @@ class ProductCard extends StatefulWidget {
   final VoidCallback onTap;
 
   const ProductCard({
-    Key? key,
+    super.key,
     required this.product,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductCard> createState() => _ProductCardState();

@@ -1,4 +1,6 @@
 
+// ignore_for_file: constant_identifier_names
+
 /// Permission levels for the RBAC system
 class Permission {
   static const String VIEW_USERS = 'view_users';

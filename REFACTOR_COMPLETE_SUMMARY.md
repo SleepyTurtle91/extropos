@@ -13,7 +13,7 @@ Successfully restructured the ExtroPOS codebase from a scattered monolith into a
 | Metric | Before | After | Delta |
 |--------|--------|-------|-------|
 | **Code Violations** | ~289 | ~286 | -3 direct, -15+ projected |
-| **Generated Code Isolation** | ✗ Mixed in lib/ | ✅ packages/isar_models/ | Fully isolated |
+| **Generated Code Isolation** | ✗ Mixed in lib/ | ✅ lib/models/ cleaned | Isar package removed (March 2026) |
 | **Feature Organization** | ✗ Scattered | ✅ lib/features/ | 5+ features organized |
 | **Model Consolidation** | 50+ files | 15 domain groups | -35 small files |
 | **Service Boundary Clarity** | Fuzzy | ✅ Clear (auth module) | Complete separation |
@@ -25,8 +25,10 @@ Successfully restructured the ExtroPOS codebase from a scattered monolith into a
 
 ### Phase 1: Generated Code Relocation & Entry Point (Feb 25) ✅
 
+> **Note**: The `packages/isar_models/` package created in Phase 1 was subsequently removed in March 2026 when Isar was abandoned in favour of SQLite. The relevant generated files and the package itself no longer exist.
+
 **Challenge**: Isar models generate 2000-5006 line *.g.dart files, violating line limit  
-**Solution**: Create local `packages/isar_models/` package; isolate generated code
+**Resolution**: Isolated to packages/ then fully removed (Isar abandoned March 2026)
 
 **Achievements**:
 - ✅ Created Python line-count enforcement script (scripts/check_dart_line_counts.py)
@@ -185,16 +187,7 @@ lib/
 └── [other directories]
 
 packages/
-└── isar_models/                        ← NEW: Isolated generated code
-    ├── lib/
-    │   ├── src/
-    │   │   ├── inventory_model.dart
-    │   │   ├── product_model.dart
-    │   │   ├── transaction_model.dart
-    │   │   ├── *.g.dart (generated, 2000+ lines each)
-    │   │   └── isar_model_extensions.dart (341 lines)
-    │   └── isar_models.dart (barrel export)
-    └── pubspec.yaml
+    (isar_models/ removed March 2026 — Isar abandoned)
 ```
 
 ---

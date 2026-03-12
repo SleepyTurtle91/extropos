@@ -298,8 +298,7 @@ maintainability:
 **Migration Path:**
 
 - Current: SQLite (proven, stable)
-- Planned: Isar (high-performance, better sync)
-- Migration planned for v2.0 (backward compatible)
+- Current: SQLite (stable, production-ready)
 
 ---
 

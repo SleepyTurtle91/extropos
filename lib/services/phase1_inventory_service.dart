@@ -286,7 +286,7 @@ class Phase1InventoryService extends ChangeNotifier {
     return _inventory.values
         .where((item) =>
             locationId == null || item.locationId == locationId)
-        .fold(0.0, (sum, item) => sum + item.getInventoryValue());
+        .fold<double>(0.0, (sum, item) => sum + item.getInventoryValue());
   }
 
   /// Get inventory statistics

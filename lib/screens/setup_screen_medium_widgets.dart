@@ -1,6 +1,6 @@
 part of 'setup_screen.dart';
 
-extension SetupScreenMediumWidgets on _SetupScreenState {
+extension _SetupScreenMediumWidgets on _SetupScreenState {
   Widget _buildStep2() {
     return SingleChildScrollView(
       key: const ValueKey(2),

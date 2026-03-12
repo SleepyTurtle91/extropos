@@ -1,6 +1,6 @@
 part of 'settings_screen.dart';
 
-extension SettingsScreenUIBuilders on _SettingsScreenState {
+extension _SettingsScreenUIBuilders on _SettingsScreenState {
   Widget _buildSettingsScreen(BuildContext context) {
     return Scaffold(
       body: SafeArea(

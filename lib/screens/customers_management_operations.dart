@@ -1,6 +1,6 @@
 part of 'customers_management_screen.dart';
 
-extension CustomersManagementOperations on _CustomersManagementScreenState {
+extension _CustomersManagementOperations on _CustomersManagementScreenState {
   Future<void> loadCustomers() async {
     final currentContext = context;
     try {

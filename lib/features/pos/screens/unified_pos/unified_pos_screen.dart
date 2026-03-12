@@ -1,10 +1,14 @@
 import 'package:extropos/features/auth/screens/user/sign_out_dialog_simple.dart';
 import 'package:extropos/features/auth/services/user_session_service.dart';
 import 'package:extropos/features/pos/screens/payment/payment_screen.dart';
+import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart' as pos_cart;
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart' as pos_product;
+import 'package:extropos/models/table_model.dart';
+import 'package:extropos/screens/refund_screen.dart';
 import 'package:extropos/screens/reports_screen.dart';
+import 'package:extropos/screens/sales_history_screen.dart';
 import 'package:extropos/screens/settings_screen.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:extropos/services/config_service.dart';
@@ -39,7 +43,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
   List<PaymentMethod> paymentMethods = [];
 
   String? selectedTableId;
-  List<Map<String, dynamic>> availableTables = [];
+  List<RestaurantTable> availableTables = [];
 
   List<Product> products = [];
   List<String> categories = [];
@@ -55,6 +59,7 @@ class _UnifiedPOSScreenState extends State<UnifiedPOSScreen> {
     super.initState();
     _fetchData();
     _loadPaymentMethods();
+    _loadTables();
   }
 
   @override

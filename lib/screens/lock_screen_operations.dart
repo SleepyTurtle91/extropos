@@ -1,6 +1,6 @@
 part of 'lock_screen.dart';
 
-extension LockScreenOperations on _LockScreenState {
+extension _LockScreenOperations on _LockScreenState {
   Future<void> _submit() async {
     if (_loading) return;
     final pin = _pin.trim();

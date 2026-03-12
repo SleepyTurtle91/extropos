@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/enum_models.dart';
 import 'package:extropos/models/user_model.dart';

@@ -324,14 +324,10 @@ lib/
 
 ## Strict Line Rule Implications
 
-### Generated Code Relocation
+### Generated Code
 
-- Move generated Isar files out of the root lib/ by creating local packages.
-- Example: packages/isar_models with its own lib/ and build_runner setup.
-- Update imports to use package:isar_models/... and run build_runner inside that
-  package.
-- Temporary workaround if deletion is blocked: exclude lib/models/isar in the
-  line-count script until removal can be completed.
+- Isolate large generated files into local packages if they exceed the 500-line limit.
+- Update imports to use the package path and keep generated files out of `lib/`.
 
 ### Small File Consolidation
 

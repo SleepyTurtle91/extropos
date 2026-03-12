@@ -1,7 +1,7 @@
 part of '../database_helper.dart';
 
 extension DatabaseHelperUpgradePart3 on DatabaseHelper {
-  Future<void> _applyUpgrades_v31_v31(Database db, int oldVersion) async {
+  Future<void> _applyUpgradesV31V31(Database db, int oldVersion) async {
     if (oldVersion < 31) {
       // v31: Phase 1 Malaysian Features - MyInvois, E-Wallet, Loyalty, PDPA, Inventory
       print('🔄 Starting Phase 1 migration (v31)...');
@@ -379,6 +379,19 @@ extension DatabaseHelperUpgradePart3 on DatabaseHelper {
         await db.execute('''
           INSERT OR IGNORE INTO sync_stats (id, total_queued, total_synced, total_failed, updated_at)
           VALUES (1, 0, 0, 0, $now)
+        ''');
+
+        // Ensure payment_methods table exists on legacy databases before
+        // running status correction/update statements.
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS payment_methods (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            status INTEGER DEFAULT 0,
+            is_default INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
         ''');
 
         // Fix payment_methods status values (status=1 was incorrectly used for active, should be 0)

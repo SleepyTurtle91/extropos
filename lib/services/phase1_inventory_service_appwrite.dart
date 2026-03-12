@@ -4,6 +4,7 @@ import 'package:extropos/models/inventory_model.dart';
 import 'package:extropos/services/appwrite_phase1_service.dart';
 import 'package:extropos/services/audit_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:universal_io/io.dart' show Platform;
 
 /// Phase 1 Inventory Service - Appwrite Version
 ///
@@ -460,6 +461,28 @@ class Phase1InventoryServiceAppwrite extends ChangeNotifier {
     return inventory.movements.take(limit).toList();
   }
 
+  /// Delete inventory item by productId
+  Future<void> deleteInventoryItem(String productId) async {
+    print('🗑️ Deleting inventory for product: $productId');
+    final initialized = await ensureInitialized();
+    if (!initialized) {
+      throw Exception('Appwrite not initialized');
+    }
+    final documentId = 'inv_$productId';
+    try {
+      await _appwrite.deleteDocument(
+        collectionId: AppwritePhase1Service.inventoryCol,
+        documentId: documentId,
+      );
+      _inventoryCache.remove(productId);
+      notifyListeners();
+      print('✅ Inventory deleted for product: $productId');
+    } catch (e) {
+      print('❌ Error deleting inventory: $e');
+      throw Exception('Failed to delete inventory: $e');
+    }
+  }
+
   /// Calculate inventory value
   Future<double> calculateInventoryValue() async {
     print('💰 Calculating total inventory value...');
@@ -616,6 +639,13 @@ class Phase1InventoryServiceAppwrite extends ChangeNotifier {
       default:
         return StockMovementType.adjustment;
     }
+  }
+
+  /// Clear local cache (forces re-fetch on next read)
+  void clearCache() {
+    _inventoryCache.clear();
+    _lastCacheRefresh = null;
+    notifyListeners();
   }
 
   @override

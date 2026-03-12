@@ -57,8 +57,8 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final p1 = Product('Coffee', 10.0, 'Beverages', Icons.local_cafe);
-      final p2 = Product('Cake', 15.0, 'Desserts', Icons.cake);
+      final p1 = Product('Coffee', 10.0, 'Beverages', Icons.local_cafe, id: 'test_Coffee');
+      final p2 = Product('Cake', 15.0, 'Desserts', Icons.cake, id: 'test_Cake');
       final items = [CartItem(p1, 2), CartItem(p2, 1)];
 
       await tester.pumpWidget(TotalsView(items: items));
@@ -79,7 +79,7 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final p = Product('Burger', 12.0, 'Food', Icons.fastfood);
+      final p = Product('Burger', 12.0, 'Food', Icons.fastfood, id: 'test_Burger');
       final items = [CartItem(p, 3)]; // 36.0
 
       await tester.pumpWidget(TotalsView(items: items));
@@ -100,7 +100,7 @@ void main() {
       );
       await BusinessInfo.updateInstance(info);
 
-      final p = Product('Pizza', 20.0, 'Food', Icons.local_pizza);
+      final p = Product('Pizza', 20.0, 'Food', Icons.local_pizza, id: 'test_Pizza');
       final items = [CartItem(p, 2)]; // subtotal = 40
 
       await tester.pumpWidget(TotalsView(items: items, discount: 2.0));

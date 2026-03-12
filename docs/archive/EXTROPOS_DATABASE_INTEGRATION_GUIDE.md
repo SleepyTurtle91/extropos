@@ -485,15 +485,6 @@ flutter pub add uuid
 5. **Product Management**: Create admin screen for CRUD operations
 6. **Analytics**: Track product performance per mode
 
-### Isar Migration (Future)
-
-The project plan includes Isar migration. When ready:
-
-1. Convert POSProduct to Isar model with @collection annotation
-2. Create POSProductIsarRepository implementing ProductRepository
-3. Swap DatabaseProductRepository with POSProductIsarRepository
-4. No UI changes needed due to repository abstraction
-
 ## Architecture Compliance
 
 This implementation follows ExtroPOS project standards:
@@ -502,7 +493,7 @@ This implementation follows ExtroPOS project standards:
 - ✅ Follows BusinessInfo singleton pattern
 - ✅ No external state management (setState() only)
 - ✅ Repository pattern matching CategoryRepository
-- ✅ SQLite current, Isar-ready for future migration
+- ✅ SQLite (sqflite) — sole local persistence layer
 - ✅ Windows desktop + Android tablet compatible
 
 ## Support

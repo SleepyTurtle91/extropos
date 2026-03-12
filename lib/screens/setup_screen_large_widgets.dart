@@ -1,6 +1,6 @@
 part of 'setup_screen.dart';
 
-extension SetupScreenLargeWidgets on _SetupScreenState {
+extension _SetupScreenLargeWidgets on _SetupScreenState {
   Widget _buildProgressBar() {
     return Container(
       constraints: const BoxConstraints(maxWidth: 500),

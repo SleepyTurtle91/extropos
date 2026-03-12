@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/category_model.dart';
 import 'package:extropos/models/item_model.dart';
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
@@ -30,6 +31,16 @@ void main() {
     DatabaseHelper.overrideDatabaseFilePath(dbFile);
     await DatabaseHelper.instance.resetDatabase();
 
+    await DatabaseService.instance.insertCategory(
+      Category(
+        id: 'test-category',
+        name: 'Test Category',
+        description: 'Test category for payment service',
+        icon: Icons.category,
+        color: Colors.blue,
+      ),
+    );
+
     // Insert test items to allow saveCompletedSale to persist orders successfully
     await DatabaseService.instance.insertItem(
       Item(
@@ -37,7 +48,7 @@ void main() {
         name: 'Test Product',
         description: 'Test product',
         price: 10.0,
-        categoryId: '',
+        categoryId: 'test-category',
         icon: Icons.shopping_cart,
         color: Colors.blue,
       ),
@@ -48,7 +59,7 @@ void main() {
         name: 'Test Product 15',
         description: 'Test product 15',
         price: 15.0,
-        categoryId: '',
+        categoryId: 'test-category',
         icon: Icons.shopping_cart,
         color: Colors.blue,
       ),
@@ -70,7 +81,7 @@ void main() {
   group('PaymentService', () {
     test('processCashPayment - successful payment with change', () async {
       final cartItems = [
-        CartItem(Product('Test Product', 10.0, 'Test', Icons.shopping_cart), 2),
+        CartItem(Product('Test Product', 10.0, 'Test', Icons.shopping_cart, id: 'test_Test Product'), 2),
       ];
 
       final result = await PaymentService.instance.processCashPayment(
@@ -92,7 +103,7 @@ void main() {
 
     test('processCashPayment - insufficient payment', () async {
       final cartItems = [
-        CartItem(Product('Test Product', 10.0, 'Test', Icons.shopping_cart), 1),
+        CartItem(Product('Test Product', 10.0, 'Test', Icons.shopping_cart, id: 'test_Test Product'), 1),
       ];
 
       final result = await PaymentService.instance.processCashPayment(
@@ -109,7 +120,7 @@ void main() {
 
     test('processCardPayment - successful payment', () async {
       final cartItems = [
-        CartItem(Product('Test Product', 15.0, 'Test', Icons.shopping_cart), 1),
+        CartItem(Product('Test Product', 15.0, 'Test', Icons.shopping_cart, id: 'test_Test Product'), 1),
       ];
 
       final paymentMethod = PaymentMethod(id: 'card', name: 'Credit Card');

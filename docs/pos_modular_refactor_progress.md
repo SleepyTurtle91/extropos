@@ -16,11 +16,7 @@
 
 ### Generated Code Relocation
 
-- ✅ Created local `isar_models` package
-- ✅ Moved all Isar models out of lib/
-- ✅ Updated imports in 6 consumer files
-- ✅ Added package dependency
-- ✅ Deleted lib/models/isar/ directory
+- ✅ Deleted lib/models/isar/ directory (Isar abandoned, see March 2026 decision)
 
 ### POS Entry Point
 
@@ -235,8 +231,6 @@ Model consolidation (Phase 3B) created 5 grouped files (all <200 lines) that **a
 
 ## Packages Created
 
-- [packages/isar_models/pubspec.yaml](packages/isar_models/pubspec.yaml)
-- [packages/isar_models/lib/isar_models.dart](packages/isar_models/lib/isar_models.dart)
 
 ## Deleted
 

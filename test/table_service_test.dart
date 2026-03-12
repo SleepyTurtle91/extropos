@@ -57,7 +57,7 @@ void main() {
 
     test('Capacity management properties work correctly', () async {
       final table = RestaurantTable(id: 't1', name: 'Table 1', capacity: 4);
-      final product = Product('Test Item', 10.0, 'Food', Icons.restaurant);
+      final product = Product('Test Item', 10.0, 'Food', Icons.restaurant, id: 'test_Test Item');
 
       // Empty table
       expect(table.currentOccupancy, 0);
@@ -95,8 +95,8 @@ void main() {
       final t2 = RestaurantTable(id: 'merge_t2', name: 'Table 2', capacity: 4);
       final target = RestaurantTable(id: 'merge_t3', name: 'Table 3', capacity: 8);
 
-      final productA = Product('Pizza', 15.0, 'Food', Icons.local_pizza);
-      final productB = Product('Burger', 12.0, 'Food', Icons.fastfood);
+      final productA = Product('Pizza', 15.0, 'Food', Icons.local_pizza, id: 'test_Pizza');
+      final productB = Product('Burger', 12.0, 'Food', Icons.fastfood, id: 'test_Burger');
 
       // Setup tables with orders
       t1.addOrder(CartItem(productA, 2));
@@ -146,8 +146,8 @@ void main() {
       final source = RestaurantTable(id: 'split_source', name: 'Source Table', capacity: 6);
       final target = RestaurantTable(id: 'split_target', name: 'Target Table', capacity: 4);
 
-      final productA = Product('Pizza', 15.0, 'Food', Icons.local_pizza);
-      final productB = Product('Burger', 12.0, 'Food', Icons.fastfood);
+      final productA = Product('Pizza', 15.0, 'Food', Icons.local_pizza, id: 'test_Pizza');
+      final productB = Product('Burger', 12.0, 'Food', Icons.fastfood, id: 'test_Burger');
 
       // Setup source table with multiple orders
       source.addOrder(CartItem(productA, 2));
@@ -196,7 +196,7 @@ void main() {
       final criticalTable = RestaurantTable(id: 'critical', name: 'Critical', capacity: 2);
       final overTable = RestaurantTable(id: 'over', name: 'Over', capacity: 2);
 
-      final product = Product('Item', 10.0, 'Food', Icons.restaurant);
+      final product = Product('Item', 10.0, 'Food', Icons.restaurant, id: 'test_Item');
 
       // Don't add orders here - we'll add them to service instances later
       // warningTable.addOrder(CartItem(product, 3)); // 75% - no warning yet
@@ -236,7 +236,7 @@ void main() {
       final t1 = RestaurantTable(id: 'stats_t1', name: 'Table 1', capacity: 4);
       final t2 = RestaurantTable(id: 'stats_t2', name: 'Table 2', capacity: 6);
 
-      final product = Product('Item', 10.0, 'Food', Icons.restaurant);
+      final product = Product('Item', 10.0, 'Food', Icons.restaurant, id: 'test_Item');
 
       t1.addOrder(CartItem(product, 2)); // 2/4 = 50%
       t2.addOrder(CartItem(product, 4)); // 4/6 = 67%
