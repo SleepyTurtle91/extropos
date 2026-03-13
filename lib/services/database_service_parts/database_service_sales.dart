@@ -682,7 +682,8 @@ extension DatabaseServiceSales on DatabaseService {
 
   Future<List<Map<String, dynamic>>> getOrdersByCustomerPhone(
     String phone,
-    DateTimeRange dateRange,
+    DateTime start,
+    DateTime end,
   ) async {
     final db = await DatabaseHelper.instance.database;
     final results = await db.query(
@@ -690,8 +691,8 @@ extension DatabaseServiceSales on DatabaseService {
       where: 'customer_phone = ? AND created_at >= ? AND created_at <= ?',
       whereArgs: [
         phone,
-        dateRange.start.toIso8601String(),
-        dateRange.end.toIso8601String(),
+        start.toIso8601String(),
+        end.toIso8601String(),
       ],
       orderBy: 'created_at DESC',
     );

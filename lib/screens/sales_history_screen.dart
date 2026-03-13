@@ -163,14 +163,11 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
             builder: (context) => ReceiptPreviewScreen.fromOrderData(
               orderDetails,
               onPrint: () {
-                // TODO: Implement actual printing
-                ToastHelper.showToast(context, 'Receipt reprinted successfully');
                 Navigator.pop(context);
               },
             ),
           ),
-        );
-      } else {
+        );      } else {
         ToastHelper.showToast(context, 'Order details not found');
       }
     } catch (e) {

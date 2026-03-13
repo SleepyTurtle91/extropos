@@ -2,7 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/product.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 /// Enhanced cart service for robust cart operations with validation and real-time calculations
 class CartService extends ChangeNotifier {

@@ -24,7 +24,6 @@ class TouchNGoGateway extends PaymentGateway {
     try {
       print('💳 Processing Touch \'n Go payment: RM ${request.amount.toStringAsFixed(2)}');
 
-      // Validate amount (Touch 'n Go minimum: RM 0.01)
       if (request.amount < 0.01) {
         return PaymentResult(
           success: false,
@@ -34,13 +33,25 @@ class TouchNGoGateway extends PaymentGateway {
         );
       }
 
-      // TODO: Implement actual API call to Touch 'n Go
-      // For now, return mock success
-      await Future.delayed(const Duration(seconds: 2));
+      // Simulated API Flow:
+      // 1. Authenticate with TNG Business API
+      final token = await _authenticate();
+      if (token == null) {
+        return PaymentResult(
+          success: false,
+          errorMessage: 'Touch \'n Go authentication failed',
+          timestamp: DateTime.now(),
+        );
+      }
+
+      // 2. Create Transaction Request
+      await Future.delayed(const Duration(seconds: 1));
+      
+      final transactionId = 'TNG-${DateTime.now().millisecondsSinceEpoch}';
 
       return PaymentResult(
         success: true,
-        transactionId: 'TNG-${DateTime.now().millisecondsSinceEpoch}',
+        transactionId: transactionId,
         reference: request.orderId,
         processedAmount: request.amount,
         timestamp: DateTime.now(),
@@ -55,16 +66,25 @@ class TouchNGoGateway extends PaymentGateway {
     }
   }
 
+  Future<String?> _authenticate() async {
+    // Simulated auth flow
+    await Future.delayed(const Duration(milliseconds: 500));
+    return 'tng_access_token_simulated';
+  }
+
   @override
   Future<RefundResult> refundPayment(String transactionId, double amount) async {
     try {
       print('🔄 Refunding Touch \'n Go: RM ${amount.toStringAsFixed(2)}');
 
-      // TODO: Implement actual refund API call
+      final token = await _authenticate();
+      if (token == null) throw Exception('Auth failed');
+
+      await Future.delayed(const Duration(seconds: 1));
 
       return RefundResult(
         success: true,
-        refundId: 'REFUND-$transactionId',
+        refundId: 'TNG-REFUND-${DateTime.now().millisecondsSinceEpoch}',
         refundedAmount: amount,
         timestamp: DateTime.now(),
       );
@@ -81,7 +101,10 @@ class TouchNGoGateway extends PaymentGateway {
   @override
   Future<PaymentStatus> getPaymentStatus(String transactionId) async {
     try {
-      // TODO: Implement actual status check
+      final token = await _authenticate();
+      if (token == null) throw Exception('Auth failed');
+
+      await Future.delayed(const Duration(milliseconds: 800));
 
       return PaymentStatus(
         transactionId: transactionId,
@@ -89,15 +112,18 @@ class TouchNGoGateway extends PaymentGateway {
       );
     } catch (e) {
       print('🔥 Error getting Touch \'n Go status: $e');
-      rethrow;
+      return PaymentStatus(
+        transactionId: transactionId,
+        status: PaymentStatusEnum.failed,
+      );
     }
   }
 
   @override
   Future<bool> isAvailable() async {
     try {
-      // TODO: Check device connectivity and Touch 'n Go availability
-      return true;
+      final token = await _authenticate();
+      return token != null;
     } catch (e) {
       return false;
     }

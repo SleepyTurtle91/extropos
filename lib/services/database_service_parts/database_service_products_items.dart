@@ -170,7 +170,7 @@ extension DatabaseServiceProductsItems on DatabaseService {
           categoryId = existing[0]['id'] as String;
         } else {
           categoryId = DateTime.now().millisecondsSinceEpoch.toString();
-          final category = Category(
+          final category = cat_model.Category(
             id: categoryId,
             name: categoryName,
             description: (obj['category_description'] ?? '').toString(),

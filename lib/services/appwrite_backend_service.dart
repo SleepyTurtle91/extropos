@@ -446,6 +446,213 @@ class AppwriteBackendService {
     }
   }
 
+  /// Create a new order
+  Future<void> createOrder(Map<String, dynamic> orderData) async {
+    await _ensureInitialized();
+    try {
+      await _databases!.createDocument(
+        databaseId: Environment.posDatabase,
+        collectionId: Environment.ordersCollection,
+        documentId: orderData['id'] ?? ID.unique(),
+        data: {
+          'order_number': orderData['order_number'],
+          'customer_name': orderData['customer_name'],
+          'customer_phone': orderData['customer_phone'],
+          'customer_email': orderData['customer_email'],
+          'subtotal': (orderData['subtotal'] ?? 0.0).toDouble(),
+          'tax': (orderData['tax'] ?? 0.0).toDouble(),
+          'discount': (orderData['discount'] ?? 0.0).toDouble(),
+          'total': (orderData['total'] ?? 0.0).toDouble(),
+          'payment_method': orderData['payment_method'],
+          'status': orderData['status'] ?? 'completed',
+          'created_at': orderData['created_at'],
+          'completed_at': orderData['completed_at'],
+        },
+      );
+
+      // Create order items if provided
+      if (orderData['items'] != null) {
+        final items = orderData['items'] as List<dynamic>;
+        for (final item in items) {
+          await createOrderItem(orderData['id'], item);
+        }
+      }
+    } catch (e) {
+      developer.log('AppwriteBackendService: createOrder failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Create a new order item
+  Future<void> createOrderItem(String orderId, Map<String, dynamic> itemData) async {
+    await _ensureInitialized();
+    try {
+      await _databases!.createDocument(
+        databaseId: Environment.posDatabase,
+        collectionId: Environment.orderItemsCollection,
+        documentId: ID.unique(),
+        data: {
+          'order_id': orderId,
+          'product_id': itemData['product_id'],
+          'item_name': itemData['name'],
+          'quantity': (itemData['quantity'] ?? 1).toInt(),
+          'item_price': (itemData['price'] ?? 0.0).toDouble(),
+          'subtotal': (itemData['total'] ?? 0.0).toDouble(),
+          'notes': itemData['notes'],
+        },
+      );
+    } catch (e) {
+      developer.log('AppwriteBackendService: createOrderItem failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Sync inventory update
+  Future<void> syncInventoryUpdate(Map<String, dynamic> data) async {
+    await _ensureInitialized();
+    try {
+      // In production, this would update stock levels in Appwrite
+      developer.log('AppwriteBackendService: syncInventoryUpdate: ${data['product_id']}');
+    } catch (e) {
+      developer.log('AppwriteBackendService: syncInventoryUpdate failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Sync customer data
+  Future<void> syncCustomer(Map<String, dynamic> data) async {
+    await _ensureInitialized();
+    try {
+      await _databases!.createDocument(
+        databaseId: Environment.posDatabase,
+        collectionId: Environment.customersCollection,
+        documentId: data['id'] ?? ID.unique(),
+        data: {
+          'name': data['name'],
+          'phone': data['phone'],
+          'email': data['email'],
+          'loyalty_points': (data['loyalty_points'] ?? 0).toInt(),
+          'total_spent': (data['total_spent'] ?? 0.0).toDouble(),
+          'updated_at': data['updated_at'] ?? DateTime.now().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      developer.log('AppwriteBackendService: syncCustomer failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Sync settings
+  Future<void> syncSettings(Map<String, dynamic> data) async {
+    await _ensureInitialized();
+    try {
+      // Typically updates business_info or receipt_settings
+      developer.log('AppwriteBackendService: syncSettings');
+    } catch (e) {
+      developer.log('AppwriteBackendService: syncSettings failed: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== ANALYTICS & TOOLS ====================
+
+  /// Get employee performance tracking data
+  Future<List<Map<String, dynamic>>> getEmployeePerformance({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    await _ensureInitialized();
+    try {
+      // Fetch all orders from Appwrite
+      final response = await _databases!.listDocuments(
+        databaseId: Environment.posDatabase,
+        collectionId: Environment.ordersCollection,
+        queries: [
+          if (startDate != null) Query.greaterThanEqual('created_at', startDate.toIso8601String()),
+          if (endDate != null) Query.lessThanEqual('created_at', endDate.toIso8601String()),
+        ],
+      );
+
+      final orders = response.documents;
+      final Map<String, Map<String, dynamic>> performance = {};
+
+      for (final order in orders) {
+        final employeeName = order.data['customer_name'] ?? 'Unknown Staff'; // Placeholder field
+        final total = (order.data['total'] as num?)?.toDouble() ?? 0.0;
+
+        if (performance.containsKey(employeeName)) {
+          performance[employeeName]!['totalSales'] += total;
+          performance[employeeName]!['orderCount'] += 1;
+        } else {
+          performance[employeeName] = {
+            'name': employeeName,
+            'totalSales': total,
+            'orderCount': 1,
+          };
+        }
+      }
+
+      return performance.values.toList();
+    } catch (e) {
+      developer.log('AppwriteBackendService: getEmployeePerformance failed: $e');
+      return [];
+    }
+  }
+
+  /// Generate mock test data for the environment
+  Future<void> generateTestData() async {
+    await _ensureInitialized();
+    try {
+      developer.log('AppwriteBackendService: Generating test data...');
+      
+      // 1. Create sample categories
+      final categories = [
+        {'name': 'Beverages', 'description': 'Hot and cold drinks'},
+        {'name': 'Food', 'description': 'Meals and courses'},
+        {'name': 'Merchandise', 'description': 'Retail products'},
+      ];
+
+      for (final cat in categories) {
+        await _databases!.createDocument(
+          databaseId: Environment.posDatabase,
+          collectionId: Environment.categoriesCollection,
+          documentId: ID.unique(),
+          data: {
+            'name': cat['name'],
+            'description': cat['description'],
+            'icon_code_point': 58714, // Icons.category
+            'color_value': 4283215696, // Colors.blue
+            'is_active': 1,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+        );
+      }
+
+      developer.log('AppwriteBackendService: Test data generation completed');
+    } catch (e) {
+      developer.log('AppwriteBackendService: generateTestData failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Check database health and connection
+  Future<bool> checkDatabaseHealth() async {
+    await _ensureInitialized();
+    try {
+      // Use listDocuments on a core collection to verify connection/access
+      await _databases!.listDocuments(
+        databaseId: Environment.posDatabase,
+        collectionId: Environment.configCollection,
+        queries: [Query.limit(1)],
+      );
+      return true;
+    } catch (e) {
+      developer.log('AppwriteBackendService: Database health check failed: $e');
+      return false;
+    }
+  }
+
   // ==================== HELPER METHODS ====================
 
   Category _categoryFromDocument(Document doc) {

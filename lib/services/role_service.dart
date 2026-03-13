@@ -220,12 +220,6 @@ class RoleService extends ChangeNotifier {
     return _roles.values.where((role) => role.isSystemRole).length;
   }
 
-  /// Clear all roles (for testing)
-  void _clearAllRoles() {
-    _roles.clear();
-    notifyListeners();
-  }
-
   @override
   String toString() => 'RoleService(totalRoles: ${_roles.length})';
 }

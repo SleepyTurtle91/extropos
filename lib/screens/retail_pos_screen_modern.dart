@@ -3,7 +3,6 @@
 // Manages navigation and screen state
 
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
@@ -15,9 +14,7 @@ import 'package:extropos/screens/payment_screen.dart';
 import 'package:extropos/services/cart_calculation_service.dart';
 import 'package:extropos/services/cart_service.dart';
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/services/payment_service.dart';
 import 'package:extropos/services/product_service.dart';
-import 'package:extropos/services/receipt_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
 import 'package:extropos/widgets/number_pad_widget.dart';
 import 'package:extropos/widgets/product_grid_widget.dart';
@@ -119,27 +116,6 @@ class _RetailPOSScreenModernState extends State<RetailPOSScreenModern>
         quantityInput = '1';
       }
     });
-  }
-
-  Future<void> _printReceipt(List<CartItem> items, double subtotal, double tax,
-      double serviceCharge, double total, PaymentResult paymentResult) async {
-    try {
-      final receiptData = await ReceiptService.prepareReceiptData(
-        items,
-        subtotal,
-        tax,
-        serviceCharge,
-        total,
-        paymentResult,
-      );
-      await ReceiptService.printReceipt(receiptData);
-      developer.log('AUTO-PRINT (Retail): Receipt printed successfully');
-    } catch (e) {
-      developer.log('AUTO-PRINT (Retail): Exception - $e');
-      if (mounted) {
-        ToastHelper.showToast(context, 'Print error: $e');
-      }
-    }
   }
 
   @override

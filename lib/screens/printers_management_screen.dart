@@ -18,7 +18,6 @@ part 'printers_management_screen_discovery.dart';
 part 'printers_management_screen_operations.dart';
 part 'printers_management_screen_print.dart';
 part 'printers_management_screen_ui.dart';
-part 'printers_management_screen_widgets.dart';
 
 /// Simple printers management screen.
 ///

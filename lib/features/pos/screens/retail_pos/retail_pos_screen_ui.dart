@@ -60,7 +60,7 @@ extension _RetailPOSUi on _RetailPOSScreenState {
           Expanded(
             child: ProductGridWidget(
               filteredProducts: filteredProducts,
-              onProductTapped: _addToCart,
+              onProductTapped: addToCart,
             ),
           ),
         ],

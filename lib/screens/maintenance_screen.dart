@@ -77,7 +77,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
 
     try {
       // Export system logs
-      final logData = await DatabaseService.instance.exportLogs();
+      await DatabaseService.instance.exportLogs();
       ToastHelper.showToast(context, 'Logs exported successfully');
       // In a real implementation, you might save this to a file or send it
     } catch (e) {

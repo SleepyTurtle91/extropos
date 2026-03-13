@@ -17,7 +17,6 @@ class _ViceCustomerDisplayScreenState extends State<ViceCustomerDisplayScreen> {
   List<CustomerDisplay> _displays = [];
   bool _isLoading = true;
   bool _isTesting = false;
-  CustomerDisplay? _selectedDisplay;
 
   @override
   void initState() {

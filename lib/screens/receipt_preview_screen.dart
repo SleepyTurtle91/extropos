@@ -1,6 +1,8 @@
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/payment_models.dart';
 import 'package:extropos/models/product.dart';
+import 'package:extropos/services/email_service.dart';
+import 'package:extropos/services/email_template_service.dart';
 import 'package:extropos/services/payment_service.dart';
 import 'package:extropos/services/receipt_service.dart';
 import 'package:extropos/utils/toast_helper.dart';
@@ -14,6 +16,8 @@ class ReceiptPreviewScreen extends StatefulWidget {
   final double serviceCharge;
   final double total;
   final PaymentResult paymentResult;
+  final String? customerName;
+  final String? customerEmail;
   final VoidCallback? onPrint;
   final VoidCallback? onEmail;
   final VoidCallback? onComplete;
@@ -60,6 +64,8 @@ class ReceiptPreviewScreen extends StatefulWidget {
       serviceCharge: 0.0, // Not stored in current order data
       total: orderData['total'] as double? ?? 0.0,
       paymentResult: paymentResult,
+      customerName: orderData['customer_name'] as String?,
+      customerEmail: orderData['customer_email'] as String?,
       onPrint: onPrint,
       onEmail: onEmail,
       onComplete: onComplete,
@@ -74,6 +80,8 @@ class ReceiptPreviewScreen extends StatefulWidget {
     required this.serviceCharge,
     required this.total,
     required this.paymentResult,
+    this.customerName,
+    this.customerEmail,
     this.onPrint,
     this.onEmail,
     this.onComplete,
@@ -86,6 +94,7 @@ class ReceiptPreviewScreen extends StatefulWidget {
 class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
   Map<String, dynamic>? _receiptData;
   bool _isLoading = true;
+  bool _isPrinting = false; // Used for both printing and email sending state
 
   @override
   void initState() {
@@ -139,13 +148,17 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
         title: const Text('Receipt Preview'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: _handlePrint,
+            icon: _isPrinting 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.print),
+            onPressed: _isPrinting ? null : _handlePrint,
             tooltip: 'Print Receipt',
           ),
           IconButton(
-            icon: const Icon(Icons.email),
-            onPressed: _handleEmail,
+            icon: _isPrinting
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.email),
+            onPressed: _isPrinting ? null : _handleEmail,
             tooltip: 'Email Receipt',
           ),
         ],
@@ -423,9 +436,69 @@ class _ReceiptPreviewScreenState extends State<ReceiptPreviewScreen> {
     widget.onPrint?.call();
   }
 
-  void _handleEmail() {
-    // TODO: Implement email functionality
-    ToastHelper.showToast(context, 'Email receipt not yet implemented');
+  Future<void> _handleEmail() async {
+    final emailController = TextEditingController(text: widget.customerEmail);
+    
+    final email = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Receipt'),
+        content: TextField(
+          controller: emailController,
+          decoration: const InputDecoration(
+            labelText: 'Customer Email',
+            hintText: 'example@email.com',
+          ),
+          keyboardType: TextInputType.emailAddress,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, emailController.text.trim()),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+
+    if (email == null || email.isEmpty) return;
+
+    setState(() => _isPrinting = true); // Reuse printing state for loading
+
+    try {
+      final receiptNumber = widget.paymentResult.receiptNumber ?? 'N/A';
+      
+      final htmlContent = EmailTemplateService.instance.generateReceiptEmail(
+        receiptNumber: receiptNumber,
+        items: widget.cartItems,
+        subtotal: widget.subtotal,
+        tax: widget.tax,
+        total: widget.total,
+        customerName: widget.customerName,
+      );
+
+      final success = await EmailService.instance.sendReceiptEmail(
+        recipient: email,
+        receiptNumber: receiptNumber,
+        htmlContent: htmlContent,
+      );
+
+      if (!mounted) return;
+      if (success) {
+        ToastHelper.showToast(context, 'Receipt sent to $email');
+      } else {
+        ToastHelper.showToast(context, 'Failed to send email. Check SMTP settings.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ToastHelper.showToast(context, 'Error sending email: $e');
+    } finally {
+      if (mounted) setState(() => _isPrinting = false);
+    }
+    
     widget.onEmail?.call();
   }
 

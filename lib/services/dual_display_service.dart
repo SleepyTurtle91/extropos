@@ -3,8 +3,11 @@ import 'dart:developer' as developer;
 
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
+import 'package:extropos/models/vice_display_state.dart';
+import 'package:extropos/services/cart_calculation_service.dart';
 import 'package:extropos/services/imin_printer_service.dart';
-// import 'package:imin_vice_screen/imin_vice_screen.dart';  // DISABLED - Incompatible with Android SDK 36
+import 'package:extropos/services/payment/duitnow_service.dart';
+import 'package:extropos/services/utils/rounding_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_io/io.dart';
 
@@ -15,8 +18,7 @@ class DualDisplayService {
   DualDisplayService._internal();
 
   IminPrinterService? _iminService;
-  // final IminViceScreen _viceScreenPlugin = IminViceScreen();  // DISABLED
-  bool _isSupported = false;  // Always false when imin_vice_screen is disabled
+  bool _isSupported = false;
   bool _isEnabled = false;
   bool _showWelcomeMessage = true;
   bool _showOrderTotal = true;
@@ -25,14 +27,30 @@ class DualDisplayService {
   bool _showThankYouMessage = true;
   Timer? _keepAliveTimer;
   String _lastDisplayedContent = '';
+  final StreamController<ViceDisplayState> _viceStateController =
+      StreamController<ViceDisplayState>.broadcast();
+  ViceDisplayState _currentViceState = ViceDisplayState.idle();
 
-  /// Last content displayed on vice screen (useful for tests/debugging)
   String get lastDisplayedContent => _lastDisplayedContent;
+
+  Stream<ViceDisplayState> get viceStateStream => _viceStateController.stream;
+
+  ViceDisplayState get currentViceState => _currentViceState;
 
   /// Initialize the dual display service
   Future<void> initialize() async {
+    await _loadSettings();
+    _emitViceState(
+      ViceDisplayState.idle(
+        businessName: BusinessInfo.instance.businessName,
+        currencySymbol: BusinessInfo.instance.currencySymbol,
+      ),
+    );
+
     if (!Platform.isAndroid) {
-      developer.log('DualDisplay: Skipping initialization (not Android)');
+      developer.log(
+        'DualDisplay: Running in virtual mode (non-Android, Flutter vice screen only)',
+      );
       return;
     }
 
@@ -40,28 +58,17 @@ class DualDisplayService {
       developer.log('DualDisplay: Starting initialization...');
       _iminService = IminPrinterService();
       await _iminService!.initialize();
-      // _isSupported = _iminService!.hasViceScreen;  // DISABLED
-      _isSupported = false;  // Always false when imin_vice_screen is disabled
+      _isSupported = await _iminService!.isDualDisplaySupported();
       developer.log('DualDisplay: Hardware support detected: $_isSupported');
 
-      if (_isSupported) {
-        await _loadSettings();
-        developer.log('DualDisplay: Enabled: $_isEnabled');
-
-        // Wake up the screen first (unlock if locked)
-        if (_isEnabled) {
-          await wakeScreen();
-          developer.log('DualDisplay: Screen wake attempted');
-
-          // Start keep-alive timer to prevent screen from locking
-          _startKeepAliveTimer();
-          developer.log('DualDisplay: Keep-alive timer started');
-        }
-
-        // Show welcome message if enabled
-        if (_isEnabled && _showWelcomeMessage) {
-          await showWelcome();
-        }
+      if (_isSupported && _isEnabled) {
+        await wakeScreen();
+        developer.log('DualDisplay: Screen wake attempted');
+        _startKeepAliveTimer();
+        developer.log('DualDisplay: Keep-alive timer started');
+      }
+      if (_isEnabled && _showWelcomeMessage) {
+        await showWelcome();
       }
     } catch (e) {
       developer.log('DualDisplay: Initialization failed: $e');
@@ -72,7 +79,6 @@ class DualDisplayService {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      // Enable by default if dual display hardware is detected
       _isEnabled = prefs.getBool('dual_display_enabled') ?? true;
       _showWelcomeMessage = prefs.getBool('dual_display_show_welcome') ?? true;
       _showOrderTotal = prefs.getBool('dual_display_show_total') ?? true;
@@ -81,21 +87,16 @@ class DualDisplayService {
       _showThankYouMessage =
           prefs.getBool('dual_display_show_thank_you') ?? true;
     } catch (e) {
-      // Use defaults - enable if hardware detected
       _isEnabled = true;
     }
   }
 
-  /// Check if dual display is available and enabled
   bool get isAvailable => _iminService != null && _isSupported && _isEnabled;
 
-  /// Check if dual display hardware is supported
   bool get isSupported => _isSupported;
 
-  /// Check if dual display is enabled
   bool get isEnabled => _isEnabled;
 
-  /// Enable or disable dual display
   Future<void> setEnabled(bool enabled) async {
     _isEnabled = enabled;
     try {
@@ -107,46 +108,42 @@ class DualDisplayService {
     }
   }
 
-  /// Show welcome message on customer display
   Future<void> showWelcome() async {
-    if (!isAvailable || !_showWelcomeMessage) return;
+    if (!_showWelcomeMessage) return;
+
+    _lastDisplayedContent =
+        'Welcome\n${BusinessInfo.instance.businessName.toUpperCase()}';
+    _emitViceState(
+      ViceDisplayState.idle(
+        businessName: BusinessInfo.instance.businessName,
+        currencySymbol: BusinessInfo.instance.currencySymbol,
+      ),
+    );
+
+    if (!isAvailable) return;
 
     try {
       developer.log('DualDisplay: Vice screen opened for welcome display');
       developer.log(
         'DualDisplay: Last displayed content: $_lastDisplayedContent',
       );
-
-      // The ViceCustomerDisplayScreen will show the welcome message by default
-      // (when cart is empty)
-
-      // The ViceCustomerDisplayScreen will show the welcome message by default
-      // (when cart is empty)
     } catch (e) {
       developer.log('DualDisplay: Failed to open vice screen for welcome: $e');
     }
   }
 
-  /// Wake up the customer display screen (unlock if locked)
   Future<void> wakeScreen() async {
     if (!isAvailable) return;
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    /* ORIGINAL CODE:
     try {
-      developer.log('DualDisplay: Attempting to wake screen (Flutter Mode)...');
-      await _viceScreenPlugin.doubleScreenOpen();
-      developer.log('DualDisplay: Screen wake successful (Flutter Mode)');
+      await _iminService?.wakeViceScreen();
+      developer.log('DualDisplay: Physical vice screen wake requested');
     } catch (e) {
-      developer.log('DualDisplay: Failed to wake screen: $e');
+      developer.log('DualDisplay: Failed to wake physical vice screen: $e');
     }
-    */
   }
 
-  /// Start periodic keep-alive timer to prevent screen lock
   void _startKeepAliveTimer() {
     _keepAliveTimer?.cancel();
-
-    // Wake screen every 30 seconds to prevent lock screen
     _keepAliveTimer = Timer.periodic(const Duration(seconds: 30), (
       timer,
     ) async {
@@ -160,172 +157,221 @@ class DualDisplayService {
     });
   }
 
-  /// Stop keep-alive timer
   void stopKeepAlive() {
     _keepAliveTimer?.cancel();
     _keepAliveTimer = null;
     developer.log('DualDisplay: Keep-alive timer stopped');
   }
 
-  /// Dispose resources
   void dispose() {
     stopKeepAlive();
+    if (!_viceStateController.isClosed) {
+      _viceStateController.close();
+    }
   }
 
-  /// Send status update to vice screen
   Future<void> _sendStatusUpdate(
     String status, {
     double? amount,
     String? currency,
   }) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    /* ORIGINAL CODE:
-    try {
-      await _viceScreenPlugin.doubleScreenOpen();
-      final data = {
-        'status': status,
-        if (amount != null) 'amount': amount,
-        if (currency != null) 'currency': currency,
-      };
-      await _viceScreenPlugin.sendMsgToViceScreen('UPDATE_STATUS', params: data);
-    } catch (e) {
-      developer.log('DualDisplay: Failed to send status update: $e');
-    }
-    */
+    if (!isAvailable) return;
+    developer.log(
+      'DualDisplay: Status update -> $status, amount=$amount, currency=$currency',
+    );
   }
 
-  /// Show order total on customer display
   Future<void> showOrderTotal(double total, String currency) async {
+    final currencySymbol = _resolveCurrencySymbol(currency);
+    final roundedTotal = RoundingService.roundCash(total);
+
+    _lastDisplayedContent =
+        'Total Amount\n$currencySymbol${roundedTotal.toStringAsFixed(2)}';
+
+    _emitViceState(
+      ViceDisplayState(
+        mode: ViceDisplayMode.payment,
+        businessName: BusinessInfo.instance.businessName,
+        title: 'TOTAL AMOUNT',
+        subtitle: 'Scan to pay with DuitNow',
+        cartItems: const [],
+        subtotal: roundedTotal,
+        total: roundedTotal,
+        currencySymbol: currencySymbol,
+        qrData: _buildDuitNowPayload(roundedTotal),
+        reference: null,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
     if (!isAvailable || !_showOrderTotal) return;
-    final currencySymbol = (currency.isEmpty)
-        ? BusinessInfo.instance.currencySymbol
-        : currency;
-    _lastDisplayedContent =
-        'Total Amount\n$currencySymbol${total.toStringAsFixed(2)}';
 
-    // Use Flutter display instead of LCD
-    await _sendStatusUpdate('PAYMENT', amount: total, currency: currencySymbol);
-  }
-
-  /// Show payment amount on customer display
-  Future<void> showPaymentAmount(double amount, String currency) async {
-    if (!isAvailable || !_showPaymentAmount) return;
-    final currencySymbol = (currency.isEmpty)
-        ? BusinessInfo.instance.currencySymbol
-        : currency;
-    _lastDisplayedContent =
-        'Payment\n$currencySymbol${amount.toStringAsFixed(2)}';
-
-    // Use Flutter display instead of LCD
     await _sendStatusUpdate(
       'PAYMENT',
-      amount: amount,
+      amount: roundedTotal,
       currency: currencySymbol,
     );
   }
 
-  /// Show change amount on customer display
-  Future<void> showChange(double change, String currency) async {
-    if (!isAvailable || !_showChangeAmount) return;
-    if (change <= 0) return;
-    final currencySymbol = (currency.isEmpty)
-        ? BusinessInfo.instance.currencySymbol
-        : currency;
-    _lastDisplayedContent =
-        'Change\n$currencySymbol${change.toStringAsFixed(2)}';
+  Future<void> showPaymentAmount(double amount, String currency) async {
+    final currencySymbol = _resolveCurrencySymbol(currency);
+    final roundedAmount = RoundingService.roundCash(amount);
 
-    // Use Flutter display instead of LCD
-    await _sendStatusUpdate('CHANGE', amount: change, currency: currencySymbol);
+    _lastDisplayedContent =
+        'Payment\n$currencySymbol${roundedAmount.toStringAsFixed(2)}';
+
+    _emitViceState(
+      ViceDisplayState(
+        mode: ViceDisplayMode.payment,
+        businessName: BusinessInfo.instance.businessName,
+        title: 'PAYMENT',
+        subtitle: 'Please complete your payment',
+        cartItems: const [],
+        subtotal: roundedAmount,
+        total: roundedAmount,
+        currencySymbol: currencySymbol,
+        qrData: _buildDuitNowPayload(roundedAmount),
+        reference: null,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    if (!isAvailable || !_showPaymentAmount) return;
+
+    await _sendStatusUpdate(
+      'PAYMENT',
+      amount: roundedAmount,
+      currency: currencySymbol,
+    );
   }
 
-  /// Show thank you message on customer display
-  Future<void> showThankYou() async {
-    if (!isAvailable || !_showThankYouMessage) return;
+  Future<void> showChange(double change, String currency) async {
+    if (change <= 0) return;
 
+    final currencySymbol = _resolveCurrencySymbol(currency);
+    final roundedChange = RoundingService.roundCash(change);
+
+    _emitViceState(
+      ViceDisplayState(
+        mode: ViceDisplayMode.change,
+        businessName: BusinessInfo.instance.businessName,
+        title: 'CHANGE',
+        subtitle: 'Please collect your balance',
+        cartItems: const [],
+        subtotal: roundedChange,
+        total: roundedChange,
+        currencySymbol: currencySymbol,
+        qrData: '',
+        reference: null,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    if (!isAvailable || !_showChangeAmount) return;
+    _lastDisplayedContent =
+        'Change\n$currencySymbol${roundedChange.toStringAsFixed(2)}';
+
+    await _sendStatusUpdate(
+      'CHANGE',
+      amount: roundedChange,
+      currency: currencySymbol,
+    );
+  }
+
+  Future<void> showThankYou() async {
     _lastDisplayedContent = 'Thank You!\nPlease Come Again';
 
-    // Use Flutter display instead of LCD
+    _emitViceState(
+      ViceDisplayState(
+        mode: ViceDisplayMode.thankYou,
+        businessName: BusinessInfo.instance.businessName,
+        title: 'THANK YOU',
+        subtitle: 'Please come again',
+        cartItems: const [],
+        subtotal: 0.0,
+        total: 0.0,
+        currencySymbol: BusinessInfo.instance.currencySymbol,
+        qrData: '',
+        reference: null,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    if (!isAvailable || !_showThankYouMessage) return;
+
     await _sendStatusUpdate('THANK_YOU');
   }
 
-  /// Clear the customer display
   Future<void> clear() async {
+    _emitViceState(
+      ViceDisplayState.idle(
+        businessName: BusinessInfo.instance.businessName,
+        currencySymbol: BusinessInfo.instance.currencySymbol,
+      ),
+    );
+
     if (!isAvailable) return;
 
-    // Reset to IDLE (Welcome screen or empty cart)
     await _sendStatusUpdate('IDLE');
   }
 
-  /// Show custom text on customer display
   Future<void> showText(String text) async {
     if (!isAvailable) return;
-
-    // For custom text, we might still need LCD if the Flutter UI doesn't support it
-    // But for consistency, we'll try to keep the Flutter UI active
-    // Currently ignoring custom text for Flutter UI to prevent context switching
-    // await _iminService!.displayOnViceScreen(text);
+    developer.log('DualDisplay: showText requested -> $text');
   }
 
-  /// Show cart items on customer display using stream-based communication
   Future<void> showCartItems(
     List<Map<String, dynamic>> items,
     double subtotal,
     String currency, {
     String? orderNumber,
+    double? total,
   }) async {
     developer.log(
       'DualDisplay: showCartItems called - items: ${items.length}, subtotal: $subtotal, currency: $currency',
     );
 
+    final currencySymbol = _resolveCurrencySymbol(currency);
+    final roundedTotal = RoundingService.roundCash(total ?? subtotal);
+    final qrData = roundedTotal > 0
+        ? _buildDuitNowPayload(roundedTotal, reference: orderNumber)
+        : '';
+
+    _emitViceState(
+      items.isEmpty
+          ? ViceDisplayState.idle(
+              businessName: BusinessInfo.instance.businessName,
+              currencySymbol: currencySymbol,
+            )
+          : ViceDisplayState(
+              mode: ViceDisplayMode.cart,
+              businessName: BusinessInfo.instance.businessName,
+              title: 'SCAN TO PAY',
+              subtitle: 'DuitNow QR',
+              cartItems: items,
+              subtotal: subtotal,
+              total: roundedTotal,
+              currencySymbol: currencySymbol,
+              qrData: qrData,
+              reference: orderNumber,
+              updatedAt: DateTime.now(),
+            ),
+    );
+
     if (!isAvailable) {
       developer.log(
-        'DualDisplay: ERROR - Not available (isAvailable = false), skipping cart display',
-      );
-      developer.log(
-        'DualDisplay: Check Settings > Dual Display Settings is enabled',
+        'DualDisplay: Physical display unavailable; Flutter vice stream updated only',
       );
       return;
     }
 
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    /* ORIGINAL CODE:
-    try {
-      developer.log('DualDisplay: Opening vice screen...');
-      await _viceScreenPlugin.doubleScreenOpen();
-      developer.log('DualDisplay: Vice screen opened successfully');
-
-      // Send cart data via vice screen stream
-      final cartData = {
-        'items': items,
-        'subtotal': subtotal,
-        'currency': currency.isEmpty
-            ? BusinessInfo.instance.currencySymbol
-            : currency,
-        if (orderNumber != null) 'orderNumber': orderNumber,
-      };
-      developer.log(
-        'DualDisplay: Prepared cart data with ${items.length} items',
-      );
-
-      final encodedData = jsonEncode(cartData);
-      developer.log(
-        'DualDisplay: JSON encoded cart data (${encodedData.length} chars)',
-      );
-
-      await _viceScreenPlugin.sendMsgToViceScreen(
-        'CART_UPDATE',
-        params: {'cartData': encodedData},
-      );
-
-      developer.log('DualDisplay: Cart data sent via stream successfully');
-    } catch (e, stackTrace) {
-      developer.log('DualDisplay: ERROR - Failed to send cart data: $e');
-      developer.log('DualDisplay: Stack trace: $stackTrace');
-    }
-    */
+    await _sendStatusUpdate(
+      'CART',
+      amount: roundedTotal,
+      currency: currencySymbol,
+    );
   }
 
-  /// Show cart items from CartItem objects (convenience method)
   Future<void> showCartItemsFromObjects(
     List<CartItem> cartItems,
     String currency, {
@@ -333,29 +379,94 @@ class DualDisplayService {
   }) async {
     final items = cartItems.map((item) => item.toJson()).toList();
     final subtotal = cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
-    await showCartItems(items, subtotal, currency, orderNumber: orderNumber);
+    final total = CartCalculationService.calculateTotal(
+      cartItems,
+      BusinessInfo.instance,
+      cashPayment: true,
+    );
+    await showCartItems(
+      items,
+      subtotal,
+      currency,
+      orderNumber: orderNumber,
+      total: total,
+    );
   }
 
-  /// Show single item added to cart
   Future<void> showItemAdded(
     String itemName,
     int quantity,
     double price,
     String currency,
   ) async {
-    if (!isAvailable) return;
-
-    final currencySymbol = (currency.isEmpty)
-        ? BusinessInfo.instance.currencySymbol
-        : currency;
+    final currencySymbol = _resolveCurrencySymbol(currency);
+    final roundedPrice = RoundingService.roundCash(price);
 
     final displayName = itemName.length > 20
-        ? '\${itemName.substring(0, 17)}...'
+        ? '${itemName.substring(0, 17)}...'
         : itemName;
     final text =
-        'Added to cart:\n\n$quantity x $displayName\n$currencySymbol\${price.toStringAsFixed(2)}';
+        'Added to cart:\n\n$quantity x $displayName\n$currencySymbol${roundedPrice.toStringAsFixed(2)}';
 
     _lastDisplayedContent = text;
-    // await _iminService!.displayOnViceScreen(text);  // DISABLED - imin_vice_screen incompatible
+    _emitViceState(
+      ViceDisplayState(
+        mode: ViceDisplayMode.message,
+        businessName: BusinessInfo.instance.businessName,
+        title: 'ITEM ADDED',
+        subtitle: text,
+        cartItems: const [],
+        subtotal: roundedPrice,
+        total: roundedPrice,
+        currencySymbol: currencySymbol,
+        qrData: '',
+        reference: null,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    if (!isAvailable) return;
+
+  }
+
+  String _resolveCurrencySymbol(String currency) {
+    return currency.isEmpty ? BusinessInfo.instance.currencySymbol : currency;
+  }
+
+  void _emitViceState(ViceDisplayState state) {
+    _currentViceState = state;
+    if (!_viceStateController.isClosed) {
+      _viceStateController.add(state);
+    }
+  }
+
+  String _resolveMerchantId() {
+    final info = BusinessInfo.instance;
+    final candidates = [
+      info.taxNumber,
+      info.registrationNumber,
+      info.phone,
+      info.email,
+    ];
+    for (final candidate in candidates) {
+      final value = (candidate ?? '').trim();
+      if (value.isNotEmpty) return value;
+    }
+    return 'EXTROPOS';
+  }
+
+  String _buildDuitNowPayload(double total, {String? reference}) {
+    try {
+      return DuitNowService.generateDynamicQr(
+        merchantId: _resolveMerchantId(),
+        amount: total,
+        reference: reference,
+        merchantName: BusinessInfo.instance.businessName,
+        merchantCity: BusinessInfo.instance.city,
+      );
+    } catch (e) {
+      developer.log('DualDisplay: Failed to build DuitNow payload: $e');
+      return '';
+    }
   }
 }

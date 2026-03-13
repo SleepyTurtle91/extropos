@@ -2,7 +2,7 @@ import 'package:extropos/models/user_model.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/pin_store.dart';
 import 'package:extropos/services/user_service.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 
 /// Simple singleton lock manager. Use [attemptUnlock] to verify a PIN and
 /// set the currently authenticated user. Not a full auth system — lightweight

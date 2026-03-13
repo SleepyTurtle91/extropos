@@ -1,7 +1,7 @@
 import 'package:extropos/models/product.dart';
 import 'package:extropos/services/appwrite_phase1_service.dart';
 import 'package:extropos/services/database_helper.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show IconData, Icons;
 
 /// ProductService – Abstraction for product queries (Appwrite or local DB)
 ///

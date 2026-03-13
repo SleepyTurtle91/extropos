@@ -230,6 +230,84 @@ class EmailTemplateService {
 ''';
   }
 
+  /// Generate HTML email for a customer receipt
+  String generateReceiptEmail({
+    required String receiptNumber,
+    required List<dynamic> items,
+    required double subtotal,
+    required double tax,
+    required double total,
+    String? customerName,
+  }) {
+    final businessInfo = BusinessInfo.instance;
+
+    return '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 20px auto; border: 1px solid #eee; padding: 20px; border-radius: 8px; }
+    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #f5f5f5; padding-bottom: 20px; }
+    .receipt-info { margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { text-align: left; border-bottom: 1px solid #eee; padding: 10px 5px; }
+    td { padding: 10px 5px; border-bottom: 1px solid #f9f9f9; }
+    .totals { text-align: right; }
+    .total-row { font-weight: bold; font-size: 1.2em; color: #2563EB; }
+    .footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>${_escapeHtml(businessInfo.businessName)}</h2>
+      <p>Official Receipt</p>
+    </div>
+    
+    <div class="receipt-info">
+      <p><strong>Receipt #:</strong> ${_escapeHtml(receiptNumber)}</p>
+      <p><strong>Date:</strong> ${_dateFormatter.format(DateTime.now())}</p>
+      ${customerName != null ? '<p><strong>Customer:</strong> ${_escapeHtml(customerName)}</p>' : ''}
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: right;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map((item) => '''
+        <tr>
+          <td>${_escapeHtml(item['name']?.toString() ?? 'Item')}</td>
+          <td style="text-align: center;">${item['quantity'] ?? 1}</td>
+          <td style="text-align: right;">${_currencyFormatter.format(item['price'] ?? 0.0)}</td>
+        </tr>
+        ''').join()}
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <p>Subtotal: ${_currencyFormatter.format(subtotal)}</p>
+      <p>Tax: ${_currencyFormatter.format(tax)}</p>
+      <p class="total-row">Total: ${_currencyFormatter.format(total)}</p>
+    </div>
+
+    <div class="footer">
+      <p>Thank you for your business!</p>
+      <p>${_escapeHtml(businessInfo.address)}</p>
+      <p>${_escapeHtml(businessInfo.phone)}</p>
+    </div>
+  </div>
+</body>
+</html>
+''';
+  }
+
   /// Build report-specific content based on report type
   String _buildReportContent(String reportType, Map<String, dynamic> data) {
     switch (reportType.toLowerCase()) {

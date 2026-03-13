@@ -10,6 +10,7 @@ import 'package:extropos/screens/refund_screen.dart';
 import 'package:extropos/screens/reports_screen.dart';
 import 'package:extropos/screens/sales_history_screen.dart';
 import 'package:extropos/screens/settings_screen.dart';
+import 'package:extropos/screens/settings_stubs.dart';
 import 'package:extropos/screens/tables_management_screen.dart';
 import 'package:extropos/services/config_service.dart';
 import 'package:extropos/services/database_service.dart';

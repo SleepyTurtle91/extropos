@@ -363,12 +363,6 @@ class Phase1InventoryService extends ChangeNotifier {
     }
   }
 
-  /// Clear all inventory (for testing)
-  void _clearAllInventory() {
-    _inventory.clear();
-    notifyListeners();
-  }
-
   @override
   String toString() => 'Phase1InventoryService(totalItems: ${_inventory.length})';
 }

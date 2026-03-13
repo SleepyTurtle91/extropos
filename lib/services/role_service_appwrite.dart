@@ -556,7 +556,7 @@ class RoleServiceAppwrite extends ChangeNotifier {
 
     if (permissionsJson is String) {
       try {
-        final list = (jsonDecode(permissionsJson) as List) ?? [];
+        final list = jsonDecode(permissionsJson) as List;
         for (final perm in list) {
           if (perm is String) {
             permissions[perm] = true;

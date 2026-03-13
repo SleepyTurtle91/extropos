@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-03-13
+
+### Added
+
+- **DuitNow QR payment pipeline for Vice Screen**
+  - Added Layer A `DuitNowService` with EMV-like TLV payload generation
+  - Added CRC16-CCITT payload checksum validation helper
+  - Added BNM-compatible amount rounding integration before QR payload embedding
+- **Customer-facing vice display runtime experience**
+  - Added `ViceDisplayState` model and `ViceDisplayMode` enum for stream-driven rendering
+  - Added reusable Layer B `ViceCustomerQR` widget for QR + total presentation
+  - Added Layer C `ViceDisplayScreen` with stream subscription and cart fallback listener
+
+### Changed
+
+- **Vice route behavior in app shell**
+  - `/vice` now opens the runtime customer display screen
+  - `/vice-management` preserves the previous management/testing display screen
+- **Dual display orchestration improvements**
+  - `DualDisplayService` now emits strongly-typed vice display states for idle/cart/payment/change/thank-you flows
+  - Rounded totals are used consistently for displayed payment amounts and DuitNow payload generation
+
+### Fixed
+
+- **IMIN vice-screen fallback mode stabilization**
+  - Replaced dead no-op vice methods with active fallback behavior for wake/display/clear/status paths
+  - Added explicit vice mode initialization flags to improve non-plugin fallback reliability
+- **Regression quality checks for payment math and QR generation**
+  - Added/validated focused tests for rounding, cart calculations, and DuitNow payload integrity
+
+### APK Release
+
+- **Local release artifact (POS flavor)**
+  - Generated APK: `app-posapp-release.apk`
+  - Output paths:
+    - `build/app/outputs/flutter-apk/app-posapp-release.apk`
+    - `build/app/outputs/apk/posApp/release/app-posApp-release.apk`
+  - File size: 90,619,473 bytes (~86.42 MB)
+  - Build: 1.2.1+39
+  - Build timestamp: 2026-03-13 22:57 (local)
+
 ## [1.2.0] - 2026-03-10
 
 ### Added

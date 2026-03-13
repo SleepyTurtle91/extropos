@@ -1,37 +1,38 @@
 class ReceiptSettings {
-  final String headerText;
-  final String footerText;
-  final bool showLogo;
-  final bool showDateTime;
-  final bool showOrderNumber;
-  final bool showCashierName;
-  final bool showTaxBreakdown;
-  final bool showServiceChargeBreakdown;
-  final bool showThankYouMessage;
-  final bool showTaxId;
-  final String taxIdText;
-  final bool showWifiDetails;
-  final String wifiDetails;
-  final bool showBarcode;
-  final String barcodeData;
-  final bool showQrCode;
-  final String qrData;
-  final bool autoPrint;
-  final ReceiptPaperSize paperSize;
-  final int paperWidth; // in mm
-  final int fontSize;
-  final String thankYouMessage;
-  final String termsAndConditions;
+  String headerText;
+  String footerText;
+  bool showLogo;
+  bool showDateTime;
+  bool showOrderNumber;
+  bool showCustomerInfo;
+  bool showCashierName;
+  bool showTaxBreakdown;
+  bool showServiceChargeBreakdown;
+  bool showThankYouMessage;
+  bool showTaxId;
+  String taxIdText;
+  bool showWifiDetails;
+  String wifiDetails;
+  bool showBarcode;
+  String barcodeData;
+  bool showQrCode;
+  String qrData;
+  bool autoPrint;
+  ReceiptPaperSize paperSize;
+  int paperWidth; // in mm
+  int fontSize;
+  String thankYouMessage;
+  String termsAndConditions;
 
   // Kitchen Docket Template Settings
-  final String kitchenHeaderText;
-  final String kitchenFooterText;
-  final bool kitchenShowDateTime;
-  final bool kitchenShowTable;
-  final bool kitchenShowOrderNumber;
-  final bool kitchenShowModifiers;
-  final int kitchenFontSize;
-  final KitchenTemplateStyle kitchenTemplateStyle;
+  String kitchenHeaderText;
+  String kitchenFooterText;
+  bool kitchenShowDateTime;
+  bool kitchenShowTable;
+  bool kitchenShowOrderNumber;
+  bool kitchenShowModifiers;
+  int kitchenFontSize;
+  KitchenTemplateStyle kitchenTemplateStyle;
 
   ReceiptSettings({
     this.headerText = 'ExtroPOS',
@@ -39,6 +40,7 @@ class ReceiptSettings {
     this.showLogo = true,
     this.showDateTime = true,
     this.showOrderNumber = true,
+    this.showCustomerInfo = true,
     this.showCashierName = true,
     this.showTaxBreakdown = true,
     this.showServiceChargeBreakdown = true,
@@ -68,12 +70,15 @@ class ReceiptSettings {
     this.kitchenTemplateStyle = KitchenTemplateStyle.standard,
   });
 
+  factory ReceiptSettings.defaultSettings() => ReceiptSettings();
+
   ReceiptSettings copyWith({
     String? headerText,
     String? footerText,
     bool? showLogo,
     bool? showDateTime,
     bool? showOrderNumber,
+    bool? showCustomerInfo,
     bool? showCashierName,
     bool? showTaxBreakdown,
     bool? showServiceChargeBreakdown,
@@ -107,19 +112,20 @@ class ReceiptSettings {
       showLogo: showLogo ?? this.showLogo,
       showDateTime: showDateTime ?? this.showDateTime,
       showOrderNumber: showOrderNumber ?? this.showOrderNumber,
+      showCustomerInfo: showCustomerInfo ?? this.showCustomerInfo,
       showCashierName: showCashierName ?? this.showCashierName,
       showTaxBreakdown: showTaxBreakdown ?? this.showTaxBreakdown,
       showServiceChargeBreakdown:
           showServiceChargeBreakdown ?? this.showServiceChargeBreakdown,
       showThankYouMessage: showThankYouMessage ?? this.showThankYouMessage,
-        showTaxId: showTaxId ?? this.showTaxId,
-        taxIdText: taxIdText ?? this.taxIdText,
-        showWifiDetails: showWifiDetails ?? this.showWifiDetails,
-        wifiDetails: wifiDetails ?? this.wifiDetails,
-        showBarcode: showBarcode ?? this.showBarcode,
-        barcodeData: barcodeData ?? this.barcodeData,
-        showQrCode: showQrCode ?? this.showQrCode,
-        qrData: qrData ?? this.qrData,
+      showTaxId: showTaxId ?? this.showTaxId,
+      taxIdText: taxIdText ?? this.taxIdText,
+      showWifiDetails: showWifiDetails ?? this.showWifiDetails,
+      wifiDetails: wifiDetails ?? this.wifiDetails,
+      showBarcode: showBarcode ?? this.showBarcode,
+      barcodeData: barcodeData ?? this.barcodeData,
+      showQrCode: showQrCode ?? this.showQrCode,
+      qrData: qrData ?? this.qrData,
       autoPrint: autoPrint ?? this.autoPrint,
       paperSize: paperSize ?? this.paperSize,
       paperWidth: paperWidth ?? this.paperWidth,
@@ -145,6 +151,7 @@ class ReceiptSettings {
       'showLogo': showLogo,
       'showDateTime': showDateTime,
       'showOrderNumber': showOrderNumber,
+      'showCustomerInfo': showCustomerInfo,
       'showCashierName': showCashierName,
       'showTaxBreakdown': showTaxBreakdown,
       'showServiceChargeBreakdown': showServiceChargeBreakdown,
@@ -182,19 +189,20 @@ class ReceiptSettings {
       showLogo: json['showLogo'] as bool? ?? true,
       showDateTime: json['showDateTime'] as bool? ?? true,
       showOrderNumber: json['showOrderNumber'] as bool? ?? true,
+      showCustomerInfo: json['showCustomerInfo'] as bool? ?? true,
       showCashierName: json['showCashierName'] as bool? ?? true,
       showTaxBreakdown: json['showTaxBreakdown'] as bool? ?? true,
       showServiceChargeBreakdown:
           json['showServiceChargeBreakdown'] as bool? ?? true,
       showThankYouMessage: json['showThankYouMessage'] as bool? ?? true,
-        showTaxId: json['showTaxId'] as bool? ?? true,
-        taxIdText: json['taxIdText'] as String? ?? '',
-        showWifiDetails: json['showWifiDetails'] as bool? ?? false,
-        wifiDetails: json['wifiDetails'] as String? ?? '',
-        showBarcode: json['showBarcode'] as bool? ?? false,
-        barcodeData: json['barcodeData'] as String? ?? '',
-        showQrCode: json['showQrCode'] as bool? ?? false,
-        qrData: json['qrData'] as String? ?? '',
+      showTaxId: json['showTaxId'] as bool? ?? true,
+      taxIdText: json['taxIdText'] as String? ?? '',
+      showWifiDetails: json['showWifiDetails'] as bool? ?? false,
+      wifiDetails: json['wifiDetails'] as String? ?? '',
+      showBarcode: json['showBarcode'] as bool? ?? false,
+      barcodeData: json['barcodeData'] as String? ?? '',
+      showQrCode: json['showQrCode'] as bool? ?? false,
+      qrData: json['qrData'] as String? ?? '',
       autoPrint: json['autoPrint'] as bool? ?? false,
       paperSize: ReceiptPaperSize.values.firstWhere(
         (e) => e.name == json['paperSize'],

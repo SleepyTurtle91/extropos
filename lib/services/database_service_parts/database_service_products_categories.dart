@@ -208,7 +208,7 @@ CustomerDisplay _customerDisplayFromDb(Map<String, dynamic> map) {
 }
 
 extension DatabaseServiceProductsCategories on DatabaseService {
-  Future<List<Category>> getCategories() async {
+  Future<List<cat_model.Category>> getCategories() async {
     try {
       final sw = Stopwatch()..start();
       developer.log('DB: getCategories() called');
@@ -221,7 +221,7 @@ extension DatabaseServiceProductsCategories on DatabaseService {
       );
 
       final result = List.generate(maps.length, (i) {
-        return Category(
+        return cat_model.Category(
           id: maps[i]['id'].toString(),
           name: maps[i]['name'] as String,
           description: (maps[i]['description'] as String?) ?? '',
@@ -256,7 +256,7 @@ extension DatabaseServiceProductsCategories on DatabaseService {
     }
   }
 
-  Future<Category?> getCategoryById(String id) async {
+  Future<cat_model.Category?> getCategoryById(String id) async {
     final db = await DatabaseHelper.instance.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'categories',
@@ -267,7 +267,7 @@ extension DatabaseServiceProductsCategories on DatabaseService {
 
     if (maps.isEmpty) return null;
 
-    return Category(
+    return cat_model.Category(
       id: maps[0]['id'].toString(),
       name: maps[0]['name'] as String,
       description: (maps[0]['description'] as String?) ?? '',
@@ -282,7 +282,7 @@ extension DatabaseServiceProductsCategories on DatabaseService {
     );
   }
 
-  Future<int> insertCategory(Category category) async {
+  Future<int> insertCategory(cat_model.Category category) async {
     final db = await DatabaseHelper.instance.database;
     return await db.insert('categories', {
       'id': category.id,
@@ -299,7 +299,7 @@ extension DatabaseServiceProductsCategories on DatabaseService {
     });
   }
 
-  Future<int> updateCategory(Category category) async {
+  Future<int> updateCategory(cat_model.Category category) async {
     final db = await DatabaseHelper.instance.database;
     return await db.update(
       'categories',

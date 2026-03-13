@@ -86,6 +86,18 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
+    packaging {
+        jniLibs {
+            pickFirsts += setOf(
+                "lib/arm64-v8a/libsqlite3.so",
+                "lib/armeabi-v7a/libsqlite3.so",
+                "lib/x86/libsqlite3.so",
+                "lib/x86_64/libsqlite3.so",
+                "**/libsqlite3.so"
+            )
+        }
+    }
 }
 
 flutter {

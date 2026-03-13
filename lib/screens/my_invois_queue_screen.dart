@@ -69,7 +69,7 @@ class _MyInvoisQueueScreenState extends State<MyInvoisQueueScreen> {
         if (uuid != null && uuid.toString().isNotEmpty) {
           try {
             // Check submission status
-            final status = await EInvoiceService.instance.getSubmission(uuid);
+            await EInvoiceService.instance.getSubmission(uuid);
             // Update local status if needed
             // This would require adding status tracking to the database
             updated++;

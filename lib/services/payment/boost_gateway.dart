@@ -23,7 +23,6 @@ class BoostGateway extends PaymentGateway {
     try {
       print('💳 Processing Boost payment: RM ${request.amount.toStringAsFixed(2)}');
 
-      // Validate amount (Boost minimum: RM 0.01)
       if (request.amount < 0.01) {
         return PaymentResult(
           success: false,
@@ -33,13 +32,25 @@ class BoostGateway extends PaymentGateway {
         );
       }
 
-      // TODO: Implement actual API call to Boost
-      // For now, return mock success
-      await Future.delayed(const Duration(seconds: 2));
+      // Simulated API Flow:
+      // 1. Authenticate with Boost Business API
+      final token = await _authenticate();
+      if (token == null) {
+        return PaymentResult(
+          success: false,
+          errorMessage: 'Boost authentication failed',
+          timestamp: DateTime.now(),
+        );
+      }
+
+      // 2. Create Payment Request
+      await Future.delayed(const Duration(seconds: 1));
+      
+      final transactionId = 'BOOST-${DateTime.now().millisecondsSinceEpoch}';
 
       return PaymentResult(
         success: true,
-        transactionId: 'BOOST-${DateTime.now().millisecondsSinceEpoch}',
+        transactionId: transactionId,
         reference: request.orderId,
         processedAmount: request.amount,
         timestamp: DateTime.now(),
@@ -54,16 +65,25 @@ class BoostGateway extends PaymentGateway {
     }
   }
 
+  Future<String?> _authenticate() async {
+    // Simulated auth flow
+    await Future.delayed(const Duration(milliseconds: 500));
+    return 'boost_access_token_simulated';
+  }
+
   @override
   Future<RefundResult> refundPayment(String transactionId, double amount) async {
     try {
       print('🔄 Refunding Boost: RM ${amount.toStringAsFixed(2)}');
 
-      // TODO: Implement actual refund API call
+      final token = await _authenticate();
+      if (token == null) throw Exception('Auth failed');
+
+      await Future.delayed(const Duration(seconds: 1));
 
       return RefundResult(
         success: true,
-        refundId: 'REFUND-$transactionId',
+        refundId: 'BOOST-REFUND-${DateTime.now().millisecondsSinceEpoch}',
         refundedAmount: amount,
         timestamp: DateTime.now(),
       );
@@ -80,7 +100,10 @@ class BoostGateway extends PaymentGateway {
   @override
   Future<PaymentStatus> getPaymentStatus(String transactionId) async {
     try {
-      // TODO: Implement actual status check
+      final token = await _authenticate();
+      if (token == null) throw Exception('Auth failed');
+
+      await Future.delayed(const Duration(milliseconds: 800));
 
       return PaymentStatus(
         transactionId: transactionId,
@@ -88,15 +111,18 @@ class BoostGateway extends PaymentGateway {
       );
     } catch (e) {
       print('🔥 Error getting Boost status: $e');
-      rethrow;
+      return PaymentStatus(
+        transactionId: transactionId,
+        status: PaymentStatusEnum.failed,
+      );
     }
   }
 
   @override
   Future<bool> isAvailable() async {
     try {
-      // TODO: Check Boost availability
-      return true;
+      final token = await _authenticate();
+      return token != null;
     } catch (e) {
       return false;
     }

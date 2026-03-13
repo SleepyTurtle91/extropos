@@ -214,12 +214,6 @@ class AuditService extends ChangeNotifier {
     return _activityLogs.map((log) => log.toMap()).toList();
   }
 
-  /// Clear all logs (for testing only)
-  void _clearAllLogs() {
-    _activityLogs.clear();
-    notifyListeners();
-  }
-
   /// Clear all logs (public alias for testing)
   void clearCache() {
     _activityLogs.clear();

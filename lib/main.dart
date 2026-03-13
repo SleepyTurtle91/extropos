@@ -15,6 +15,7 @@ import 'package:extropos/screens/my_invois_queue_screen.dart';
 import 'package:extropos/screens/my_invois_settings_screen.dart';
 import 'package:extropos/screens/setup_screen.dart';
 import 'package:extropos/screens/vice_customer_display_screen.dart';
+import 'package:extropos/screens/vice_display_screen.dart';
 import 'package:extropos/seeders/pos_product_seeder.dart';
 import 'package:extropos/services/appwrite_phase1_service.dart';
 import 'package:extropos/services/appwrite_service.dart';
@@ -302,7 +303,7 @@ class ViceDisplayApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const ViceCustomerDisplayScreen(),
+      home: const ViceDisplayScreen(),
     );
   }
 }
@@ -328,8 +329,9 @@ class ExtroPOSApp extends StatelessWidget {
             '/lock': (_) => const LockScreen(),
             '/activation': (_) => const ActivationScreen(),
             '/pos': (_) => const UnifiedPOSScreen(),
-            '/vice': (_) =>
-                const ViceCustomerDisplayScreen(), // Vice display route
+            '/vice': (_) => const ViceDisplayScreen(), // Runtime vice display
+            '/vice-management': (_) =>
+              const ViceCustomerDisplayScreen(), // Management/testing screen
             '/einvoice-config': (_) => const EInvoiceConfigScreen(),
             '/einvoice-submission': (_) => const EInvoiceSubmissionScreen(),
             '/myinvois-settings': (_) => const MyInvoisSettingsScreen(),
@@ -341,7 +343,7 @@ class ExtroPOSApp extends StatelessWidget {
                 settings.name == 'viceMain' ||
                 settings.name == '/presentation') {
               return MaterialPageRoute(
-                builder: (_) => const ViceCustomerDisplayScreen(),
+                builder: (_) => const ViceDisplayScreen(),
               );
             }
             return null; // Let default routing handle other cases

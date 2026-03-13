@@ -221,14 +221,12 @@ class EInvoiceHelper {
     }
 
     final businessInfo = BusinessInfo.instance;
-    final now = DateTime.now();
 
     // Extract order data
     final orderId = order['id'] as String;
     final orderNumber = order['order_number'] as String? ?? orderId;
     final subtotal = (order['subtotal'] as num?)?.toDouble() ?? 0.0;
     final taxAmount = (order['tax'] as num?)?.toDouble() ?? 0.0;
-    final discount = (order['discount'] as num?)?.toDouble() ?? 0.0;
     final total = (order['total'] as num?)?.toDouble() ?? 0.0;
     final customerName = order['customer_name'] as String?;
     final customerPhone = order['customer_phone'] as String?;

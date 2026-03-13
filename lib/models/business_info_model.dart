@@ -37,6 +37,8 @@ class BusinessInfo with ChangeNotifier {
   final String? businessEmail;
   final String? businessPhone;
   final String? businessAddress;
+  final String? myInvoisClientId;
+  final String? myInvoisClientSecret;
   final bool isMyInvoisEnabled;
   final bool useMyInvoisSandbox;
   final bool? myInvoisLastTestSuccess;
@@ -127,6 +129,8 @@ class BusinessInfo with ChangeNotifier {
     this.businessEmail,
     this.businessPhone,
     this.businessAddress,
+    this.myInvoisClientId,
+    this.myInvoisClientSecret,
     this.isMyInvoisEnabled = false,
     this.useMyInvoisSandbox = true,
     this.myInvoisLastTestSuccess,
@@ -187,6 +191,8 @@ class BusinessInfo with ChangeNotifier {
     Object? businessEmail = _unset,
     Object? businessPhone = _unset,
     Object? businessAddress = _unset,
+    Object? myInvoisClientId = _unset,
+    Object? myInvoisClientSecret = _unset,
     bool? isMyInvoisEnabled,
     bool? useMyInvoisSandbox,
     Object? myInvoisLastTestSuccess = _unset,
@@ -247,6 +253,12 @@ class BusinessInfo with ChangeNotifier {
         businessAddress: identical(businessAddress, _unset)
           ? this.businessAddress
           : businessAddress as String?,
+        myInvoisClientId: identical(myInvoisClientId, _unset)
+          ? this.myInvoisClientId
+          : myInvoisClientId as String?,
+        myInvoisClientSecret: identical(myInvoisClientSecret, _unset)
+          ? this.myInvoisClientSecret
+          : myInvoisClientSecret as String?,
       isMyInvoisEnabled: isMyInvoisEnabled ?? this.isMyInvoisEnabled,
       useMyInvoisSandbox: useMyInvoisSandbox ?? this.useMyInvoisSandbox,
         myInvoisLastTestSuccess: identical(myInvoisLastTestSuccess, _unset)

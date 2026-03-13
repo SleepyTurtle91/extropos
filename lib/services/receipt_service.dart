@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:extropos/models/business_info_model.dart';
 import 'package:extropos/models/cart_item.dart';
 import 'package:extropos/models/printer_model.dart';
+import 'package:extropos/models/receipt_settings_model.dart';
 import 'package:extropos/services/database_service.dart';
 import 'package:extropos/services/e_wallet_service.dart';
 import 'package:extropos/services/payment_service.dart';
@@ -11,6 +12,16 @@ import 'package:extropos/services/printer_service.dart';
 /// Pure business logic for receipt generation and printing
 /// No Flutter imports, handles receipt data preparation
 class ReceiptService {
+  /// Get current receipt settings
+  static Future<ReceiptSettings> getSettings() async {
+    return await DatabaseService.instance.getReceiptSettings();
+  }
+
+  /// Save receipt settings
+  static Future<void> saveSettings(ReceiptSettings settings) async {
+    await DatabaseService.instance.saveReceiptSettings(settings);
+  }
+
   /// Prepare receipt data for printing
   static Future<Map<String, dynamic>> prepareReceiptData(
     List<CartItem> items,

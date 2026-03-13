@@ -1,4 +1,5 @@
 import 'package:extropos/models/inventory_models.dart';
+import 'package:extropos/services/database_service.dart';
 
 /// Inventory management service
 /// Handles stock tracking, reordering, and inventory reports
@@ -12,14 +13,22 @@ class InventoryService {
   InventoryService._internal();
 
   final Map<String, InventoryItem> _inventory = {};
-  final List<PurchaseOrder> _purchaseOrders = [];
-  final List<Supplier> _suppliers = [];
+  List<PurchaseOrder> _purchaseOrders = [];
+  List<Supplier> _suppliers = [];
 
   /// Initialize inventory service
   Future<void> initialize() async {
     try {
-      // TODO: Load from database
-      print('✅ Inventory service initialized');
+      final items = await DatabaseService.instance.getInventory();
+      _inventory.clear();
+      for (final item in items) {
+        _inventory[item.productId] = item;
+      }
+
+      _suppliers = await DatabaseService.instance.getSuppliers();
+      _purchaseOrders = await DatabaseService.instance.getPurchaseOrders();
+
+      print('✅ Inventory service initialized with ${items.length} items');
     } catch (e) {
       print('🔥 Error initializing inventory service: $e');
       rethrow;
@@ -77,15 +86,14 @@ class InventoryService {
       );
 
       item.addMovement(movement);
+      await DatabaseService.instance.saveInventoryItem(item);
+      await DatabaseService.instance.saveStockMovement(movement, productId);
 
       print('📦 Stock updated: ${item.productName} - ${item.currentQuantity} ${item.unit}');
 
-      // Check if reorder is needed
       if (item.needsReorder) {
         print('⚠️ REORDER ALERT: ${item.productName} is low (${item.currentQuantity} ${item.unit})');
       }
-
-      // TODO: Save to database
     } catch (e) {
       print('🔥 Error updating stock: $e');
       rethrow;
@@ -119,10 +127,10 @@ class InventoryService {
       );
 
       item.addMovement(movement);
+      await DatabaseService.instance.saveInventoryItem(item);
+      await DatabaseService.instance.saveStockMovement(movement, productId);
 
       print('✅ Stock added: ${item.productName} + $quantity ${item.unit}');
-
-      // TODO: Save to database
     } catch (e) {
       print('🔥 Error adding stock: $e');
       rethrow;
@@ -156,10 +164,10 @@ class InventoryService {
       );
 
       item.addMovement(movement);
+      await DatabaseService.instance.saveInventoryItem(item);
+      await DatabaseService.instance.saveStockMovement(movement, productId);
 
       print('🔧 Stock adjusted: ${item.productName} → $newQuantity ${item.unit}');
-
-      // TODO: Save to database
     } catch (e) {
       print('🔥 Error adjusting stock: $e');
       rethrow;
@@ -191,10 +199,10 @@ class InventoryService {
       );
 
       item.addMovement(movement);
+      await DatabaseService.instance.saveInventoryItem(item);
+      await DatabaseService.instance.saveStockMovement(movement, productId);
 
       print('⚠️ Damage recorded: ${item.productName} - $quantity ${item.unit}');
-
-      // TODO: Save to database
     } catch (e) {
       print('🔥 Error recording damage: $e');
       rethrow;
@@ -227,10 +235,9 @@ class InventoryService {
       );
 
       _purchaseOrders.add(po);
+      await DatabaseService.instance.savePurchaseOrder(po);
 
       print('📝 Purchase order created: $poNumber (RM ${totalAmount.toStringAsFixed(2)})');
-
-      // TODO: Save to database
 
       return po;
     } catch (e) {
@@ -254,9 +261,26 @@ class InventoryService {
         );
       }
 
-      print('✅ Purchase order received: ${po.poNumber}');
+      // Update PO status locally and in DB
+      final updatedPo = PurchaseOrder(
+        id: po.id,
+        poNumber: po.poNumber,
+        supplierId: po.supplierId,
+        supplierName: po.supplierName,
+        items: po.items,
+        totalAmount: po.totalAmount,
+        status: PurchaseOrderStatus.received,
+        orderDate: po.orderDate,
+        expectedDeliveryDate: po.expectedDeliveryDate,
+        receivedDate: DateTime.now(),
+        notes: po.notes,
+      );
 
-      // TODO: Update PO status in database
+      final index = _purchaseOrders.indexWhere((p) => p.id == poId);
+      _purchaseOrders[index] = updatedPo;
+      await DatabaseService.instance.savePurchaseOrder(updatedPo);
+
+      print('✅ Purchase order received: ${po.poNumber}');
     } catch (e) {
       print('🔥 Error receiving purchase order: $e');
       rethrow;
@@ -272,7 +296,6 @@ class InventoryService {
 
       final totalValue = allItems.fold(0.0, (sum, item) => sum + item.inventoryValue);
 
-      // Get top 10 most valuable items
       final topValue = List<InventoryItem>.from(allItems)
         ..sort((a, b) => b.inventoryValue.compareTo(a.inventoryValue));
 
@@ -310,10 +333,9 @@ class InventoryService {
       item.maxStockLevel = maxStock;
       item.reorderQuantity = reorderQty;
 
-      print('✅ Stock levels updated: ${item.productName}');
-      print('   Min: $minStock, Max: $maxStock, Reorder: $reorderQty');
+      await DatabaseService.instance.saveInventoryItem(item);
 
-      // TODO: Save to database
+      print('✅ Stock levels updated: ${item.productName}');
     } catch (e) {
       print('🔥 Error setting stock levels: $e');
       rethrow;
@@ -347,9 +369,8 @@ class InventoryService {
   Future<void> addSupplier(Supplier supplier) async {
     try {
       _suppliers.add(supplier);
+      await DatabaseService.instance.saveSupplier(supplier);
       print('✅ Supplier added: ${supplier.name}');
-
-      // TODO: Save to database
     } catch (e) {
       print('🔥 Error adding supplier: $e');
       rethrow;

@@ -210,22 +210,51 @@ class MyInvoiceService {
     return mapping[method.toLowerCase()] ?? 'CASH';
   }
 
-  /// Get authentication token (implement with OAuth/API key)
+  /// Get authentication token using OAuth 2.0 Client Credentials flow
   Future<String> _getToken() async {
     // Check if cached token is still valid
-    if (_apiToken != null && _tokenExpiry != null && _tokenExpiry!.isAfter(DateTime.now())) {
+    if (_apiToken != null &&
+        _tokenExpiry != null &&
+        _tokenExpiry!.isAfter(DateTime.now().add(const Duration(minutes: 5)))) {
       return _apiToken!;
     }
 
     try {
-      // TODO: Implement actual token retrieval (OAuth 2.0 or API key)
-      // This is a placeholder - implement based on MyInvois requirements
-      _apiToken = 'placeholder_token';
-      _tokenExpiry = DateTime.now().add(const Duration(hours: 1));
+      final info = BusinessInfo.instance;
+      final clientId = info.myInvoisClientId;
+      final clientSecret = info.myInvoisClientSecret;
+
+      if (clientId == null || clientSecret == null) {
+        throw Exception('MyInvois credentials not configured');
+      }
+
+      final response = await http.post(
+        Uri.parse('$_apiUrl/connect/token'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'grant_type': 'client_credentials',
+          'client_id': clientId,
+          'client_secret': clientSecret,
+          'scope': 'InvoicingAPI',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        throw Exception('Authentication failed: ${response.body}');
+      }
+
+      final data = jsonDecode(response.body);
+      _apiToken = data['access_token'] as String;
+      
+      // Set expiry with 1-minute buffer
+      final expiresIn = (data['expires_in'] as int? ?? 3600) - 60;
+      _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn));
+
+      print('✅ MyInvois token retrieved successfully');
       return _apiToken!;
     } catch (e) {
-      print('🔥 Error getting API token: $e');
-      throw Exception('Failed to authenticate with MyInvois');
+      print('🔥 Error getting MyInvois API token: $e');
+      throw Exception('Failed to authenticate with MyInvois: $e');
     }
   }
 

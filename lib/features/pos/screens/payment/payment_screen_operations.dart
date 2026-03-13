@@ -76,30 +76,29 @@ extension _PaymentScreenOperations on _PaymentScreenState {
                   .toLowerCase()
                   .contains('e-wallet'))) {
         _updateState(() => _isProcessing = false);
-        // TODO: Implement e-wallet payment screen
-        // final resultMap = await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => EWalletPaymentScreen(
-        //       amount: widget.totalAmount,
-        //       methodName: _selectedPaymentMethod!.name,
-        //       orderRef: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
-        //       merchantId: widget.merchantId,
-        //     ),
-        //   ),
-        // );
-        // if (!mounted) return;
-        // if (resultMap is Map && resultMap['success'] == true) {
-        //   _updateState(() => _isProcessing = true);
-        // } else {
-        //   // User canceled or failed
-        //   ToastHelper.showToast(context, 'E-Wallet payment canceled');
-        //   return;
-        // }
         
-        // Temporary: Show not implemented message
-        ToastHelper.showToast(context, 'E-Wallet payment not yet implemented');
-        return;
+        final resultMap = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EWalletPaymentScreen(
+              amount: widget.totalAmount,
+              methodName: _selectedPaymentMethod!.name,
+              orderRef: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
+              merchantId: widget.merchantId,
+            ),
+          ),
+        );
+
+        if (!mounted) return;
+        
+        if (resultMap is Map && resultMap['success'] == true) {
+          _updateState(() => _isProcessing = true);
+          // Continue processing with the confirmed payment
+        } else {
+          // User canceled or failed
+          ToastHelper.showToast(context, 'E-Wallet payment canceled');
+          return;
+        }
       }
 
       if (isCashPayment) {

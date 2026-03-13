@@ -479,12 +479,6 @@ class BackendUserService extends ChangeNotifier {
     return emailRegex.hasMatch(email);
   }
 
-  /// Clear all users (for testing)
-  void _clearAllUsers() {
-    _users.clear();
-    notifyListeners();
-  }
-
   /// Export all users as JSON
   Future<List<Map<String, dynamic>>> exportUsersAsJson() async {
     print('📤 Exporting users as JSON...');

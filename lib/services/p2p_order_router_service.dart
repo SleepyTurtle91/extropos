@@ -63,9 +63,6 @@ class P2POrderRouterService {
         throw Exception('P2P Service is not running');
       }
 
-      final device = _p2pService.connectedDevices
-          .firstWhere((d) => d.deviceId == deviceId, orElse: () => null as dynamic);
-
       final p2pItems = items.map((item) => P2POrderItem.fromCartItem(item)).toList();
 
       final orderMessage = P2POrderMessage(

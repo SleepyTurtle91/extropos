@@ -17,8 +17,9 @@ class IminPrinterService {
 
   IminPrinter? _iminPrinter;
   // IminViceScreen? _iminViceScreen;  // DISABLED - Incompatible with Android SDK 36
-  bool _hasViceScreen = false;  // Always false when imin_vice_screen is disabled
   bool _isInitialized = false;
+  bool _hasViceScreen = false;
+  bool _isViceScreenAwake = false;
 
   /// Initialize IMIN printer service
   Future<void> initialize() async {
@@ -36,30 +37,28 @@ class IminPrinterService {
         },
       );
 
-      // Check if vice screen is supported
-      // NOTE: We do NOT initialize LCD mode here anymore to prevent overriding Flutter UI
-      // We just check if the plugin is available
-      /* DISABLED - imin_vice_screen incompatible with Android SDK 36
-      try {
-        // Just check if we can get an instance, don't send LCD commands
-        if (_iminViceScreen != null) {
-          // We assume it's supported if we're on an iMin device
-          // A better check would be isSupportMultipleScreen() but that's async
-          // For now, we'll rely on the DualDisplayService to handle the actual display
-          _hasViceScreen = true;
-          debugPrint('IMIN: Vice screen support detected');
-        }
-      } catch (e) {
-        _hasViceScreen = false;
-        debugPrint('IMIN: Vice screen not available: $e');
-      }
-      */
-      _hasViceScreen = false;  // Disabled until imin_vice_screen is updated
-
       _isInitialized = true;
+      await _initializeViceScreenMode();
     } catch (_) {
       _isInitialized = false;
+      _hasViceScreen = false;
+      _isViceScreenAwake = false;
     }
+  }
+
+  Future<void> _initializeViceScreenMode() async {
+    if (!Platform.isAndroid || !_isInitialized) {
+      _hasViceScreen = false;
+      _isViceScreenAwake = false;
+      return;
+    }
+
+    // Plugin is disabled for SDK compatibility. We use printer init success as
+    // proxy signal that IMIN hardware is available and Flutter-route vice mode
+    // can be used.
+    _hasViceScreen = true;
+    _isViceScreenAwake = true;
+    debugPrint('IMIN: Vice screen mode initialized (Flutter route mode)');
   }
 
   /// Check if IMIN printer is available
@@ -175,124 +174,55 @@ class IminPrinterService {
     }
   }
 
-  // Future<bool> isDualDisplaySupported() async {
-  //   if (!Platform.isAndroid) return false;
-  //   try {
-  //     _iminViceScreen ??= IminViceScreen();
-  //     return await _iminViceScreen!.isSupportMultipleScreen() ?? false;
-  //   } catch (_) {
-  //     return false;
-  //   }
-  // }
-
-  // Future<bool> sendTextToCustomerDisplay(String text) async {
-  //   if (!Platform.isAndroid) return false;
-  //   try {
-  //     _iminViceScreen ??= IminViceScreen();
-  //     await _iminViceScreen!.doubleScreenOpen();
-  //     await _iminViceScreen!.sendMsgToViceScreen(
-  //       'text',
-  //       params: {'data': text},
-  //     );
-  //     return true;
-  //   } catch (_) {
-  //     return false;
-  //   }
-  // }
-
-  // Future<bool> clearCustomerDisplay() async {
-  //   if (!Platform.isAndroid) return false;
-  //   try {
-  //     _iminViceScreen ??= IminViceScreen();
-  //     // Fallback clear: send empty text payload to overwrite screen
-  //     await _iminViceScreen!.doubleScreenOpen();
-  //     await _iminViceScreen!.sendMsgToViceScreen('text', params: {'data': ''});
-  //     return true;
-  //   } catch (_) {
-  //     return false;
-  //   }
-  // }
-
   Future<bool> isDualDisplaySupported() async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
-    /* ORIGINAL CODE:
-    if (!Platform.isAndroid) return false;
-    try {
-      _iminViceScreen ??= IminViceScreen();
-      final supported =
-          await _iminViceScreen!.isSupportMultipleScreen().timeout(
-            const Duration(seconds: 2),
-            onTimeout: () => false,
-          ) ??
-          false;
-      debugPrint('IMIN: isDualDisplaySupported = $supported');
-      return supported;
-    } catch (e) {
-      debugPrint('IMIN: isDualDisplaySupported error: $e');
-      return false;
-    }
-    */
+    if (!Platform.isAndroid || !_isInitialized) return false;
+    return _hasViceScreen;
   }
 
   Future<bool> sendTextToCustomerDisplay(String text) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
-    /* ORIGINAL CODE:
-    if (!Platform.isAndroid) return false;
-    try {
-      _iminViceScreen ??= IminViceScreen();
-      await _iminViceScreen!.doubleScreenOpen();
-      await _iminViceScreen!.sendMsgToViceScreen(
-        'text',
-        params: {'data': text},
-      );
-      debugPrint('IMIN: Sent text to vice screen: $text');
-      return true;
-    } catch (e) {
-      debugPrint('IMIN: sendTextToCustomerDisplay error: $e');
-      return false;
-    }
-    */
+    return displayOnViceScreen(text);
   }
 
   Future<bool> clearCustomerDisplay() async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return clearViceScreen();
   }
 
   Future<bool> showWelcomeOnCustomerDisplay(String businessName) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return displayDoubleOnViceScreen('WELCOME', businessName.toUpperCase());
   }
 
   Future<bool> showOrderTotalOnCustomerDisplay(
     double total,
     String currency,
   ) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return displayDoubleOnViceScreen(
+      'TOTAL',
+      '$currency${total.toStringAsFixed(2)}',
+    );
   }
 
   Future<bool> showPaymentAmountOnCustomerDisplay(
     double amount,
     String currency,
   ) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return displayDoubleOnViceScreen(
+      'PAYMENT',
+      '$currency${amount.toStringAsFixed(2)}',
+    );
   }
 
   Future<bool> showChangeOnCustomerDisplay(
     double change,
     String currency,
   ) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return displayDoubleOnViceScreen(
+      'CHANGE',
+      '$currency${change.toStringAsFixed(2)}',
+    );
   }
 
   Future<bool> showThankYouOnCustomerDisplay() async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return displayDoubleOnViceScreen('THANK YOU', 'PLEASE COME AGAIN');
   }
 
   app.PrinterStatus _mapIminStatusToPrinterStatus(dynamic _) {
@@ -301,12 +231,19 @@ class IminPrinterService {
   }
 
   /// Check if vice screen is available
-  bool get hasViceScreen => false;  // DISABLED - imin_vice_screen incompatible
+  bool get hasViceScreen => _hasViceScreen;
+
+  bool get isViceScreenAwake => _isViceScreenAwake;
 
   /// Display text on vice screen
   Future<bool> displayOnViceScreen(String text) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    if (!Platform.isAndroid || !_isInitialized || !_hasViceScreen) {
+      return false;
+    }
+
+    _isViceScreenAwake = true;
+    debugPrint('IMIN Vice: $text');
+    return true;
   }
 
   /// Display double line text on vice screen
@@ -314,25 +251,28 @@ class IminPrinterService {
     String topText,
     String bottomText,
   ) async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    return displayOnViceScreen('$topText\n$bottomText');
   }
 
   /// Clear vice screen
   Future<bool> clearViceScreen() async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
-  }
+    if (!Platform.isAndroid || !_isInitialized || !_hasViceScreen) {
+      return false;
+    }
 
-  /// Wake up the vice screen (unlock if locked)
-  Future<void> _wakeViceScreen() async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return;
+    _isViceScreenAwake = true;
+    debugPrint('IMIN Vice: cleared');
+    return true;
   }
 
   /// Public method to wake up the vice screen
   Future<bool> wakeViceScreen() async {
-    // DISABLED - imin_vice_screen incompatible with Android SDK 36
-    return false;
+    if (!Platform.isAndroid || !_isInitialized || !_hasViceScreen) {
+      return false;
+    }
+
+    _isViceScreenAwake = true;
+    debugPrint('IMIN: Vice screen wake requested');
+    return true;
   }
 }

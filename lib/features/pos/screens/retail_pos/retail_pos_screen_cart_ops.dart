@@ -77,29 +77,14 @@ extension _RetailPOSCartOps on _RetailPOSScreenState {
     await _addProductToCart(p, variant: variant);
   }
 
-  Future<void> removeFromCart(int index) async {
+  void _updateQuantity(CartItem item, int newQuantity) {
     _updateState(() {
-      if (cartItems[index].quantity > 1) {
-        cartItems[index].quantity--;
+      if (newQuantity <= 0) {
+        cartItems.remove(item);
       } else {
-        cartItems.removeAt(index);
+        item.quantity = newQuantity;
       }
     });
-
-    await _updateDualDisplay();
-  }
-
-  void clearCart() {
-    _updateState(() {
-      cartItems.clear();
-      customerName = null;
-      customerPhone = null;
-      customerEmail = null;
-      specialInstructions = null;
-      selectedCustomer = null;
-    });
-
-    _updateDualDisplay();
   }
 
   double getSubtotal() => cartItems.fold(0.0, (s, c) => s + c.totalPrice);
@@ -144,50 +129,19 @@ extension _RetailPOSCartOps on _RetailPOSScreenState {
         : 0.0;
   }
 
-  double getTotal() =>
-      (getSubtotal() - billDiscount < 0 ? 0.0 : getSubtotal() - billDiscount) +
-      getTaxAmount() +
-      getServiceChargeAmount();
-
-  int getLoyaltyPointsEarned() {
-    if (selectedCustomer == null) return 0;
-
-    final pointsEarned = (getTotal() / 10).floor();
-    if (selectedCustomer!.customerTier == 'VIP') {
-      return pointsEarned * 2;
-    }
-
-    return pointsEarned;
-  }
-
-  void _addToCart(Product product) {
-    _updateState(() {
-      final existingIndex = cartItems.indexWhere(
-        (item) => item.product.name == product.name,
-      );
-      if (existingIndex >= 0) {
-        cartItems[existingIndex].quantity += 1;
-      } else {
-        cartItems.add(CartItem(product, 1));
-      }
-    });
-  }
-
-  void _updateQuantity(CartItem item, int newQuantity) {
-    _updateState(() {
-      if (newQuantity <= 0) {
-        cartItems.remove(item);
-      } else {
-        item.quantity = newQuantity;
-      }
-    });
-  }
-
   Future<void> _checkout() async {
     if (cartItems.isEmpty) return;
 
     _updateState(() {
       cartItems.clear();
+      customerName = null;
+      customerPhone = null;
+      customerEmail = null;
+      specialInstructions = null;
+      selectedCustomer = null;
+      billDiscount = 0.0;
     });
+
+    await _updateDualDisplay();
   }
 }

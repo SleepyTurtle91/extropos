@@ -2,7 +2,6 @@ import 'dart:developer' as developer;
 
 import 'package:extropos/models/dealer_customer_model.dart';
 import 'package:extropos/services/database_service.dart';
-import 'package:extropos/services/license_service.dart';
 
 /// Service for Dealer Analytics
 /// Provides real analytics data for dealer's managed tenants
@@ -105,7 +104,6 @@ class DealerAnalyticsService {
 
       for (final customer in customers) {
         // Check if customer has active license
-        final licenseService = LicenseService.instance;
         // This would need to be implemented to check actual license status
         // For now, assume each active customer has 1 license
         if (customer.isActive) {

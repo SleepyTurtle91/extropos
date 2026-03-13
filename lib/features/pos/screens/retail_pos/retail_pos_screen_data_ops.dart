@@ -5,20 +5,19 @@ extension _RetailPOSDataOps on _RetailPOSScreenState {
     final user = LockManager.instance.currentUser;
     if (user == null) return;
 
-    await ShiftService().initialize(user.id);
+    await ShiftService.instance.initialize(user.id);
 
-    // TODO: Implement shift management dialog
-    // if (!ShiftService().hasActiveShift && mounted) {
-    //   final started = await showDialog<bool>(
-    //     context: context,
-    //     barrierDismissible: false,
-    //     builder: (context) => StartShiftDialog(userId: user.id),
-    //   );
+    if (!ShiftService.instance.hasActiveShift && mounted) {
+      final started = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => StartShiftDialog(userId: user.id),
+      );
 
-    //   if (started != true && mounted) {
-    //     ToastHelper.showToast(context, 'You must start a shift to process orders');
-    //   }
-    // }
+      if (started != true && mounted) {
+        ToastHelper.showToast(context, 'You must start a shift to process orders');
+      }
+    }
   }
 
   Future<void> _loadFromDatabase() async {

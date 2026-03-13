@@ -39,6 +39,13 @@ Integrate thermal printers (58mm/80mm), barcode scanners, and payment terminals.
 
 ---
 
+### 6. [gemini-cli-heavy-lifting](gemini-cli-heavy-lifting/)
+Use Gemini CLI for high-context analysis and implementation across large code areas. Includes task routing rules, prompt templates, and a safe execution sequence for heavy bug fixing.
+
+**Use when**: Cross-file bug hunts, large refactors, release blockers, oversized context tasks
+
+---
+
 ## 📋 Quick Reference
 
 | Task | Skill |
@@ -48,6 +55,7 @@ Integrate thermal printers (58mm/80mm), barcode scanners, and payment terminals.
 | Fix responsive grid | pos-ui-responsive-design |
 | Write unit tests | flutter-testing-quality |
 | Connect thermal printer | pos-hardware-integration |
+| Analyze large cross-file bug | gemini-cli-heavy-lifting |
 
 ---
 
@@ -87,6 +95,11 @@ skill-name/
 ### Debugging a Bug
 ```
 Identify root cause → Relevant skill → Fix → Add tests
+```
+
+### Large-Context Debugging
+```
+Package context → Use gemini-cli-heavy-lifting → Apply minimal patches → Validate
 ```
 
 ### Improving Code Quality

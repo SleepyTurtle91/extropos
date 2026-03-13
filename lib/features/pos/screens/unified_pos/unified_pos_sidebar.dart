@@ -296,12 +296,10 @@ extension _UnifiedPOSSidebar on _UnifiedPOSScreenState {
         );
         break;
       case 'Kitchen':
-        // TODO: Implement kitchen display screen
-        // await Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const KitchenDisplayScreen()),
-        // );
-        ToastHelper.showToast(context, 'Kitchen display not yet implemented');
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const KitchenDisplayScreen()),
+        );
         break;
       case 'Return & Void':
         await Navigator.push(

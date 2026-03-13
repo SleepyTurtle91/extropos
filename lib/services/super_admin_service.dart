@@ -113,28 +113,48 @@ class SuperAdminService {
   }
 
   /// Get tenant database status
-  /// TODO: Implement when backend API supports status queries
-  /// This will provide real-time information about tenant database health,
-  /// maintenance status, and operational metrics
+  /// Provides real-time information about tenant database health and maintenance status
   static Future<Map<String, dynamic>?> getTenantDatabaseStatus(
     String tenantId,
   ) async {
-    // TODO: Implement when backend supports status queries
-    developer.log(
-      'SuperAdminService: getTenantDatabaseStatus not yet implemented for tenant $tenantId',
-    );
-    return null;
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/tenant/$tenantId/db-status'),
+        headers: {
+          'X-API-Key': await _getApiKey(),
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      developer.log('SuperAdminService: Error getting status: $e');
+      return null;
+    }
   }
 
   /// Cancel tenant database maintenance
-  /// TODO: Implement when backend API supports maintenance cancellation
-  /// This will allow aborting ongoing database maintenance operations
-  /// and restoring normal tenant database access
+  /// Allows aborting ongoing database maintenance operations
   static Future<bool> cancelTenantDatabaseMaintenance(String tenantId) async {
-    // TODO: Implement when backend supports cancellation
-    developer.log(
-      'SuperAdminService: cancelTenantDatabaseMaintenance not yet implemented for tenant $tenantId',
-    );
-    return false;
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/tenant/$tenantId/db-access/cancel'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': await _getApiKey(),
+        },
+        body: jsonEncode({
+          'action': 'CANCEL_MAINTENANCE',
+          'timestamp': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      developer.log('SuperAdminService: Error canceling maintenance: $e');
+      return false;
+    }
   }
 }

@@ -18,7 +18,8 @@ class Environment {
   );
 
   // Appwrite Database and Collection IDs
-  static const String posDatabase = 'pos_db';
+  static const String posDatabase = 'extropos_db';
+  static const String configCollection = 'configs';
   static const String categoriesCollection = 'categories';
   static const String itemsCollection = 'items';
   static const String ordersCollection = 'orders';

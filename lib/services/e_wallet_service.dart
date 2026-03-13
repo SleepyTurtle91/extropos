@@ -1,13 +1,86 @@
 import 'dart:developer' as developer;
 
 import 'package:extropos/services/database_helper.dart';
+import 'package:extropos/services/payment/payment_gateway.dart';
 
 class EWalletService {
   static final EWalletService instance = EWalletService._();
   EWalletService._();
 
-  /// Load E-Wallet settings from local DB (payment_method='ewallet').
-  /// Returns keys: provider, merchant_id, api_key, client_id, client_secret, callback_url, webhook_secret, use_sandbox, is_enabled
+  /// Generate a payment QR code for the specified amount and method
+  Future<Map<String, dynamic>?> generatePaymentQR({
+    required double amount,
+    required String methodName,
+    required String orderRef,
+  }) async {
+    try {
+      // For demonstration, we'll use a local mock flow
+      // In production, this would call the respective gateway API (Boost, GrabPay, etc.)
+      final referenceId = 'REF-${DateTime.now().millisecondsSinceEpoch}';
+      final qrData = buildDuitNowQR(
+        amount: amount,
+        referenceId: referenceId,
+      );
+
+      final transactionId = await createPendingTransaction(
+        transactionId: orderRef,
+        paymentMethod: methodName,
+        amount: amount,
+        referenceId: referenceId,
+        qrExpiresAt: DateTime.now().add(const Duration(minutes: 5)),
+      );
+
+      return {
+        'qr_data': qrData,
+        'payment_id': transactionId.toString(),
+      };
+    } catch (e) {
+      developer.log('EWallet: Failed to generate QR - $e');
+      return null;
+    }
+  }
+
+  /// Check the current status of a payment
+  Future<PaymentStatus> checkPaymentStatus(String paymentId) async {
+    try {
+      final id = int.tryParse(paymentId);
+      if (id == null) {
+        return PaymentStatus(
+          transactionId: paymentId,
+          status: PaymentStatusEnum.failed,
+        );
+      }
+
+      final status = await getTransactionStatus(id: id);
+
+      switch (status) {
+        case 'success':
+          return PaymentStatus(
+            transactionId: paymentId,
+            status: PaymentStatusEnum.success,
+          );
+        case 'failed':
+        case 'expired':
+          return PaymentStatus(
+            transactionId: paymentId,
+            status: PaymentStatusEnum.failed,
+          );
+        default:
+          return PaymentStatus(
+            transactionId: paymentId,
+            status: PaymentStatusEnum.pending,
+          );
+      }
+    } catch (e) {
+      developer.log('EWallet: Failed to check status - $e');
+      return PaymentStatus(
+        transactionId: paymentId,
+        status: PaymentStatusEnum.pending,
+      );
+    }
+  }
+
+  /// Load E-Wallet settings from local DB (payment_method='ewallet').  /// Returns keys: provider, merchant_id, api_key, client_id, client_secret, callback_url, webhook_secret, use_sandbox, is_enabled
   Future<Map<String, dynamic>> getSettings() async {
     try {
       final db = await DatabaseHelper.instance.database;

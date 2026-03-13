@@ -1,3 +1,10 @@
+import 'package:extropos/database/schemas/catalog_schema.dart';
+import 'package:extropos/database/schemas/config_schema.dart';
+import 'package:extropos/database/schemas/inventory_schema.dart';
+import 'package:extropos/database/schemas/orders_schema.dart';
+import 'package:extropos/database/schemas/session_schema.dart';
+import 'package:extropos/database/schemas/tenant_schema.dart';
+import 'package:extropos/database/schemas/users_schema.dart';
 import 'package:extropos/services/pin_store.dart';
 import 'package:extropos/services/sqlite3_bootstrap.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
