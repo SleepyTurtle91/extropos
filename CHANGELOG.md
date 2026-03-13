@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-03-13
+
+### Added
+- **OAuth 2.0 Integration for MyInvois**
+  - Implemented Client Credentials flow for secure token retrieval from LHDN API
+  - Added token caching and automatic refresh mechanisms
+- **Offline-First Synchronization Engine**
+  - Completed `OfflineSyncService` logic for robust data persistence
+  - Implemented transaction, product, inventory, and customer syncing with Appwrite backend
+- **Enhanced Payment Ecosystem**
+  - Created `EWalletPaymentScreen` with interactive QR code flow
+  - Added structured API simulations for GrabPay, Touch 'n Go, and Boost
+  - Implemented real-time payment status polling and manual verification
+- **Customer Communication**
+  - Added Email Receipt functionality in `ReceiptPreviewScreen`
+  - Integrated `EmailService` with SMTP support for digital receipt delivery
+- **System Settings Expansion**
+  - New `ReceiptSettingsScreen` for granular layout and content customization
+  - New `EWalletSettingsScreen` for payment provider configuration
+  - Added functional stubs for P2P, KDS, and Display management
+
+### Changed
+- **Architectural Modularization (Layer A/B/C)**
+  - Large files (>500 lines) refactored into focused, maintainable modules
+  - `ReportsScreen` split into methods, widgets, and export components
+  - `DatabaseService` decomposed into 15+ specialized part files
+  - `ReceiptGenerator` refactored into specialized retail and kitchen engines
+  - `PrinterService` and `ReportPrinterService` modularized for better hardware abstraction
+- **Core Improvements**
+  - Integrated `StartShiftDialog` into POS entry flow for mandatory shift management
+  - Organized database schema into `lib/database/schemas/` for better maintainability
+  - Purged Material UI dependencies from core business logic layers
+
+### Fixed
+- **Code Quality & Stability**
+  - Resolved 3000+ lint warnings and naming collisions
+  - Fixed DuitNow payload generation typo
+  - Corrected `PaymentStatus` type definitions across e-wallet services
+  - Optimized database initialization with mandatory index creation
+
 ## [1.2.1] - 2026-03-13
 
 ### Added
